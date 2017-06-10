@@ -1,0 +1,9 @@
+var config = {
+
+    socket: {
+        host: 'localhost',
+        path: '/log',
+        port: 3000
+    }
+
+};
