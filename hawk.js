@@ -98,10 +98,15 @@ module.exports = function () {
 
         let error = {
             message: ErrorEvent.error.message,
-            location: {
+            error_location: {
                 file: ErrorEvent.filename,
                 line: ErrorEvent.lineno,
                 col: ErrorEvent.colno
+            },
+            location: {
+                origin: window.location.origin,
+                path: window.location.pathname,
+                port: window.location.port
             },
             stack: ErrorEvent.error.stack,
             time: Date.now(),
@@ -186,7 +191,9 @@ module.exports = function () {
         let device = {
             os: getOs(),
             osversion: bowser.osversion,
-            type: getDeviceType()
+            type: getDeviceType(),
+            width: window.innerWidth,
+            height: window.innerHeight
         };
 
         return {
@@ -220,8 +227,8 @@ module.exports = {
 
     socket: {
         host: 'localhost',
-        path: '/log',
-        port: 3000
+        path: 'catcher/client',
+        port: 8000
     }
 
 };
