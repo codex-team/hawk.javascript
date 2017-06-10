@@ -13,6 +13,18 @@ module.exports = function (options) {
 
         ws = new WebSocket(url);
 
+        if (typeof options.onmessage == 'function') {
+            ws.onmessage = options.onmessage;
+        }
+
+        if (typeof options.onclose == 'function') {
+            ws.onclose = options.onclose;
+        }
+
+        if (typeof options.onopen == 'function') {
+            ws.onopen = options.onopen;
+        }
+
     };
 
     let send = function (data) {
