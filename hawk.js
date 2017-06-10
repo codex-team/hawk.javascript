@@ -105,6 +105,7 @@ module.exports = function () {
             },
             location: {
                 origin: window.location.origin,
+                host: window.location.hostname,
                 path: window.location.pathname,
                 port: window.location.port
             },
@@ -226,9 +227,8 @@ module.exports = function() {
 module.exports = {
 
     socket: {
-        host: 'localhost',
-        path: 'catcher/client',
-        port: 8000
+        host: '29fa0585.ngrok.io',
+        path: 'catcher/client'
     }
 
 };

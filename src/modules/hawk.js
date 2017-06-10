@@ -32,6 +32,7 @@ module.exports = function () {
             },
             location: {
                 origin: window.location.origin,
+                host: window.location.hostname,
                 path: window.location.pathname,
                 port: window.location.port
             },
