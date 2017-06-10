@@ -83,6 +83,7 @@ module.exports = function () {
                 col: ErrorEvent.colno
             },
             location: {
+                url: window.location.href,
                 origin: window.location.origin,
                 host: window.location.hostname,
                 path: window.location.pathname,
