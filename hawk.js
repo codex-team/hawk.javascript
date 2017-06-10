@@ -76,15 +76,66 @@ module.exports = function () {
     let config = __webpack_require__(2),
         websocket = __webpack_require__(5),
         ws = null,
-        userAgent = null;
+        userAgent = null,
+        token;
 
-    let init = function () {
+    let log = function (message, type) {
 
-        ws = websocket(config.socket);
+        type = type || 'info';
+
+        message = '[Codex Hawk]:  ' + message;
+
+        if ('console' in window && window.console[type]) {
+
+            window.console[type](message);
+
+        }
+
+    };
+
+    let init = function (token_) {
+
+        if (!token_) {
+            log('Please, pass your verification token for Hawk error tracker. You can get it on hawk.ifmo.su', 'warn');
+            return;
+        }
+
+        token = token_;
+
+        let socket = config.socket;
+
+        socket.onmessage = socketHandlers.message;
+        socket.onclose = socketHandlers.close;
+
+        ws = websocket(socket);
 
         userAgent = detect();
 
         window.addEventListener('error', errorHandler);
+
+    };
+
+    let socketHandlers = {
+
+        message: function (data) {
+
+            let message, type;
+
+            try {
+                message = JSON.parse(data);
+                type = data.type;
+                message = data.message;
+            } catch (e) {
+                message = data;
+                type = 'info';
+            }
+
+            log('Message from server: ' + message.data, 'info');
+        },
+
+        close: function () {
+            log('Connection lost. Errors won\'t be save. Please, refresh the page', 'warn');
+        }
 
     };
 
@@ -97,6 +148,7 @@ module.exports = function () {
     let errorHandler = function (ErrorEvent) {
 
         let error = {
+            token: token,
             message: ErrorEvent.error.message,
             error_location: {
                 file: ErrorEvent.filename,
@@ -104,6 +156,7 @@ module.exports = function () {
                 col: ErrorEvent.colno
             },
             location: {
+                url: window.location.href,
                 origin: window.location.origin,
                 host: window.location.hostname,
                 path: window.location.pathname,
@@ -113,8 +166,6 @@ module.exports = function () {
             time: Date.now(),
             navigator: userAgent
         };
-
-        console.log(error);
 
         ws.send(error);
 
@@ -237,11 +288,8 @@ module.exports = {
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
-let hawk = __webpack_require__(0);
+module.exports = __webpack_require__(0);
 
-hawk.init();
-
-module.exports = hawk;
 
 /***/ }),
 /* 4 */
@@ -847,6 +895,18 @@ module.exports = function (options) {
 
 
         ws = new WebSocket(url);
+
+        if (typeof options.onmessage == 'function') {
+            ws.onmessage = options.onmessage;
+        }
+
+        if (typeof options.onclose == 'function') {
+            ws.onclose = options.onclose;
+        }
+
+        if (typeof options.onopen == 'function') {
+            ws.onopen = options.onopen;
+        }
 
     };
 
