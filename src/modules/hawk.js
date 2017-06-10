@@ -49,15 +49,15 @@ module.exports = function () {
             let message, type;
 
             try {
-                message = JSON.parse(data);
+                data = JSON.parse(data.data);
                 type = data.type;
                 message = data.message;
             } catch (e) {
-                message = data;
+                message = data.data;
                 type = 'info';
             }
 
-            log('Message from server: ' + message.data, 'info');
+            log('Message from server: ' + message, type);
         },
 
         close: function () {
