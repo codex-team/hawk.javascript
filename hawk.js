@@ -149,7 +149,7 @@ module.exports = function () {
 
         let error = {
             token: token,
-            message: ErrorEvent.error.message,
+            message: ErrorEvent.message,
             error_location: {
                 file: ErrorEvent.filename,
                 line: ErrorEvent.lineno,
