@@ -1,3 +1,12 @@
+/*!
+ * Codex Hawk client side module
+ * https://github.com/codex-team/hawk.client
+ *
+ * Codex Hawk - https://hawk.ifmo.su
+ * Codex Team - https://ifmo.su
+ *
+ * MIT License | (c) Codex Team 2017
+ */
 module.exports = function () {
 
     let config = require('../config'),
@@ -20,7 +29,11 @@ module.exports = function () {
 
     };
 
-    let init = function (token_) {
+    let init = function (token_, host, port, path) {
+
+        config.socket.host = host || config.socket.host;
+        config.socket.port = port || config.socket.port;
+        config.socket.path = path || config.socket.path;
 
         if (!token_) {
             log('Please, pass your verification token for Hawk error tracker. You can get it on hawk.ifmo.su', 'warn');
@@ -183,8 +196,25 @@ module.exports = function () {
 
     };
 
+    let test = function () {
+
+        let fakeEvent = {
+            message: 'Hawk client catcher test',
+            filename: 'hawk.js',
+            lineno: 0,
+            colno: 0,
+            error: {
+                stack: 'hawk.js'
+            }
+        };
+
+        errorHandler(fakeEvent);
+
+    };
+
     return {
-        init: init
+        init: init,
+        test: test
     }
 
 }();

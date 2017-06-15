@@ -1,9 +1,0 @@
-module.exports = {
-
-    socket: {
-        host: 'localhost',
-        path: '/log',
-        port: 3000
-    }
-
-};

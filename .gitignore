@@ -58,7 +58,5 @@ typings/
 .env
 
 .idea/*
-/src/config.js
 .idea/watcherTasks.xml
 package-lock.json
-src/config.js
