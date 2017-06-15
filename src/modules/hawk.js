@@ -5,7 +5,7 @@
  * Codex Hawk - https://hawk.ifmo.su
  * Codex Team - https://ifmo.su
  *
- * MIT License | (c) Codex Team 2017
+ * MIT License | (c) Codex 2017
  */
 module.exports = function () {
 
