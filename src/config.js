@@ -1,9 +1,9 @@
 module.exports = {
 
     socket: {
-        host: 'hawk.ifmo.su',
+        host: 'hawk.so',
         path: 'catcher/client',
-        port: 8000
+        port: 8070
     }
 
 };
