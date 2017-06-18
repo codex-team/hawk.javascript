@@ -10,7 +10,7 @@ This is repository for javascript error handling.
 ### From CDN
 Add script directly from GitHub.
 ```
-<script src="https://raw.githubusercontent.com/codex-team/hawk.client/master/hawk.js"></script>
+<script src="https://cdn.rawgit.com/codex-team/hawk.client/master/hawk.js"></script>
 ```
 
 ### Or download on your own server
