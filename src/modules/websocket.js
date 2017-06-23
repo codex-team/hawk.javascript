@@ -10,7 +10,6 @@ module.exports = function (options) {
             port = options.port ? ':' + options.port : '',
             url = protocol + host + port + path;
 
-
         ws = new WebSocket(url);
 
         if (typeof options.onmessage == 'function') {
@@ -37,6 +36,6 @@ module.exports = function (options) {
 
     return {
         send: send,
-    }
+    };
 
 };

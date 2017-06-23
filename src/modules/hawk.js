@@ -9,6 +9,8 @@
  */
 module.exports = function () {
 
+    'use strict';
+
     let config = require('../config'),
         websocket = require('./websocket'),
         ws = null,
@@ -29,11 +31,20 @@ module.exports = function () {
 
     };
 
-    let init = function (token_, host, port, path) {
+    /**
+     * Hawk client constructor
+     * @param  {string} token_      personal token
+     * @param  {string} host        optional: client catcher hostname
+     * @param  {Number} port        optional: client catcher port
+     * @param  {string} path        hawk catcher route
+     * @param  {Boolean} secure     pass FALSE to disable secure connection
+     */
+    let init = function (token_, host, port, path, secure) {
 
         config.socket.host = host || config.socket.host;
         config.socket.port = port || config.socket.port;
         config.socket.path = path || config.socket.path;
+        config.socket.secure = secure !== undefined ? secure : config.socket.secure;
 
         if (!token_) {
             log('Please, pass your verification token for Hawk error tracker. You can get it on hawk.ifmo.su', 'warn');
@@ -149,18 +160,18 @@ module.exports = function () {
             if (bowser.bada) return 'Bada';
             if (bowser.tizen) return 'Tizen';
             if (bowser.sailfish) return 'Sailfish OS';
-            
-            return undefined
-            
+
+            return undefined;
+
         };
-        
+
         let getDeviceType = function () {
-            
+
             if (bowser.tablet) return 'tablet';
             if (bowser.mobile) return 'mobile';
 
-            return 'desktop'
-            
+            return 'desktop';
+
         };
 
         let getCapability = function () {
@@ -179,7 +190,7 @@ module.exports = function () {
             engine: getRenderingEngine(),
             capability: getCapability()
         };
-        
+
         let device = {
             os: getOs(),
             osversion: bowser.osversion,
@@ -192,7 +203,7 @@ module.exports = function () {
             browser: browser,
             device: device,
             userAgent: window.navigator.userAgent
-        }
+        };
 
     };
 
@@ -215,6 +226,6 @@ module.exports = function () {
     return {
         init: init,
         test: test
-    }
+    };
 
 }();
