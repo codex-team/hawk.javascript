@@ -1,7 +1,5 @@
 module.exports = function (options) {
 
-    console.log("options: %o", options);
-
     let ws = null;
 
     let init = function () {
@@ -11,11 +9,6 @@ module.exports = function (options) {
             path = options.path ? '/' + options.path : '',
             port = options.port ? ':' + options.port : '',
             url = protocol + host + port + path;
-
-        console.log("protocol: %o", protocol);
-
-        console.log("url: %o", url);
-
 
         ws = new WebSocket(url);
 
@@ -43,6 +36,6 @@ module.exports = function (options) {
 
     return {
         send: send,
-    }
+    };
 
 };

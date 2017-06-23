@@ -44,7 +44,7 @@ module.exports = function () {
         config.socket.host = host || config.socket.host;
         config.socket.port = port || config.socket.port;
         config.socket.path = path || config.socket.path;
-        config.socket.secure = secure || config.socket.secure;
+        config.socket.secure = secure !== undefined ? secure : config.socket.secure;
 
         if (!token_) {
             log('Please, pass your verification token for Hawk error tracker. You can get it on hawk.ifmo.su', 'warn');
