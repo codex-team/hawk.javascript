@@ -10,13 +10,13 @@ This is repository for javascript error handling.
 ### From CDN
 Add script directly from GitHub.
 ```
-<script src="https://cdn.rawgit.com/codex-team/hawk.client/master/hawk.js"></script>
+<script src="https://cdn.rawgit.com/codex-team/hawk.client/master/hawk.js" async></script>
 ```
 
 ### Or download on your own server
 Download [hawk.js](https://github.com/codex-team/hawk.client/blob/master/hawk.js) file and add it to all pages of your site.
 ```
-<script src="hawk.js"></script>
+<script src="hawk.js" async></script>
 ```
 
 ## Usage
@@ -28,20 +28,27 @@ Then you get the account [register your domain name](https://hawk.so/websites/cr
 You'll get token for new domain on email. Or you can just copy it on [settings page](https://hawk.so/garage/settings).
 
 ### Initialize Hawk
-To initialize Hawk just call the `hawk.init()` method and pass there your token:
+To initialize Hawk just call the `hawk.init()` method when script is ready and pass there your token:
 ```
-<script>
-    hawk.init(token);
-</script>
+hawk.init(token);
+```
+
+Or put `onload="hawk.init(token)"` into script tag.
+```
+<script src="https://cdn.rawgit.com/codex-team/hawk.client/master/hawk.js" onload="hawk.init(token)" async></script>
 ```
 
 ### Additional parameters
-By default Hawk sends errors to `hawk.so:8070/catcher/client` using `ws` protocol.
-But you can change `host`, `port`  and `path`, passing them to `init` method (`false` for default):
+By default Hawk sends errors to `wss://hawk.so:8070/catcher/client`.
+But you can change params passing them to `init` method (`null` for default):
+
+Default values:
+`host` = `hawk.so`
+`port` = `8070`
+`path` = `catcher/client`
+`security` = `true` (wss)
 ```
-<script>
-    hawk.init(token, host, port, path)
-</script>
+hawk.init(token, host, port, path, security)
 ```
 
 ### Testing and server responses
