@@ -63,6 +63,7 @@ module.exports = function (options) {
             init()
               .then(function () {
 
+                  logger.log('Successfully reconnect to socket server', 'info');
                   resolve();
 
               },
