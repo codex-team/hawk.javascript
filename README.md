@@ -7,16 +7,18 @@ This is repository for javascript error handling.
 
 ## Instalation
 
+We recommend to add Hawk script above others to not to miss any errors.
+
 ### From CDN
 Add script directly from GitHub.
 ```
-<script src="https://cdn.rawgit.com/codex-team/hawk.client/master/hawk.js" async></script>
+<script src="https://cdn.rawgit.com/codex-team/hawk.client/master/hawk.js"></script>
 ```
 
 ### Or download on your own server
 Download [hawk.js](https://github.com/codex-team/hawk.client/blob/master/hawk.js) file and add it to all pages of your site.
 ```
-<script src="hawk.js" async></script>
+<script src="hawk.js"></script>
 ```
 
 ## Usage
@@ -35,7 +37,7 @@ hawk.init(token);
 
 Or put `onload="hawk.init(token)"` into script tag.
 ```
-<script src="https://cdn.rawgit.com/codex-team/hawk.client/master/hawk.js" onload="hawk.init(token)" async></script>
+<script src="https://cdn.rawgit.com/codex-team/hawk.client/master/hawk.js" onload="hawk.init(token)"></script>
 ```
 
 ### Additional parameters
