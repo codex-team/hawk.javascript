@@ -13,15 +13,15 @@
  * @param {Object} options
  *
  * Server properties
- * @property {String} host - WebSocket server host
- * @property {String} path - WebSocket server path
- * @property {Number} port - WebSocket server port
- * @property {Boolean} secure - if True, uses wss protocol, else ws
+ * @param {String} options.host - WebSocket server host
+ * @param {String} options.path - WebSocket server path
+ * @param {Number} options.port - WebSocket server port
+ * @param {Boolean} options.secure - if True, uses wss protocol, else ws
  *
  * Events handlers
- * @property {Function} onopen - fires when connection have been opened
- * @property {Function} onmessage - fires when message from server received
- * @property {Function} onclose - fires when connection have been closed
+ * @param {Function} options.onopen - fires when connection have been opened
+ * @param {Function} options.onmessage - fires when message from server received
+ * @param {Function} options.onclose - fires when connection have been closed
  *
  * @returns {{send: send}}
  */
@@ -170,7 +170,7 @@ module.exports = function (options) {
     init()
       .catch(function (e) {
 
-          logger.log('Error while openning socket connection', 'error');
+          logger.log('Error while opening socket connection', 'error');
 
       });
 
