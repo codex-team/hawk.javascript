@@ -1,3 +1,30 @@
+/**
+ * Native websocket module
+ * Open new websocket connection using native WebSocket object
+ *
+ * @usage
+ * var ws = new websocket({
+ *  host: 'localhost',
+ *  path: 'socket',
+ *  port: 80000,
+ *  onmessage: messageHandler
+ * })
+ *
+ * @param {Object} options
+ *
+ * Server properties
+ * @property {String} host - WebSocket server host
+ * @property {String} path - WebSocket server path
+ * @property {Number} port - WebSocket server port
+ * @property {Boolean} secure - if True, uses wss protocol, else ws
+ *
+ * Events handlers
+ * @property {Function} onopen - fires when connection have been opened
+ * @property {Function} onmessage - fires when message from server received
+ * @property {Function} onclose - fires when connection have been closed
+ *
+ * @returns {{send: send}}
+ */
 module.exports = function (options) {
 
     let ws = null,
@@ -10,7 +37,13 @@ module.exports = function (options) {
         CLOSED: 3
     };
 
-    let init = function () {
+  /**
+   * Open new websocket connection
+   * Returns promise, resolved if connection was opened and rejected on error
+   *
+   * @returns {Promise}
+   */
+  let init = function () {
 
         return new Promise(function (resolve, reject) {
 
@@ -56,6 +89,13 @@ module.exports = function (options) {
 
     };
 
+  /**
+   * Try to open new websocket connection.
+   * Returns promise, resolved if reconnect was successful, rejected otherwise
+   *
+   * @param attempts - number of reconnect attempts. 1 by default
+   * @returns {Promise}
+   */
     let reconnect = function (attempts=1) {
 
         return new Promise(function (resolve, reject) {
@@ -93,7 +133,11 @@ module.exports = function (options) {
 
     };
 
-    let send = function (data) {
+  /**
+   * Send data to WebSocket server in JSON format
+   * @param data
+   */
+  let send = function (data) {
 
         if (ws === null) {
             return;
