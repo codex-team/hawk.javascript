@@ -2,7 +2,7 @@
  * Codex Hawk client side module
  * https://github.com/codex-team/hawk.client
  *
- * Codex Hawk - https://hawk.ifmo.su
+ * Codex Hawk - https://hawk.so
  * Codex Team - https://ifmo.su
  *
  * MIT License | (c) Codex 2017
@@ -13,23 +13,10 @@ module.exports = function () {
 
     let config = require('../config'),
         websocket = require('./websocket'),
+        logger = require('./logger'),
         ws = null,
         userAgent = null,
         token;
-
-    let log = function (message, type) {
-
-        type = type || 'info';
-
-        message = '[Codex Hawk]:  ' + message;
-
-        if ('console' in window && window.console[type]) {
-
-            window.console[type](message);
-
-        }
-
-    };
 
     /**
      * Hawk client constructor
@@ -47,7 +34,7 @@ module.exports = function () {
         config.socket.secure = secure !== undefined ? secure : config.socket.secure;
 
         if (!token_) {
-            log('Please, pass your verification token for Hawk error tracker. You can get it on hawk.ifmo.su', 'warn');
+            logger.log('Please, pass your verification token for Hawk error tracker. You can get it on hawk.so', 'warn');
             return;
         }
 
@@ -81,11 +68,11 @@ module.exports = function () {
                 type = 'info';
             }
 
-            log('Message from server: ' + message, type);
+            logger.log('Message from server: ' + message, type);
         },
 
         close: function () {
-            log('Connection lost. Errors won\'t be save. Please, refresh the page', 'warn');
+            logger.log('Connection lost. Errors won\'t be save. Please, refresh the page', 'warn');
         }
 
     };
