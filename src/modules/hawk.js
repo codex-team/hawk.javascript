@@ -100,7 +100,7 @@ module.exports = function () {
                 path: window.location.pathname,
                 port: window.location.port
             },
-            stack: ErrorEvent.error.stack,
+            stack: ErrorEvent.error.stack || ErrorEvent.error.stacktrace,
             time: Date.now(),
             navigator: userAgent
         };
