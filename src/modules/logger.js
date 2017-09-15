@@ -9,14 +9,14 @@
  */
 module.exports.log = function (message, type) {
 
-  type = type || 'info';
+    type = type || 'info';
 
-  message = '[Codex Hawk]:  ' + message;
+    message = '[Codex Hawk]:  ' + message;
 
-  if ('console' in window && window.console[type]) {
+    if ('console' in window && window.console[type]) {
 
-    window.console[type](message);
+        window.console[type](message);
 
-  }
+    }
 
 };

@@ -37,13 +37,13 @@ module.exports = function (options) {
         CLOSED: 3
     };
 
-  /**
+    /**
    * Open new websocket connection
    * Returns promise, resolved if connection was opened and rejected on error
    *
    * @returns {Promise}
    */
-  let init = function () {
+    let init = function () {
 
         return new Promise(function (resolve, reject) {
 
@@ -71,25 +71,25 @@ module.exports = function (options) {
 
                 reject();
 
-            }
+            };
 
             ws.onopen = function (e) {
 
                 if (typeof options.onopen === 'function') {
 
-                  options.onopen.call(this, e);
+                    options.onopen.call(this, e);
 
                 }
 
                 resolve();
 
-            }
+            };
 
         });
 
     };
 
-  /**
+    /**
    * Try to open new websocket connection.
    * Returns promise, resolved if reconnect was successful, rejected otherwise
    *
@@ -101,46 +101,48 @@ module.exports = function (options) {
         return new Promise(function (resolve, reject) {
 
             init()
-              .then(function () {
+                .then(function () {
 
-                  logger.log('Successfully reconnect to socket server', 'info');
-                  resolve();
+                    logger.log('Successfully reconnect to socket server', 'info');
+                    resolve();
 
-              },
-              function () {
+                },
+                function () {
 
-                  if (attempts > 0) {
+                    if (attempts > 0) {
 
-                      reconnect(attempts - 1)
-                        .then(resolve, reject);
+                        reconnect(attempts - 1)
+                            .then(resolve, reject);
 
-                  } else {
+                    } else {
 
-                      logger.log('Can\'t reconnect to socket server', 'warn');
-                      reject();
+                        logger.log('Can\'t reconnect to socket server', 'warn');
+                        reject();
 
-                  }
+                    }
 
-              })
-              .catch(function (e) {
+                })
+                .catch(function (e) {
 
-                  logger.log('Error while reconnecting to socket server', 'error');
+                    logger.log('Error while reconnecting to socket server', 'error');
 
-              });
+                });
 
         });
 
 
     };
 
-  /**
+    /**
    * Send data to WebSocket server in JSON format
    * @param data
    */
-  let send = function (data) {
+    let send = function (data) {
 
         if (ws === null) {
+
             return;
+
         }
 
         data = JSON.stringify(data);
@@ -148,16 +150,16 @@ module.exports = function (options) {
         if (ws.readyState !== STATES.OPEN) {
 
             reconnect()
-              .then(function () {
+                .then(function () {
 
-                  ws.send(data);
+                    ws.send(data);
 
-              },
-              function () {
+                },
+                function () {
 
-                  logger.log('Can\'t send your data', 'warn');
+                    logger.log('Can\'t send your data', 'warn');
 
-              });
+                });
 
         } else {
 
@@ -168,11 +170,11 @@ module.exports = function (options) {
     };
 
     init()
-      .catch(function (e) {
+        .catch(function (e) {
 
-          logger.log('Error while opening socket connection', 'error');
+            logger.log('Error while opening socket connection', 'error');
 
-      });
+        });
 
     return {
         send: send,

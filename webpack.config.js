@@ -2,39 +2,50 @@ var webpack = require('webpack');
 
 module.exports = {
 
-  entry: './src/main.js',
+    entry: './src/main.js',
 
-  output: {
-    filename: 'hawk.js',
-    library: 'hawk',
-    libraryTarget: 'umd'
-  },
+    output: {
+        filename: 'hawk.js',
+        library: 'hawk',
+        libraryTarget: 'umd'
+    },
 
-  plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
-      comments: false
-    }),
-  ],
+    plugins: [
+        new webpack.optimize.UglifyJsPlugin({
+            sourceMap: true,
+            comments: false
+        }),
+    ],
 
-  module : {
+    module : {
 
-    loaders: [{
-      test: /\.js$/,
-      loader: 'babel-loader',
-      query: {
-        presets: [ 'es2015' ]
-      }
-    }]
+        loaders: [ {
+            test: /\.js$/,
+            use : [
+                {
+                    loader: 'babel-loader',
+                    query: {
+                        presets: [ 'es2015' ]
+                    }
+                },
+                {
+                    loader: 'eslint-loader',
+                    options: {
+                        fix: true,
+                        sourceType: 'module'
+                    }
+                }
+            ]
+        } ]
 
-  },
+    },
 
-  devtool: "source-map",
+    devtool: 'source-map',
 
-  watch: true,
+    watch: true,
 
-  watchOptions: {
-    aggragateTimeout: 50
-  }
+    watchOptions: {
+        aggragateTimeout: 50
+    }
 
 };

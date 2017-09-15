@@ -15,7 +15,6 @@ module.exports = function () {
         websocket = require('./websocket'),
         logger = require('./logger'),
         ws = null,
-        userAgent = null,
         token;
 
     /**
@@ -34,8 +33,10 @@ module.exports = function () {
         config.socket.secure = secure !== undefined ? secure : config.socket.secure;
 
         if (!token_) {
+
             logger.log('Please, pass your verification token for Hawk error tracker. You can get it on hawk.so', 'warn');
             return;
+
         }
 
         token = token_;
@@ -58,19 +59,26 @@ module.exports = function () {
             let message, type;
 
             try {
+
                 data = JSON.parse(data.data);
                 type = data.type;
                 message = data.message;
+
             } catch (e) {
+
                 message = data.data;
                 type = 'info';
+
             }
 
             logger.log('Message from server: ' + message, type);
+
         },
 
         close: function () {
+
             logger.log('Connection lost. Errors won\'t be save. Please, refresh the page', 'warn');
+
         }
 
     };
