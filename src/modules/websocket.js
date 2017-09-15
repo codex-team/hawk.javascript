@@ -38,11 +38,11 @@ module.exports = function (options) {
     };
 
     /**
-   * Open new websocket connection
-   * Returns promise, resolved if connection was opened and rejected on error
-   *
-   * @returns {Promise}
-   */
+     * Open new websocket connection
+     * Returns promise, resolved if connection was opened and rejected on error
+     *
+     * @returns {Promise}
+     */
     let init = function () {
 
         return new Promise(function (resolve, reject) {
@@ -90,12 +90,12 @@ module.exports = function (options) {
     };
 
     /**
-   * Try to open new websocket connection.
-   * Returns promise, resolved if reconnect was successful, rejected otherwise
-   *
-   * @param attempts - number of reconnect attempts. 1 by default
-   * @returns {Promise}
-   */
+     * Try to open new websocket connection.
+     * Returns promise, resolved if reconnect was successful, rejected otherwise
+     *
+     * @param attempts - number of reconnect attempts. 1 by default
+     * @returns {Promise}
+     */
     let reconnect = function (attempts=1) {
 
         return new Promise(function (resolve, reject) {
@@ -134,9 +134,9 @@ module.exports = function (options) {
     };
 
     /**
-   * Send data to WebSocket server in JSON format
-   * @param data
-   */
+     * Send data to WebSocket server in JSON format
+     * @param data
+     */
     let send = function (data) {
 
         if (ws === null) {

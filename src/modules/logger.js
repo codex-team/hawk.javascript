@@ -11,7 +11,7 @@ module.exports.log = function (message, type) {
 
     type = type || 'info';
 
-    message = '[Codex Hawk]:  ' + message;
+    message = '[CodeX Hawk]: ' + message;
 
     if ('console' in window && window.console[type]) {
 
