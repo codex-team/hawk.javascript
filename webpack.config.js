@@ -6,15 +6,14 @@ module.exports = {
 
   output: {
     filename: 'hawk.js',
-    library: 'hawk'
+    library: 'hawk',
+    libraryTarget: 'umd'
   },
 
   plugins: [
-
     new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false
-      }
+      sourceMap: true,
+      comments: false
     }),
   ],
 
@@ -22,10 +21,9 @@ module.exports = {
 
     loaders: [{
       test: /\.js$/,
-      exclude: /(node_modules)/,
       loader: 'babel-loader',
       query: {
-        presets: [__dirname + '/node_modules/babel-preset-es2015']
+        presets: [ 'es2015' ]
       }
     }]
 

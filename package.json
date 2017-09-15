@@ -4,14 +4,16 @@
   "description": "Client errors tracking for Hawk tracker by Codex Team",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codex-team/hawk.client.git"
   },
-  "author": "Codex-Team",
+  "author": {
+    "name": "CodeX Team",
+    "email": "team@ifmo.su"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/codex-team/hawk.client/issues"
