@@ -108,7 +108,13 @@ module.exports = function () {
             },
             stack: ErrorEvent.error.stack || ErrorEvent.error.stacktrace,
             time: Date.now(),
-            navigator: window.navigator.userAgent
+            navigator: {
+                ua: window.navigator.userAgent,
+                frame: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                }
+            }
         };
 
         ws.send(error);
