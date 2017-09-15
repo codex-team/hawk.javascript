@@ -1,5 +1,4 @@
-var webpack = require('webpack'),
-    saveLicense = require('uglify-save-license');
+var webpack = require('webpack');
 
 module.exports = {
 
@@ -13,8 +12,7 @@ module.exports = {
 
     plugins: [
         new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true,
-            comments: saveLicense
+            sourceMap: true
         }),
     ],
 
