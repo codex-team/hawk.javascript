@@ -5,7 +5,7 @@
  * Codex Hawk - https://hawk.so
  * Codex Team - https://ifmo.su
  *
- * MIT License | (c) Codex 2017
+ * @license MIT (c) CodeX 2017
  */
 module.exports = function () {
 
@@ -15,7 +15,6 @@ module.exports = function () {
         websocket = require('./websocket'),
         logger = require('./logger'),
         ws = null,
-        userAgent = null,
         token;
 
     /**
@@ -34,8 +33,10 @@ module.exports = function () {
         config.socket.secure = secure !== undefined ? secure : config.socket.secure;
 
         if (!token_) {
+
             logger.log('Please, pass your verification token for Hawk error tracker. You can get it on hawk.so', 'warn');
             return;
+
         }
 
         token = token_;
@@ -46,8 +47,6 @@ module.exports = function () {
         socket.onclose = socketHandlers.close;
 
         ws = websocket(socket);
-
-        userAgent = detect();
 
         window.addEventListener('error', errorHandler);
 
@@ -60,19 +59,26 @@ module.exports = function () {
             let message, type;
 
             try {
+
                 data = JSON.parse(data.data);
                 type = data.type;
                 message = data.message;
+
             } catch (e) {
+
                 message = data.data;
                 type = 'info';
+
             }
 
             logger.log('Message from server: ' + message, type);
+
         },
 
         close: function () {
+
             logger.log('Connection lost. Errors won\'t be save. Please, refresh the page', 'warn');
+
         }
 
     };
@@ -102,95 +108,16 @@ module.exports = function () {
             },
             stack: ErrorEvent.error.stack || ErrorEvent.error.stacktrace,
             time: Date.now(),
-            navigator: userAgent
+            navigator: {
+                ua: window.navigator.userAgent,
+                frame: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                }
+            }
         };
 
         ws.send(error);
-
-    };
-
-    /**
-     * @using bowser
-     *
-     * Get info about user browser and platform
-     *
-     * @returns {{browser: {name: *, version: *, engine, capability}, device: {os, osversion: *, type}, userAgent: string}}
-     */
-    let detect = function () {
-
-        let bowser = require('./bowser');
-
-        let getRenderingEngine = function () {
-
-            if (bowser.webkit) return 'Webkit';
-            if (bowser.blink) return 'Blink';
-            if (bowser.gecko) return 'Gecko';
-            if (bowser.msie) return 'MS IE';
-            if (bowser.msedge) return 'MS Edge';
-
-            return undefined;
-
-
-        };
-
-        let getOs = function () {
-
-            if (bowser.mac) return 'MacOS';
-            if (bowser.windows) return 'Windows';
-            if (bowser.windowsphone) return 'Windows Phone';
-            if (bowser.linux) return 'Linux';
-            if (bowser.chromeos) return 'ChromeOS';
-            if (bowser.android) return 'Android';
-            if (bowser.ios) return 'iOS';
-            if (bowser.firefox) return 'Firefox OS';
-            if (bowser.webos) return 'WebOS';
-            if (bowser.bada) return 'Bada';
-            if (bowser.tizen) return 'Tizen';
-            if (bowser.sailfish) return 'Sailfish OS';
-
-            return undefined;
-
-        };
-
-        let getDeviceType = function () {
-
-            if (bowser.tablet) return 'tablet';
-            if (bowser.mobile) return 'mobile';
-
-            return 'desktop';
-
-        };
-
-        let getCapability = function () {
-
-            if (bowser.a) return 'full';
-            if (bowser.b) return 'degraded';
-            if (bowser) return 'minimal';
-
-            return 'browser unknown';
-
-        };
-
-        let browser = {
-            name: bowser.name,
-            version: bowser.version,
-            engine: getRenderingEngine(),
-            capability: getCapability()
-        };
-
-        let device = {
-            os: getOs(),
-            osversion: bowser.osversion,
-            type: getDeviceType(),
-            width: window.innerWidth,
-            height: window.innerHeight
-        };
-
-        return {
-            browser: browser,
-            device: device,
-            userAgent: window.navigator.userAgent
-        };
 
     };
 
