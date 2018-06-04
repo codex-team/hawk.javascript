@@ -26,7 +26,6 @@
  * @returns {{send: send}}
  */
 module.exports = function (options) {
-
     let ws = null,
         logger = require('./logger');
 
@@ -44,9 +43,7 @@ module.exports = function (options) {
      * @returns {Promise}
      */
     let init = function () {
-
         return new Promise(function (resolve, reject) {
-
             let protocol = 'ws' + (options.secure ? 's' : '') + '://',
                 host = options.host || 'localhost',
                 path = options.path ? '/' + options.path : '',
@@ -56,37 +53,25 @@ module.exports = function (options) {
             ws = new WebSocket(url);
 
             if (typeof options.onmessage === 'function') {
-
                 ws.onmessage = options.onmessage;
-
             }
 
             ws.onclose = function (e) {
-
                 if (typeof options.onclose === 'function') {
-
                     options.onclose.call(this, e);
-
                 }
 
                 reject();
-
             };
 
             ws.onopen = function (e) {
-
                 if (typeof options.onopen === 'function') {
-
                     options.onopen.call(this, e);
-
                 }
 
                 resolve();
-
             };
-
         });
-
     };
 
     /**
@@ -97,40 +82,25 @@ module.exports = function (options) {
      * @returns {Promise}
      */
     let reconnect = function (attempts=1) {
-
         return new Promise(function (resolve, reject) {
-
             init()
                 .then(function () {
-
                     logger.log('Successfully reconnect to socket server', 'info');
                     resolve();
-
                 },
                 function () {
-
                     if (attempts > 0) {
-
                         reconnect(attempts - 1)
                             .then(resolve, reject);
-
                     } else {
-
                         logger.log('Can\'t reconnect to socket server', 'warn');
                         reject();
-
                     }
-
                 })
                 .catch(function (e) {
-
-                    logger.log('Error while reconnecting to socket server', 'error');
-
+                    logger.log('Error while reconnecting to socket server', 'error', e);
                 });
-
         });
-
-
     };
 
     /**
@@ -138,46 +108,31 @@ module.exports = function (options) {
      * @param data
      */
     let send = function (data) {
-
         if (ws === null) {
-
             return;
-
         }
 
         data = JSON.stringify(data);
 
         if (ws.readyState !== STATES.OPEN) {
-
             reconnect()
                 .then(function () {
-
                     ws.send(data);
-
                 },
                 function () {
-
                     logger.log('Can\'t send your data', 'warn');
-
                 });
-
         } else {
-
             ws.send(data);
-
         }
-
     };
 
     init()
         .catch(function (e) {
-
-            logger.log('Error while opening socket connection', 'error');
-
+            logger.log('Error while opening socket connection', 'error', e);
         });
 
     return {
         send: send,
     };
-
 };
