@@ -8,73 +8,82 @@
  * @license MIT (c) CodeX 2017
  */
 module.exports = function () {
-    'use strict';
+  'use strict';
 
-    let config = require('../config'),
-        websocket = require('./websocket'),
-        logger = require('./logger'),
-        ws = null,
-        _token,
-        _revision;
+  let config = require('../config'),
+    websocket = require('./websocket'),
+    logger = require('./logger'),
+    ws = null,
+    _token,
+    _revision;
 
     /**
      * Hawk client constructor
-     * @param  {string} token      personal token
-     * @param  {string} host        optional: client catcher hostname
-     * @param  {Number} port        optional: client catcher port
-     * @param  {string} path        hawk catcher route
-     * @param  {Boolean} secure     pass FALSE to disable secure connection
-     * @param  {string} revision    identifier of bundle's revision
+     * @param {object|string} settings - settings object or token
+     * @param  {string} settings.token       personal token
+     * @param  {string} settings.host        optional: client catcher hostname
+     * @param  {Number} settings.port        optional: client catcher port
+     * @param  {string} settings.path        hawk catcher route
+     * @param  {Boolean} settings.secure     pass FALSE to disable secure connection
+     * @param  {string} settings.revision    identifier of bundle's revision
      */
-    let init = function ({token, host, port, path, secure, revision}) {
-        config.socket.host = host || config.socket.host;
-        config.socket.port = port || config.socket.port;
-        config.socket.path = path || config.socket.path;
-        config.socket.secure = secure !== undefined ? secure : config.socket.secure;
+  let init = function (settings) {
+    let token, host, port, path, secure, revision;
 
-        if (!token) {
-            logger.log('Please, pass your verification token for Hawk error tracker. You can get it on hawk.so', 'warn');
-            return;
-        }
+    if (typeof settings === 'string') {
+      token = settings;
+    } else {
+      ({token, host, port, path, secure, revision} = settings);
+    }
 
-        _token = token;
+    config.socket.host = host || config.socket.host;
+    config.socket.port = port || config.socket.port;
+    config.socket.path = path || config.socket.path;
+    config.socket.secure = secure !== undefined ? secure : config.socket.secure;
 
-        if (revision) {
-            _revision = revision;
-        }
+    if (!token) {
+      logger.log('Please, pass your verification token for Hawk error tracker. You can get it on hawk.so', 'warn');
+      return;
+    }
 
-        let socket = config.socket;
+    _token = token;
 
-        socket.onmessage = socketHandlers.message;
-        socket.onclose = socketHandlers.close;
+    if (revision) {
+      _revision = revision;
+    }
 
-        ws = websocket(socket);
+    let socket = config.socket;
 
-        window.addEventListener('error', errorHandler);
-    };
+    socket.onmessage = socketHandlers.message;
+    socket.onclose = socketHandlers.close;
 
-    let socketHandlers = {
+    ws = websocket(socket);
 
-        message: function (data) {
-            let message, type;
+    window.addEventListener('error', errorHandler);
+  };
 
-            try {
-                data = JSON.parse(data.data);
-                type = data.type;
-                message = data.message;
-            } catch (e) {
-                message = data.data;
-                type = 'info';
-            }
+  let socketHandlers = {
 
-            logger.log('Hawk says: ' + message, type);
-        },
+    message: function (data) {
+      let message, type;
 
-        close: function () {
-            logger.log('Connection lost. Errors won\'t be save. Please, refresh the page', 'warn');
-        }
+      try {
+        data = JSON.parse(data.data);
+        type = data.type;
+        message = data.message;
+      } catch (e) {
+        message = data.data;
+        type = 'info';
+      }
 
-    };
+      logger.log('Hawk says: ' + message, type);
+    },
+
+    close: function () {
+      logger.log('Connection lost. Errors won\'t be save. Please, refresh the page', 'warn');
+    }
+
+  };
 
     /**
      * Error event handler.
@@ -82,53 +91,53 @@ module.exports = function () {
      *
      * @param ErrorEvent
      */
-    let errorHandler = function (ErrorEvent) {
-        let error = {
-            token: _token,
-            message: ErrorEvent.message,
-            'error_location': {
-                file: ErrorEvent.filename,
-                line: ErrorEvent.lineno,
-                col: ErrorEvent.colno,
-                revision: _revision || null,
-            },
-            location: {
-                url: window.location.href,
-                origin: window.location.origin,
-                host: window.location.hostname,
-                path: window.location.pathname,
-                port: window.location.port
-            },
-            stack: ErrorEvent.error.stack || ErrorEvent.error.stacktrace,
-            time: Date.now(),
-            navigator: {
-                ua: window.navigator.userAgent,
-                frame: {
-                    width: window.innerWidth,
-                    height: window.innerHeight
-                }
-            }
-        };
-
-        ws.send(error);
+  let errorHandler = function (ErrorEvent) {
+    let error = {
+      token: _token,
+      message: ErrorEvent.message,
+      'error_location': {
+        file: ErrorEvent.filename,
+        line: ErrorEvent.lineno,
+        col: ErrorEvent.colno,
+        revision: _revision || null,
+      },
+      location: {
+        url: window.location.href,
+        origin: window.location.origin,
+        host: window.location.hostname,
+        path: window.location.pathname,
+        port: window.location.port
+      },
+      stack: ErrorEvent.error.stack || ErrorEvent.error.stacktrace,
+      time: Date.now(),
+      navigator: {
+        ua: window.navigator.userAgent,
+        frame: {
+          width: window.innerWidth,
+          height: window.innerHeight
+        }
+      }
     };
 
-    let test = function () {
-        let fakeEvent = {
-            message: 'Hawk client catcher test',
-            filename: 'hawk.js',
-            lineno: 0,
-            colno: 0,
-            error: {
-                stack: 'hawk.js'
-            }
-        };
+    ws.send(error);
+  };
 
-        errorHandler(fakeEvent);
+  let test = function () {
+    let fakeEvent = {
+      message: 'Hawk client catcher test',
+      filename: 'hawk.js',
+      lineno: 0,
+      colno: 0,
+      error: {
+        stack: 'hawk.js'
+      }
     };
 
-    return {
-        init: init,
-        test: test
-    };
+    errorHandler(fakeEvent);
+  };
+
+  return {
+    init: init,
+    test: test
+  };
 }();

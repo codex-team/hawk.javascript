@@ -11,9 +11,7 @@ module.exports = {
     },
 
     plugins: [
-        new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true
-        }),
+        new webpack.optimize.UglifyJsPlugin(),
     ],
 
     module : {
@@ -38,8 +36,6 @@ module.exports = {
         } ]
 
     },
-
-    devtool: 'source-map',
 
     watch: true,
 

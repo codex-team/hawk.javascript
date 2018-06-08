@@ -34,7 +34,12 @@ You'll get an Integration Token.
 To initialize Hawk call the `hawk.init()` method when script will be ready and pass your Integration Token:
 ```js
 hawk.init({token: 'INTEGRATION_TOKEN'});
+
+// or 
+
+hawk.init('INTEGRATION_TOKEN');
 ```
+
 
 Alternately, add `onload="hawk.init({token: 'INTEGRATION_TOKEN'})"` attribute to the `<script>` tag.
 ```html
@@ -46,7 +51,7 @@ Hawk supports JS SourceMaps for showing more useful information from your minifi
 
 1. Bundle ends with line contains anchor to the source map, like `//# sourceMappingURL=all.min.js.map`. It can be absolute or relative (relatively the bundle) path.    
 2. Source map are publicly available by its URL.
-3. Every build you are updating the revision and pass with `init` method. It can be heximal-hash or simply file's modification timestamp.
+3. Every build you are updating the `revision` and pass it with `init` method. It can be heximal-hash or simply file's modification timestamp.
 
 ```js
 hawk.init({token: 'INTEGRATION_TOKEN', revision: 12345654345})

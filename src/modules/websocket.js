@@ -26,15 +26,15 @@
  * @returns {{send: send}}
  */
 module.exports = function (options) {
-    let ws = null,
-        logger = require('./logger');
+  let ws = null,
+    logger = require('./logger');
 
-    const STATES = {
-        CONNECTING: 0,
-        OPEN: 1,
-        CLOSING: 2,
-        CLOSED: 3
-    };
+  const STATES = {
+    CONNECTING: 0,
+    OPEN: 1,
+    CLOSING: 2,
+    CLOSED: 3
+  };
 
     /**
      * Open new websocket connection
@@ -42,37 +42,37 @@ module.exports = function (options) {
      *
      * @returns {Promise}
      */
-    let init = function () {
-        return new Promise(function (resolve, reject) {
-            let protocol = 'ws' + (options.secure ? 's' : '') + '://',
-                host = options.host || 'localhost',
-                path = options.path ? '/' + options.path : '',
-                port = options.port ? ':' + options.port : '',
-                url = protocol + host + port + path;
+  let init = function () {
+    return new Promise(function (resolve, reject) {
+      let protocol = 'ws' + (options.secure ? 's' : '') + '://',
+        host = options.host || 'localhost',
+        path = options.path ? '/' + options.path : '',
+        port = options.port ? ':' + options.port : '',
+        url = protocol + host + port + path;
 
-            ws = new WebSocket(url);
+      ws = new WebSocket(url);
 
-            if (typeof options.onmessage === 'function') {
-                ws.onmessage = options.onmessage;
-            }
+      if (typeof options.onmessage === 'function') {
+        ws.onmessage = options.onmessage;
+      }
 
-            ws.onclose = function (e) {
-                if (typeof options.onclose === 'function') {
-                    options.onclose.call(this, e);
-                }
+      ws.onclose = function (e) {
+        if (typeof options.onclose === 'function') {
+          options.onclose.call(this, e);
+        }
 
-                reject();
-            };
+        reject();
+      };
 
-            ws.onopen = function (e) {
-                if (typeof options.onopen === 'function') {
-                    options.onopen.call(this, e);
-                }
+      ws.onopen = function (e) {
+        if (typeof options.onopen === 'function') {
+          options.onopen.call(this, e);
+        }
 
-                resolve();
-            };
-        });
-    };
+        resolve();
+      };
+    });
+  };
 
     /**
      * Try to open new websocket connection.
@@ -81,58 +81,58 @@ module.exports = function (options) {
      * @param attempts - number of reconnect attempts. 1 by default
      * @returns {Promise}
      */
-    let reconnect = function (attempts=1) {
-        return new Promise(function (resolve, reject) {
-            init()
-                .then(function () {
-                    logger.log('Successfully reconnect to socket server', 'info');
-                    resolve();
-                },
-                function () {
-                    if (attempts > 0) {
-                        reconnect(attempts - 1)
-                            .then(resolve, reject);
-                    } else {
-                        logger.log('Can\'t reconnect to socket server', 'warn');
-                        reject();
-                    }
-                })
-                .catch(function (e) {
-                    logger.log('Error while reconnecting to socket server', 'error', e);
-                });
+  let reconnect = function (attempts=1) {
+    return new Promise(function (resolve, reject) {
+      init()
+        .then(function () {
+          logger.log('Successfully reconnect to socket server', 'info');
+          resolve();
+        },
+        function () {
+          if (attempts > 0) {
+            reconnect(attempts - 1)
+              .then(resolve, reject);
+          } else {
+            logger.log('Can\'t reconnect to socket server', 'warn');
+            reject();
+          }
+        })
+        .catch(function (e) {
+          logger.log('Error while reconnecting to socket server', 'error', e);
         });
-    };
+    });
+  };
 
     /**
      * Send data to WebSocket server in JSON format
      * @param data
      */
-    let send = function (data) {
-        if (ws === null) {
-            return;
-        }
+  let send = function (data) {
+    if (ws === null) {
+      return;
+    }
 
-        data = JSON.stringify(data);
+    data = JSON.stringify(data);
 
-        if (ws.readyState !== STATES.OPEN) {
-            reconnect()
-                .then(function () {
-                    ws.send(data);
-                },
-                function () {
-                    logger.log('Can\'t send your data', 'warn');
-                });
-        } else {
-            ws.send(data);
-        }
-    };
-
-    init()
-        .catch(function (e) {
-            logger.log('Error while opening socket connection', 'error', e);
+    if (ws.readyState !== STATES.OPEN) {
+      reconnect()
+        .then(function () {
+          ws.send(data);
+        },
+        function () {
+          logger.log('Can\'t send your data', 'warn');
         });
+    } else {
+      ws.send(data);
+    }
+  };
 
-    return {
-        send: send,
-    };
+  init()
+    .catch(function (e) {
+      logger.log('Error while opening socket connection', 'error', e);
+    });
+
+  return {
+    send: send,
+  };
 };
