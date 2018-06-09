@@ -1,11 +1,11 @@
-# CodeX.Hawk JavaScript Catcher
+# Hawk JavaScript Catcher
 [Hawk](https://github.com/codex-team/hawk) is a platform for errors and logs monitoring.
 
 You can find web interface and documentation on [hawk.so/docs](https://hawk.so/docs).
 
-## Instalation
+## Installation
 
-We recommend to add Hawk script above others to not to miss any errors.
+We recommend to add Hawk script above others to prevent missing any errors.
 
 1. Include script
 2. Init a Catcher
@@ -31,7 +31,9 @@ Then [create a new Project](https://hawk.so/websites/create).
 You'll get an Integration Token.
 
 ### Initialize Hawk
-To initialize Hawk call the `hawk.init()` method when script will be ready and pass your Integration Token:
+
+Call the `hawk.init()` method when script will be ready and pass your Integration Token:
+
 ```js
 hawk.init({token: 'INTEGRATION_TOKEN'});
 
