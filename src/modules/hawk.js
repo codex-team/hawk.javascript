@@ -85,6 +85,15 @@ module.exports = function () {
 
   };
 
+  /**
+   * Prepare string for correct JSON stringify
+   * @param {string} string
+   * @return {string}
+   */
+  function escapeForJSON(string){
+    return string.replace(/\/'/, "'");
+  }
+
     /**
      * Error event handler.
      * Get error params and send to Hawk server
@@ -94,7 +103,7 @@ module.exports = function () {
   let errorHandler = function (ErrorEvent) {
     let error = {
       token: _token,
-      message: ErrorEvent.message,
+      message: escapeForJSON(ErrorEvent.message),
       'error_location': {
         file: ErrorEvent.filename,
         line: ErrorEvent.lineno,
@@ -111,7 +120,7 @@ module.exports = function () {
       stack: ErrorEvent.error.stack || ErrorEvent.error.stacktrace,
       time: Date.now(),
       navigator: {
-        ua: window.navigator.userAgent,
+        ua: escapeForJSON(window.navigator.userAgent),
         frame: {
           width: window.innerWidth,
           height: window.innerHeight
