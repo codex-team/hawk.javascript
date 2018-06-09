@@ -1,22 +1,23 @@
-# CodeX.Hawk client side
-[CodeX Hawk](https://github.com/codex-team/hawk) is an open source platform that allows you to catch errors.
+# CodeX.Hawk JavaScript Catcher
+[Hawk](https://github.com/codex-team/hawk) is a platform for errors and logs monitoring.
 
 You can find web interface and documentation on [hawk.so/docs](https://hawk.so/docs).
-
-This is repository for javascript error handling.
 
 ## Instalation
 
 We recommend to add Hawk script above others to not to miss any errors.
 
-### From CDN
+1. Include script
+2. Init a Catcher
+
+### Load from CDN
 Add script directly from GitHub.
 ```
-<script src="https://cdn.rawgit.com/codex-team/hawk.client/master/hawk.js"></script>
+<script src="https://cdn.rawgit.com/codex-team/hawk.javascript/master/hawk.js"></script>
 ```
 
-### Or download on your own server
-Download [hawk.js](https://github.com/codex-team/hawk.client/blob/master/hawk.js) file and add it to all pages of your site.
+### Or download to your own server
+Download [hawk.js](https://github.com/codex-team/hawk.javascript/blob/master/hawk.js) file and add it to all pages of your site.
 ```
 <script src="hawk.js"></script>
 ```
@@ -26,31 +27,34 @@ Download [hawk.js](https://github.com/codex-team/hawk.client/blob/master/hawk.js
 ### Get token
 First of all, you should register an account on [hawk.so](https://hawk.so/join).
 
-Then you get the account [register your domain name](https://hawk.so/websites/create).
-You'll get token for new domain on email. Or you can just copy it on [settings page](https://hawk.so/garage/settings).
+Then [create a new Project](https://hawk.so/websites/create).
+You'll get an Integration Token.
 
 ### Initialize Hawk
-To initialize Hawk just call the `hawk.init()` method when script is ready and pass there your token:
-```
-hawk.init(token);
+To initialize Hawk call the `hawk.init()` method when script will be ready and pass your Integration Token:
+```js
+hawk.init({token: 'INTEGRATION_TOKEN'});
+
+// or 
+
+hawk.init('INTEGRATION_TOKEN');
 ```
 
-Or put `onload="hawk.init(token)"` into script tag.
-```
-<script src="https://cdn.rawgit.com/codex-team/hawk.client/master/hawk.js" onload="hawk.init(token)"></script>
+
+Alternately, add `onload="hawk.init({token: 'INTEGRATION_TOKEN'})"` attribute to the `<script>` tag.
+```html
+<script src="https://cdn.rawgit.com/codex-team/hawk.javascript/master/hawk.js" onload="hawk.init(token)"></script>
 ```
 
-### Additional parameters
-By default Hawk sends errors to `wss://hawk.so:8070/catcher/client`.
-But you can change params passing them to `init` method (`null` for default):
+### Source map support
+Hawk supports JS SourceMaps for showing more useful information from your minified bundle. There a few conditions:
 
-Default values:
-`host` = `hawk.so`
-`port` = `8070`
-`path` = `catcher/client`
-`security` = `true` (wss)
-```
-hawk.init(token, host, port, path, security)
+1. Bundle ends with line contains anchor to the source map, like `//# sourceMappingURL=all.min.js.map`. It can be absolute or relative (relatively the bundle) path.    
+2. Source map are publicly available by its URL.
+3. Every build you are updating the `revision` and pass it with `init` method. It can be heximal-hash or simply file's modification timestamp.
+
+```js
+hawk.init({token: 'INTEGRATION_TOKEN', revision: 12345654345})
 ```
 
 ### Testing and server responses

@@ -6,17 +6,18 @@
  *
  * @param message
  * @param type - log type: error, warn, info, log, etc.
+ * @param {*} arg - logging argument
  */
-module.exports.log = function (message, type) {
+module.exports.log = function (message, type, arg) {
+  type = type || 'info';
 
-    type = type || 'info';
+  message = '[CodeX Hawk]: ' + message;
 
-    message = '[CodeX Hawk]: ' + message;
-
-    if ('console' in window && window.console[type]) {
-
-        window.console[type](message);
-
+  if ('console' in window && window.console[type]) {
+    if ( arg !== undefined ) {
+      window.console[type](message, arg);
+    } else {
+      window.console[type](message);
     }
-
+  }
 };

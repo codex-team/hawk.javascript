@@ -11,9 +11,7 @@ module.exports = {
     },
 
     plugins: [
-        new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true
-        }),
+        new webpack.optimize.UglifyJsPlugin(),
     ],
 
     module : {
@@ -24,7 +22,7 @@ module.exports = {
                 {
                     loader: 'babel-loader',
                     query: {
-                        presets: [ 'es2015' ]
+                        presets: [ 'env' ]
                     }
                 },
                 {
@@ -38,8 +36,6 @@ module.exports = {
         } ]
 
     },
-
-    devtool: 'source-map',
 
     watch: true,
 
