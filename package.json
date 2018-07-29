@@ -1,17 +1,18 @@
 {
   "name": "hawk.javascript",
   "version": "2.0.0",
-  "description": "JavaScript errors tracking for Hawk.so made by CodeX",
-  "main": "main.js",
+  "description": "JavaScript errors tracking for Hawk.so",
+  "main": "./dist/hawk.js",
   "scripts": {
-    "build": "webpack"
+    "build:dev": "webpack --config ./webpack.config.js --mode production --watch",
+    "build": "webpack --entry ./src/main.js --output ./dist/hawk.js --moduleBind='js=babel-loader' --output-library hawk --output-library-target umd --mode production --watch"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codex-team/hawk.javascript.git"
   },
   "author": {
-    "name": "CodeX Team",
+    "name": "CodeX",
     "email": "team@ifmo.su"
   },
   "license": "MIT",
@@ -20,11 +21,15 @@
   },
   "homepage": "https://github.com/codex-team/hawk.javascript#readme",
   "devDependencies": {
-    "babel-core": "^6.25.0",
-    "babel-loader": "^7.0.0",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
     "babel-preset-env": "^1.7.0",
-    "eslint": "^4.6.1",
-    "eslint-loader": "^1.9.0",
-    "webpack": "^2.6.1"
+    "webpack": "^4.16.3",
+    "webpack-cli": "^3.1.0"
+  },
+  "babel": {
+    "presets": [
+      "env"
+    ]
   }
 }
