@@ -103,28 +103,31 @@ module.exports = function () {
   let errorHandler = function (ErrorEvent) {
     let error = {
       token: _token,
-      message: escapeForJSON(ErrorEvent.message),
-      'error_location': {
-        file: ErrorEvent.filename,
-        line: ErrorEvent.lineno,
-        col: ErrorEvent.colno,
-        revision: _revision || null,
-      },
-      location: {
+      payload: {
+        message: escapeForJSON(ErrorEvent.message),
+        'error_location': {
+          file: ErrorEvent.filename,
+          line: ErrorEvent.lineno,
+          col: ErrorEvent.colno,
+          revision: _revision || null
+        },
+         location: {
         url: window.location.href,
         origin: window.location.origin,
         host: window.location.hostname,
         path: window.location.pathname,
         port: window.location.port
-      },
-      stack: ErrorEvent.error.stack || ErrorEvent.error.stacktrace,
-      time: Date.now(),
-      navigator: {
-        ua: escapeForJSON(window.navigator.userAgent),
-        frame: {
-          width: window.innerWidth,
-          height: window.innerHeight
-        }
+        },
+        stack: ErrorEvent.error.stack || ErrorEvent.error.stacktrace,
+        time: Date.now(),
+        navigator: {
+          ua: escapeForJSON(window.navigator.userAgent),
+          frame: {
+            width: window.innerWidth,
+            height: window.innerHeight
+          }
+        },
+        'catcher_type': 'errors/javascript'
       }
     };
 
