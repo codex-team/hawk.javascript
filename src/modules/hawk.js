@@ -7,33 +7,38 @@
  *
  * @license MIT (c) CodeX 2017
  */
-module.exports = function () {
+module.exports = (function () {
   'use strict';
 
-  let config = require('../config'),
-    websocket = require('./websocket'),
-    logger = require('./logger'),
-    ws = null,
-    _token,
-    _revision;
+  let config = require('../config');
 
-    /**
-     * Hawk client constructor
-     * @param {object|string} settings - settings object or token
-     * @param  {string} settings.token       personal token
-     * @param  {string} settings.host        optional: client catcher hostname
-     * @param  {Number} settings.port        optional: client catcher port
-     * @param  {string} settings.path        hawk catcher route
-     * @param  {Boolean} settings.secure     pass FALSE to disable secure connection
-     * @param  {string} settings.revision    identifier of bundle's revision
-     */
+  let websocket = require('./websocket');
+
+  let logger = require('./logger');
+
+  let ws = null;
+
+  let _token;
+
+  let _revision;
+
+  /**
+   * Hawk client constructor
+   * @param {object|string} settings - settings object or token
+   * @param  {string} settings.token       personal token
+   * @param  {string} settings.host        optional: client catcher hostname
+   * @param  {Number} settings.port        optional: client catcher port
+   * @param  {string} settings.path        hawk catcher route
+   * @param  {Boolean} settings.secure     pass FALSE to disable secure connection
+   * @param  {string} settings.revision    identifier of bundle's revision
+   */
   let init = function (settings) {
     let token, host, port, path, secure, revision;
 
     if (typeof settings === 'string') {
       token = settings;
     } else {
-      ({token, host, port, path, secure, revision} = settings);
+      ({ token, host, port, path, secure, revision } = settings);
     }
 
     config.socket.host = host || config.socket.host;
@@ -42,7 +47,10 @@ module.exports = function () {
     config.socket.secure = secure !== undefined ? secure : config.socket.secure;
 
     if (!token) {
-      logger.log('Please, pass your verification token for Hawk error tracker. You can get it on hawk.so', 'warn');
+      logger.log(
+        'Please, pass your verification token for Hawk error tracker. You can get it on hawk.so',
+        'warn'
+      );
       return;
     }
 
@@ -63,7 +71,6 @@ module.exports = function () {
   };
 
   let socketHandlers = {
-
     message: function (data) {
       let message, type;
 
@@ -80,9 +87,11 @@ module.exports = function () {
     },
 
     close: function () {
-      logger.log('Connection lost. Errors won\'t be save. Please, refresh the page', 'warn');
+      logger.log(
+        "Connection lost. Errors won't be save. Please, refresh the page",
+        'warn'
+      );
     }
-
   };
 
   /**
@@ -90,33 +99,34 @@ module.exports = function () {
    * @param {string} string
    * @return {string}
    */
-  function escapeForJSON(string){
+  function escapeForJSON(string) {
     return string.replace(/\/'/, "'");
   }
 
-    /**
-     * Error event handler.
-     * Get error params and send to Hawk server
-     *
-     * @param ErrorEvent
-     */
+  /**
+   * Error event handler.
+   * Get error params and send to Hawk server
+   *
+   * @param ErrorEvent
+   */
   let errorHandler = function (ErrorEvent) {
     let error = {
       token: _token,
       payload: {
         message: escapeForJSON(ErrorEvent.message),
-        'error_location': {
+        // eslint-disable-next-line camelcase
+        error_location: {
           file: ErrorEvent.filename,
           line: ErrorEvent.lineno,
           col: ErrorEvent.colno,
           revision: _revision || null
         },
-         location: {
-        url: window.location.href,
-        origin: window.location.origin,
-        host: window.location.hostname,
-        path: window.location.pathname,
-        port: window.location.port
+        location: {
+          url: window.location.href,
+          origin: window.location.origin,
+          host: window.location.hostname,
+          path: window.location.pathname,
+          port: window.location.port
         },
         stack: ErrorEvent.error.stack || ErrorEvent.error.stacktrace,
         time: Date.now(),
@@ -126,9 +136,10 @@ module.exports = function () {
             width: window.innerWidth,
             height: window.innerHeight
           }
-        },
-        'catcher_type': 'errors/javascript'
-      }
+        }
+      },
+      // eslint-disable-next-line camelcase
+      catcher_type: 'errors/javascript'
     };
 
     ws.send(error);
@@ -152,4 +163,4 @@ module.exports = function () {
     init: init,
     test: test
   };
-}();
+})();

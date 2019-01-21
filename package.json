@@ -24,6 +24,8 @@
     "babel-core": "^6.26.3",
     "babel-loader": "^7.1.5",
     "babel-preset-env": "^1.7.0",
+    "eslint": "^5.12.1",
+    "eslint-config-codex": "github:codex-team/eslint-config",
     "webpack": "^4.16.3",
     "webpack-cli": "^3.1.0"
   },
