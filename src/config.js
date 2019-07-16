@@ -1,10 +1,10 @@
 module.exports = {
 
   socket: {
-    host: 'hawk.so',
-    path: 'catcher/client',
-    port: 8070,
-    secure: true
+    host: 'kepler.codex.so',
+    path: 'ws',
+    port: 3000,
+    secure: false
   }
 
 };
