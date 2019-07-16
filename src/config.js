@@ -4,7 +4,7 @@ module.exports = {
     host: 'kepler.codex.so',
     path: 'ws',
     port: 3000,
-    secure: false
+    secure: true
   }
 
 };
