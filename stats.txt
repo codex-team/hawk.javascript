@@ -1,6 +1,6 @@
 
-  Package size: 209 B with all dependencies, minified and gzipped
-  Loading time: 10 ms on slow 3G
-  Running time: 75 ms on Snapdragon 410
-  Total time:   85 ms
+  Package size: 3.66 KB with all dependencies, minified and gzipped
+  Loading time: 74 ms   on slow 3G
+  Running time: 69 ms   on Snapdragon 410
+  Total time:   142 ms
 
