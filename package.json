@@ -5,7 +5,8 @@
   "main": "./dist/hawk.js",
   "scripts": {
     "dev": "webpack-dev-server --config ./webpack.config.dev.js",
-    "build": "webpack"
+    "build": "webpack",
+    "stats": "size-limit ./dist/hawk.js"
   },
   "repository": {
     "type": "git",
@@ -21,19 +22,15 @@
   },
   "homepage": "https://github.com/codex-team/hawk.javascript#readme",
   "devDependencies": {
-    "babel-core": "^6.26.3",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/core": "^7.5.5",
     "babel-loader": "^8.0.6",
-    "babel-preset-env": "^1.7.0",
     "eslint": "^6.1.0",
     "eslint-config-codex": "github:codex-team/eslint-config",
+    "size-limit": "^1.3.8",
     "webpack": "^4.38.0",
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.7.2",
     "webpack-merge": "^4.2.1"
-  },
-  "babel": {
-    "presets": [
-      "env"
-    ]
   }
 }
