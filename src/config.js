@@ -1,10 +1,10 @@
 module.exports = {
 
   socket: {
-    host: 'kepler.codex.so',
+    host: 'localhost',
     path: 'ws',
-    port: 443,
-    secure: true
+    port: 3000,
+    secure: false
   }
 
 };

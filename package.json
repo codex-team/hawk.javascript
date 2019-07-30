@@ -4,8 +4,8 @@
   "description": "JavaScript errors tracking for Hawk.so",
   "main": "./dist/hawk.js",
   "scripts": {
-    "build:dev": "webpack --config ./webpack.config.js --mode production --watch",
-    "build": "webpack --entry ./src/main.js --output ./dist/hawk.js --moduleBind='js=babel-loader' --output-library hawk --output-library-target umd --mode production --watch"
+    "dev": "webpack --config ./webpack.config.dev.js",
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -27,7 +27,8 @@
     "eslint": "^5.12.1",
     "eslint-config-codex": "github:codex-team/eslint-config",
     "webpack": "^4.16.3",
-    "webpack-cli": "^3.1.0"
+    "webpack-cli": "^3.1.0",
+    "webpack-merge": "^4.2.1"
   },
   "babel": {
     "presets": [
