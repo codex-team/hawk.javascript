@@ -1,3 +1,6 @@
 module.exports = {
-  extends: ['codex']
+  extends: ['codex'],
+  env: {
+    browser: true,
+  }
 };
