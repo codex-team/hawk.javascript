@@ -1,4 +1,5 @@
-/*!
+/*
+ *!
  * Codex Hawk client side module
  * https://github.com/codex-team/hawk.javascript
  *
@@ -10,11 +11,11 @@
 module.exports = (function () {
   'use strict';
 
-  let config = require('../config');
+  const config = require('../config');
 
-  let websocket = require('./websocket');
+  const websocket = require('./websocket');
 
-  let logger = require('./logger');
+  const logger = require('./logger');
 
   let ws = null;
 
@@ -32,7 +33,7 @@ module.exports = (function () {
    * @param  {Boolean} settings.secure     pass FALSE to disable secure connection
    * @param  {string} settings.revision    identifier of bundle's revision
    */
-  let init = function (settings) {
+  const init = function (settings) {
     let token, host, port, path, secure, revision;
 
     if (typeof settings === 'string') {
@@ -60,7 +61,7 @@ module.exports = (function () {
       _revision = revision;
     }
 
-    let socket = config.socket;
+    const socket = config.socket;
 
     socket.onmessage = socketHandlers.message;
     socket.onclose = socketHandlers.close;
@@ -110,7 +111,7 @@ module.exports = (function () {
    * @param ErrorEvent
    */
   let errorHandler = function (ErrorEvent) {
-    let error = {
+    const error = {
       token: _token,
       payload: {
         message: escapeForJSON(ErrorEvent.message),
@@ -145,8 +146,8 @@ module.exports = (function () {
     ws.send(error);
   };
 
-  let test = function () {
-    let fakeEvent = {
+  const test = function () {
+    const fakeEvent = {
       message: 'Hawk client catcher test',
       filename: 'hawk.js',
       lineno: 0,

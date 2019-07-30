@@ -26,8 +26,8 @@
  * @returns {{send: send}}
  */
 module.exports = function (options) {
-  let ws = null,
-    logger = require('./logger');
+  let ws = null;
+  const logger = require('./logger');
 
   const STATES = {
     CONNECTING: 0,
@@ -36,19 +36,19 @@ module.exports = function (options) {
     CLOSED: 3
   };
 
-    /**
-     * Open new websocket connection
-     * Returns promise, resolved if connection was opened and rejected on error
-     *
-     * @returns {Promise}
-     */
-  let init = function () {
+  /**
+   * Open new websocket connection
+   * Returns promise, resolved if connection was opened and rejected on error
+   *
+   * @returns {Promise}
+   */
+  const init = function () {
     return new Promise(function (resolve, reject) {
-      let protocol = 'ws' + (options.secure ? 's' : '') + '://',
-        host = options.host || 'localhost',
-        path = options.path ? '/' + options.path : '',
-        port = options.port ? ':' + options.port : '',
-        url = protocol + host + port + path;
+      const protocol = 'ws' + (options.secure ? 's' : '') + '://';
+      const host = options.host || 'localhost';
+      const path = options.path ? '/' + options.path : '';
+      const port = options.port ? ':' + options.port : '';
+      const url = protocol + host + port + path;
 
       ws = new WebSocket(url);
 
@@ -74,14 +74,14 @@ module.exports = function (options) {
     });
   };
 
-    /**
-     * Try to open new websocket connection.
-     * Returns promise, resolved if reconnect was successful, rejected otherwise
-     *
-     * @param attempts - number of reconnect attempts. 1 by default
-     * @returns {Promise}
-     */
-  let reconnect = function (attempts=1) {
+  /**
+   * Try to open new websocket connection.
+   * Returns promise, resolved if reconnect was successful, rejected otherwise
+   *
+   * @param attempts - number of reconnect attempts. 1 by default
+   * @returns {Promise}
+   */
+  const reconnect = function (attempts = 1) {
     return new Promise(function (resolve, reject) {
       init()
         .then(function () {
@@ -103,11 +103,11 @@ module.exports = function (options) {
     });
   };
 
-    /**
-     * Send data to WebSocket server in JSON format
-     * @param data
-     */
-  let send = function (data) {
+  /**
+   * Send data to WebSocket server in JSON format
+   * @param data
+   */
+  const send = function (data) {
     if (ws === null) {
       return;
     }
@@ -133,6 +133,6 @@ module.exports = function (options) {
     });
 
   return {
-    send: send,
+    send: send
   };
 };

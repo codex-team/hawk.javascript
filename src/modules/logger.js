@@ -14,7 +14,7 @@ module.exports.log = function (message, type, arg) {
   message = '[CodeX Hawk]: ' + message;
 
   if ('console' in window && window.console[type]) {
-    if ( arg !== undefined ) {
+    if (arg !== undefined) {
       window.console[type](message, arg);
     } else {
       window.console[type](message);
