@@ -2,6 +2,9 @@ const config = require('../config');
 const Socket = require('./socket');
 const logger = require('./logger');
 
+/**
+ * Listeners for websocket events
+ */
 const socketHandlers = {
   message(data) {
     let message, type;
@@ -126,7 +129,6 @@ class HawkClient {
       }
     };
 
-    console.log(this.ws);
     this.ws.send(error);
   }
 }

@@ -10,11 +10,12 @@ const logger = require('./logger');
  * @property {Boolean} secure - if True, uses wss protocol, else ws
  *
  * Events handlers
- * @property {Function} onopen - fires when connection have been opened
  * @property {Function} onmessage - fires when message from server received
- * @property {Function} onclose - fires when connection have been closed
  */
 
+/**
+ * Custom WebSocket wrapper class
+ */
 class Socket {
   /**
    * Creates new Socket instance. Setup initial socket params.
@@ -27,8 +28,6 @@ class Socket {
     const port = options.port ? ':' + options.port : '';
 
     this.url = protocol + host + port + path;
-    this.onclose = options.onclose;
-    this.onopen = options.onopen;
     this.onmessage = options.onmessage;
 
     this.eventsQueue = [];
@@ -36,6 +35,10 @@ class Socket {
     this.init();
   }
 
+  /**
+   * Create new websocket connection and setup event listeners
+   * @return {Promise<void>}
+   */
   init() {
     return new Promise( (resolve, reject) => {
       this.ws = new WebSocket(this.url);
@@ -46,13 +49,18 @@ class Socket {
 
       this.ws.onclose = () => this.eventsQueue.length && this.reconnect();
 
-      this.ws.onopen = (e) => {
-        resolve(e);
+      this.ws.onopen = () => {
+        resolve();
         this.eventsQueue.forEach(event => this.send(event));
       };
     });
   }
 
+  /**
+   * Tries to reconnect to the server a specified number of times
+   * @param {Number} attempts - how many attempts will be made to connect
+   * @return {Promise<void>}
+   */
   async reconnect(attempts = 2) {
     try {
       await this.init();
@@ -66,6 +74,11 @@ class Socket {
     }
   }
 
+  /**
+   * Send data to the server
+   * @param {Object} data - data to send
+   * @return {Promise<*>}
+   */
   async send(data) {
     if (this.ws === null) {
       this.eventsQueue.push(data);
