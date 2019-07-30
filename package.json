@@ -5,8 +5,8 @@
   "main": "./dist/hawk.js",
   "scripts": {
     "dev": "webpack-dev-server --config ./webpack.config.dev.js",
-    "build": "webpack",
-    "stats": "size-limit ./dist/hawk.js"
+    "build": "webpack && yarn stats",
+    "stats": "size-limit ./dist/hawk.js > stats.txt"
   },
   "repository": {
     "type": "git",
