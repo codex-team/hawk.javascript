@@ -1,11 +1,11 @@
 /*!
  * Codex Hawk client side module
- * https://github.com/codex-team/hawk.client
+ * https://github.com/codex-team/hawk.javascript
  *
  * Codex Hawk - https://hawk.so
- * Codex Team - https://ifmo.su
+ * Codex Team - https://codex.so
  *
- * @license MIT (c) CodeX 2017
+ * @license MIT (c) CodeX 2019
  */
 module.exports = (function () {
   'use strict';
