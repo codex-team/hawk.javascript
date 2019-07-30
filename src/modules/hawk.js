@@ -1,5 +1,5 @@
 const config = require('../config');
-const websocket = require('./websocket');
+const Socket = require('./socket');
 const logger = require('./logger');
 
 const socketHandlers = {
@@ -74,9 +74,9 @@ class HawkClient {
     socketSettings.onmessage = socketHandlers.message;
     socketSettings.onclose = socketHandlers.close;
 
-    this.ws = websocket(socketSettings);
+    this.ws = new Socket(socketSettings);
 
-    window.addEventListener('error', this.handleError);
+    window.addEventListener('error', (e) => this.handleError(e));
   }
 
   /**
@@ -103,6 +103,8 @@ class HawkClient {
   handleError(ErrorEvent) {
     const error = {
       token: this.token,
+      // eslint-disable-next-line camelcase
+      catcher_type: 'errors/javascript',
       payload: {
         message: ErrorEvent.message,
         location: {
@@ -121,10 +123,10 @@ class HawkClient {
             height: window.innerHeight
           }
         }
-      },
-      catcherType: 'errors/javascript'
+      }
     };
 
+    console.log(this.ws);
     this.ws.send(error);
   }
 }
