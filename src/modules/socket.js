@@ -11,6 +11,8 @@ const logger = require('./logger');
  *
  * Events handlers
  * @property {Function} onmessage - fires when message from server received
+ * @property {Function} onopen - fires when connection have been opened
+ * @property {Function} onclose - fires when connection have been closed
  */
 
 /**
@@ -29,6 +31,8 @@ class Socket {
 
     this.url = protocol + host + port + path;
     this.onmessage = options.onmessage;
+    this.onclose = options.onclose;
+    this.onopen = options.onopen;
 
     this.eventsQueue = [];
     this.ws = null;
@@ -40,18 +44,29 @@ class Socket {
    * @return {Promise<void>}
    */
   init() {
-    return new Promise( (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       this.ws = new WebSocket(this.url);
 
       if (typeof this.onmessage === 'function') {
         this.ws.onmessage = this.onmessage;
       }
 
-      this.ws.onclose = () => this.eventsQueue.length && this.reconnect();
+      this.ws.onclose = () => {
+        if (typeof this.onclose === 'function') {
+          this.onclose();
+        }
+        this.eventsQueue.length && this.reconnect();
+      };
 
       this.ws.onopen = () => {
+        if (typeof this.onopen === 'function') {
+          this.onopen();
+        }
         resolve();
-        this.eventsQueue.forEach(event => this.send(event));
+        for (let index = 0; index < this.eventsQueue.length; index++) {
+          console.log(this.eventsQueue)
+          this.send(this.eventsQueue.shift());
+        }
       };
     });
   }
@@ -85,6 +100,7 @@ class Socket {
       return this.init();
     }
 
+    console.log(this.eventsQueue)
     switch (this.ws.readyState) {
       case WebSocket.OPEN:
         data = JSON.stringify(data);
