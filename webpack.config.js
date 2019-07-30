@@ -3,7 +3,7 @@ module.exports = {
   entry: './src/main.js',
   output: {
     filename: './hawk.js',
-    library: 'hawk'
+    library: 'HawkClient'
   },
   module: {
     rules: [
