@@ -1,10 +1,13 @@
 const merge = require('webpack-merge');
-const baseConfig = require('./webpack.config.js');
+const baseConfig = require('./webpack.config');
+const path = require('path');
 
 module.exports = merge(baseConfig, {
   mode: 'development',
-  watch: true,
-  watchOptions: {
-    ignored: /node_modules/
+  devServer: {
+    port: 9000,
+    watchContentBase: true,
+    open: true,
+    openPage: 'test'
   }
 });
