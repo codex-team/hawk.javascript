@@ -88,7 +88,7 @@ const hawk = new HawkClient({token: 'INTEGRATION_TOKEN', revision: 12345654345})
 
 ## Testing and server responses
 
-To make sure that Hawk is working right, call `HawkClient.test()` method in browser's console.
+To make sure that Hawk is working right, call `test` method from `HawkClient` class instance in browser's console.
 `test` method sends fake error to server. So if you get it in your profile, everything works correctly.
 
 Also in browser's console you can find out some Hawk warnings and server responses.
