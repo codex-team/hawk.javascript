@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hawk example</title>
+</head>
+<body>
+<script>
+  function throwError() {
+    throw new Error('Test error')
+  }
+</script>
+<script src="assets/hawk.js"></script>
+<script>
+  window.hawk = new HawkClient({
+    token: 'qwdwdwd',
+    host: 'localhost',
+    path: 'ws',
+    port: 3000,
+    secure: false
+  })
+</script>
+<button onclick="window.hawk.test()">hawk.test()</button>
+<button onclick="throwError()">Real error</button>
+</body>
+</html>

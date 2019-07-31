@@ -60,5 +60,3 @@ typings/
 .idea/*
 .idea/watcherTasks.xml
 package-lock.json
-
-index.html
