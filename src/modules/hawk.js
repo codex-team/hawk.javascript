@@ -17,19 +17,17 @@ const logger = require('./logger');
 const socketHandlers = {
   /**
    * Handles new messages from the socket
-   * @param {Object} data - data from Socket
-   * @property data.type - socket message type
-   * @property data.message - socket message
+   * @param {{data: string}} response - response from Socket
    */
-  message(data) {
+  message(response) {
     let message, type;
 
     try {
-      data = JSON.parse(data.data);
-      type = data.type;
-      message = data.message;
+      response = JSON.parse(response.data);
+      type = response.type;
+      message = response.message;
     } catch (e) {
-      message = data.data;
+      message = response.data;
       type = 'info';
     }
 
