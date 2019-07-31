@@ -114,6 +114,13 @@ class HawkClient {
       catcher_type: 'errors/javascript',
       payload: {
         message: ErrorEvent.message,
+        // eslint-disable-next-line camelcase
+        error_location: {
+          file: ErrorEvent.filename,
+          line: ErrorEvent.lineno,
+          col: ErrorEvent.colno,
+          revision: this.revision || null
+        },
         location: {
           url: window.location.href,
           origin: window.location.origin,
