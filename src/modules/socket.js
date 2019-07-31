@@ -36,13 +36,12 @@ class Socket {
 
     this.eventsQueue = [];
     this.ws = null;
-    this.init().catch((e) => {
-      console.log(e);
-    });
+    this.init().catch(() => {});
   }
 
   /**
    * Create new websocket connection and setup event listeners
+   * @private
    * @return {Promise<void>}
    */
   init() {
@@ -77,6 +76,7 @@ class Socket {
 
   /**
    * Tries to reconnect to the server a specified number of times
+   * @private
    * @param {Number} attempts - how many attempts will be made to connect
    * @param flag
    * @return {Promise<void>}
