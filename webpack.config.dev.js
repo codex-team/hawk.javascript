@@ -9,7 +9,7 @@ module.exports = merge(baseConfig, {
     port: 9000,
     open: true,
     publicPath: '/assets/',
-    contentBase: path.resolve(__dirname, 'test'),
+    contentBase: path.resolve(__dirname, 'example'),
     watchContentBase: true
   }
 });
