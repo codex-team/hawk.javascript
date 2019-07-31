@@ -1,3 +1,12 @@
+// eslint-disable-next-line multiline-comment-style
+/*!
+ * Hawk client for error catching
+ * @usage
+ * const hawk = new HawkClient('token');
+ * hawk.test();
+ * hawk.handleEvent();
+ */
+
 const config = require('../config');
 const Socket = require('./socket');
 const logger = require('./logger');
@@ -42,9 +51,9 @@ const socketHandlers = {
 /**
  * Hawk client for error catching
  * @usage
- * const hawk = new HawkClient();
+ * const hawk = new HawkClient('token');
  * hawk.test();
- * hawk.handleError();
+ * hawk.handleEvent();
  */
 class HawkClient {
   /**
@@ -83,7 +92,8 @@ class HawkClient {
 
     this.ws = new Socket(socketSettings);
 
-    window.addEventListener('error', (e) => this.handleError(e));
+    window.addEventListener('error', (e) => this.handleEvent(e));
+    window.addEventListener('unhandledrejection', (e) => this.handleEvent(e));
   }
 
   /**
@@ -100,26 +110,27 @@ class HawkClient {
       }
     };
 
-    this.handleError(fakeEvent);
+    this.handleEvent(fakeEvent);
   }
 
   /**
    * Handles the error and sends it to the server
    * @param {Error} ErrorEvent - occurred event
    */
-  handleError(ErrorEvent) {
+  handleEvent(ErrorEvent) {
+    console.log(ErrorEvent);
     const error = {
       token: this.token,
       // eslint-disable-next-line camelcase
       catcher_type: 'errors/javascript',
       payload: {
         message: ErrorEvent.message,
+        revision: this.revision || null,
         // eslint-disable-next-line camelcase
         error_location: {
           file: ErrorEvent.filename,
           line: ErrorEvent.lineno,
-          col: ErrorEvent.colno,
-          revision: this.revision || null
+          col: ErrorEvent.colno
         },
         location: {
           url: window.location.href,
@@ -128,7 +139,7 @@ class HawkClient {
           path: window.location.pathname,
           port: window.location.port
         },
-        stack: ErrorEvent.error.stack || ErrorEvent.error.stacktrace,
+        stack: ErrorEvent.error && (ErrorEvent.error.stack || ErrorEvent.error.stacktrace),
         time: Date.now(),
         navigator: {
           ua: window.navigator.userAgent,
