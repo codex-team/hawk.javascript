@@ -52,7 +52,7 @@ Download [hawk.js](dist/hawk.js) file and add it to all pages of your site.
 ### Get token
 
 First of all, you should register an account on [hawk.so](https://hawk.so/join).
-fix
+
 Then [create a new Project](https://hawk.so/websites/create).
 You'll get an Integration Token.
 
