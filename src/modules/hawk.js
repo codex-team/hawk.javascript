@@ -18,6 +18,8 @@ const socketHandlers = {
   /**
    * Handles new messages from the socket
    * @param {Object} data - data from Socket
+   * @property data.type - socket message type
+   * @property data.message - socket message
    */
   message(data) {
     let message, type;
