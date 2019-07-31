@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hawk example</title>
+</head>
+<body>
+<script>
+  function throwError() {
+    throw new Error('Test error')
+  }
+</script>
+<script src="assets/hawk.js"></script>
+<script>
+  window.hawk = new HawkClient({
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1NjMyNjQ1NTd9.GTPeWVWuJwiA4xidun__FwFc0XyBBJKCUcKi79mp-uY',
+    host: 'localhost',
+    path: 'ws',
+    port: 3000,
+    secure: false
+  })
+</script>
+<button onclick="window.hawk.test()">hawk.test()</button>
+<button onclick="throwError()">Real error</button>
+<button onclick="Promise.reject('Test reject')">Unhandled promise rejection</button>
+</body>
+</html>

@@ -4,8 +4,9 @@
   "description": "JavaScript errors tracking for Hawk.so",
   "main": "./dist/hawk.js",
   "scripts": {
-    "build:dev": "webpack --config ./webpack.config.js --mode production --watch",
-    "build": "webpack --entry ./src/main.js --output ./dist/hawk.js --moduleBind='js=babel-loader' --output-library hawk --output-library-target umd --mode production --watch"
+    "dev": "webpack-dev-server --config ./webpack.config.dev.js",
+    "build": "webpack && yarn stats",
+    "stats": "size-limit ./dist/hawk.js > stats.txt"
   },
   "repository": {
     "type": "git",
@@ -21,17 +22,16 @@
   },
   "homepage": "https://github.com/codex-team/hawk.javascript#readme",
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.5",
-    "babel-preset-env": "^1.7.0",
-    "eslint": "^5.12.1",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "babel-loader": "^8.0.6",
+    "eslint": "^6.1.0",
     "eslint-config-codex": "github:codex-team/eslint-config",
-    "webpack": "^4.16.3",
-    "webpack-cli": "^3.1.0"
-  },
-  "babel": {
-    "presets": [
-      "env"
-    ]
+    "regenerator-runtime": "^0.13.3",
+    "size-limit": "^1.3.8",
+    "webpack": "^4.38.0",
+    "webpack-cli": "^3.1.0",
+    "webpack-dev-server": "^3.7.2",
+    "webpack-merge": "^4.2.1"
   }
 }
