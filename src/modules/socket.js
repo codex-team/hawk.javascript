@@ -75,25 +75,25 @@ class Socket {
   }
 
   /**
-   * Tries to reconnect to the server a specified number of times
+   * Tries to reconnect to the server a specified number of times with the interval
    * @private
-   * @param {Number} attempts - how many attempts will be made to connect
-   * @param flag
+   * @param {Number} [attempts=2] - how many attempts will be made to connect
+   * @param [isForcedCall] - call function despite timer
    * @return {Promise<void>}
    */
-  async reconnect(attempts, flag = false) {
-    if (!attempts) {
-      this.reconnectionInterval = null;
-      return;
-    }
-    if (attempts && this.reconnectionInterval && !flag) return;
+  async reconnect(attempts = 2, isForcedCall = false) {
+    if (attempts && this.reconnectionTimeout && !isForcedCall) return;
 
-    this.reconnectionInterval = null;
+    this.reconnectionTimeout = null;
     try {
       await this.init();
       logger.log('Successfully reconnect to socket server', 'info');
     } catch (e) {
-      this.reconnectionInterval = setTimeout(() => this.reconnect(attempts - 1, true), 1000 * 5);
+      if (attempts - 1 > 0) {
+        const timeout = 1000 * 15; // 15 secs
+
+        this.reconnectionTimeout = setTimeout(() => this.reconnect(attempts - 1, true), timeout);
+      }
     }
   }
 
@@ -114,7 +114,7 @@ class Socket {
         return this.ws.send(data);
       case WebSocket.CLOSED:
         this.eventsQueue.push(data);
-        return this.reconnect(2);
+        return this.reconnect();
       case WebSocket.CONNECTING:
       case WebSocket.CLOSING:
         return this.eventsQueue.push(data);

@@ -41,6 +41,10 @@ const socketHandlers = {
 
 /**
  * Hawk client for error catching
+ * @usage
+ * const hawk = new HawkClient();
+ * hawk.test();
+ * hawk.handleError();
  */
 class HawkClient {
   /**
