@@ -36,7 +36,9 @@ class Socket {
 
     this.eventsQueue = [];
     this.ws = null;
-    this.init();
+    this.init().catch((e) => {
+      console.log(e);
+    });
   }
 
   /**
@@ -55,7 +57,10 @@ class Socket {
         if (typeof this.onclose === 'function') {
           this.onclose();
         }
-        this.eventsQueue.length && this.reconnect();
+      };
+
+      this.ws.onerror = (e) => {
+        reject(e);
       };
 
       this.ws.onopen = () => {
@@ -63,8 +68,7 @@ class Socket {
           this.onopen();
         }
         resolve();
-        for (let index = 0; index < this.eventsQueue.length; index++) {
-          console.log(this.eventsQueue)
+        while (this.eventsQueue.length) {
           this.send(this.eventsQueue.shift());
         }
       };
@@ -74,18 +78,22 @@ class Socket {
   /**
    * Tries to reconnect to the server a specified number of times
    * @param {Number} attempts - how many attempts will be made to connect
+   * @param flag
    * @return {Promise<void>}
    */
-  async reconnect(attempts = 2) {
+  async reconnect(attempts, flag = false) {
+    if (!attempts) {
+      this.reconnectionInterval = null;
+      return;
+    }
+    if (attempts && this.reconnectionInterval && !flag) return;
+
+    this.reconnectionInterval = null;
     try {
       await this.init();
       logger.log('Successfully reconnect to socket server', 'info');
     } catch (e) {
-      if (attempts > 0) {
-        await this.reconnect(attempts - 1);
-      } else {
-        logger.log('Can\'t reconnect to socket server', 'warn');
-      }
+      this.reconnectionInterval = setTimeout(() => this.reconnect(attempts - 1, true), 1000 * 5);
     }
   }
 
@@ -100,14 +108,15 @@ class Socket {
       return this.init();
     }
 
-    console.log(this.eventsQueue)
     switch (this.ws.readyState) {
       case WebSocket.OPEN:
         data = JSON.stringify(data);
         return this.ws.send(data);
+      case WebSocket.CLOSED:
+        this.eventsQueue.push(data);
+        return this.reconnect(2);
       case WebSocket.CONNECTING:
       case WebSocket.CLOSING:
-      case WebSocket.CLOSED:
         return this.eventsQueue.push(data);
     }
   }
