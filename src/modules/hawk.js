@@ -15,6 +15,10 @@ const logger = require('./logger');
  * Listeners for websocket events
  */
 const socketHandlers = {
+  /**
+   * Handles new messages from the socket
+   * @param {Object} data - data from Socket
+   */
   message(data) {
     let message, type;
 
@@ -30,10 +34,13 @@ const socketHandlers = {
     logger.log('Hawk says: ' + message, type);
   },
 
+  /**
+   * Handles close event from the socket
+   */
   close() {
     logger.log(
-      "Connection lost. Errors won't be save. Please, refresh the page",
-      'warn'
+      'Connection lost. Connection will be restored when new errors occurred',
+      'info'
     );
   }
 };
@@ -79,7 +86,7 @@ class HawkClient {
 
     if (!this.token) {
       logger.log(
-        'Please, pass your verification token for Hawk error tracker. You can get it on hawk.so',
+        'Please, pass your integration token for Hawk error tracker. You can get it on hawk.so',
         'warn'
       );
       return;
@@ -114,24 +121,17 @@ class HawkClient {
   }
 
   /**
-   * Handles the error and sends it to the server
-   * @param {Error} ErrorEvent - occurred event
+   * Handles the event and sends it to the server
+   * @param {Object} event - occurred event
    */
-  handleEvent(ErrorEvent) {
-    console.log(ErrorEvent);
-    const error = {
+  handleEvent(event) {
+    const data = {
       token: this.token,
       // eslint-disable-next-line camelcase
       catcher_type: 'errors/javascript',
       payload: {
-        message: ErrorEvent.message,
+        event,
         revision: this.revision || null,
-        // eslint-disable-next-line camelcase
-        error_location: {
-          file: ErrorEvent.filename,
-          line: ErrorEvent.lineno,
-          col: ErrorEvent.colno
-        },
         location: {
           url: window.location.href,
           origin: window.location.origin,
@@ -139,8 +139,7 @@ class HawkClient {
           path: window.location.pathname,
           port: window.location.port
         },
-        stack: ErrorEvent.error && (ErrorEvent.error.stack || ErrorEvent.error.stacktrace),
-        time: Date.now(),
+        timestamp: Date.now(),
         navigator: {
           ua: window.navigator.userAgent,
           frame: {
@@ -151,7 +150,7 @@ class HawkClient {
       }
     };
 
-    this.ws.send(error);
+    this.ws.send(data);
   }
 }
 

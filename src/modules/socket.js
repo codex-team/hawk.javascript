@@ -87,7 +87,7 @@ class Socket {
     this.reconnectionTimeout = null;
     try {
       await this.init();
-      logger.log('Successfully reconnect to socket server', 'info');
+      logger.log('Successfully reconnected to socket server', 'info');
     } catch (e) {
       if (attempts - 1 > 0) {
         const timeout = 1000 * 15; // 15 secs
