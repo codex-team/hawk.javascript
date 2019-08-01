@@ -46,6 +46,40 @@ const socketHandlers = {
 };
 
 /**
+ * Allows to select only the necessary fields from the error object
+ * @param {Object} event - event for filtering
+ */
+function filterEventFields(event) {
+  const necessaryFields = [
+    'colno',
+    'lineno',
+    'filename',
+    'message',
+    'type',
+    'isTrusted',
+    'error.message',
+    'error.stack'
+  ];
+
+  const result = {};
+
+  necessaryFields.forEach(fieldPath => {
+    const fields = fieldPath.split('.');
+    let eventCache = event;
+    let resultCache = result;
+
+    for (let i = 0, length = fields.length; i < length; i++) {
+      const fieldName = fields[i];
+
+      if (!eventCache[fieldName]) break;
+      eventCache = eventCache[fieldName];
+      i === length - 1 ? resultCache[fieldName] = eventCache : resultCache = resultCache[fieldName] = {};
+    }
+  });
+  return result;
+}
+
+/**
  * @typedef {Object} HawkClientSettings
  * @property {string} token - personal token
  * @property {string} host - optional: client catcher hostname
@@ -130,7 +164,7 @@ class HawkClient {
       // eslint-disable-next-line camelcase
       catcher_type: 'errors/javascript',
       payload: {
-        event,
+        event: filterEventFields(event),
         revision: this.revision || null,
         location: {
           url: window.location.href,
