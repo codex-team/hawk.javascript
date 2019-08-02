@@ -71,9 +71,15 @@ function filterEventFields(event) {
     for (let i = 0, length = fields.length; i < length; i++) {
       const fieldName = fields[i];
 
-      if (!eventCache[fieldName]) break;
+      if (!eventCache[fieldName]) {
+        break;
+      }
       eventCache = eventCache[fieldName];
-      i === length - 1 ? resultCache[fieldName] = eventCache : resultCache = resultCache[fieldName] = {};
+      if (i === length - 1) {
+        resultCache[fieldName] = eventCache;
+      } else {
+        resultCache = resultCache[fieldName] = {};
+      }
     }
   });
   return result;
