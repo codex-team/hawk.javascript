@@ -167,8 +167,7 @@ class HawkClient {
   handleEvent(event) {
     const data = {
       token: this.token,
-      // eslint-disable-next-line camelcase
-      catcher_type: 'errors/javascript',
+      catcherType: 'errors/javascript',
       payload: {
         event: filterEventFields(event),
         revision: this.revision || null,
