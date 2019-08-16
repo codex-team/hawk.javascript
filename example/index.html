@@ -9,11 +9,20 @@
   function throwError() {
     throw new Error('Test error')
   }
+
+  function sendManyErrors() {
+    const inputElement = document.getElementById('errorsNumber');
+    const errorsNumber = inputElement.value;
+
+    for (let i = 0; i < errorsNumber; i++){
+      hawk.handleEvent(new Error('Test many error'));
+    }
+  }
 </script>
 <script src="assets/hawk.js"></script>
 <script>
   window.hawk = new HawkClient({
-    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1NjMyNjQ1NTd9.GTPeWVWuJwiA4xidun__FwFc0XyBBJKCUcKi79mp-uY',
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZDIwNmY3ZjlhYWY3YzAwNzFkNjQ1OTYiLCJpYXQiOjE1NjU5NzM0OTh9.FpzxP0P27SrVEM1N84eZAl-PbqbeqRU8A8aV2Uzmq8o',
     host: 'localhost',
     path: 'ws',
     port: 3000,
@@ -23,5 +32,10 @@
 <button onclick="window.hawk.test()">hawk.test()</button>
 <button onclick="throwError()">Real error</button>
 <button onclick="Promise.reject('Test reject')">Unhandled promise rejection</button>
+<div>
+    <label for="errorsNumber">Enter the number of errors to send</label>
+    <input type="number" id="errorsNumber" value="1000">
+    <button onclick="sendManyErrors()">Send errors</button>
+</div>
 </body>
 </html>
