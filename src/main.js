@@ -14,6 +14,7 @@ const config = require('./config');
 const Socket = require('./modules/socket');
 const logger = require('./modules/logger');
 
+const consoleCatcher = require('./modules/consoleCatcher');
 /**
  * Listeners for websocket events
  */
@@ -122,6 +123,9 @@ class HawkCatcher {
       this.revision = settings.revision;
     }
 
+    this.integrations = [];
+    this.use(consoleCatcher);
+
     config.socket.host = this.host || config.socket.host;
     config.socket.port = this.port || config.socket.port;
     config.socket.path = this.path || config.socket.path;
@@ -192,7 +196,12 @@ class HawkCatcher {
       }
     };
 
+    this.integrations.forEach(int => int(event, data));
     this.ws.send(data);
+  }
+
+  use(integration) {
+    this.integrations.push(integration);
   }
 }
 
