@@ -1,11 +1,13 @@
 require('regenerator-runtime/runtime');
 // eslint-disable-next-line multiline-comment-style
 /*!
- * Hawk client for error catching
- * @usage
- * const hawk = new HawkCatcher('token');
- * hawk.test();
- * hawk.handleEvent();
+ * Hawk JavaScript catcher
+ * https://github.com/codex-team/hawk.javascript
+ *
+ * Codex Hawk - https://hawk.so
+ * Codex Team - https://codex.so
+ *
+ * @license MIT (c) CodeX 2019
  */
 
 const config = require('./config');
@@ -97,7 +99,7 @@ function filterEventFields(event) {
  */
 
 /**
- * Hawk client for error catching
+ * HawkCatcher for events tracking
  * @usage
  * const hawk = new HawkCatcher('token');
  * hawk.test();
