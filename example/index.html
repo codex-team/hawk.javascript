@@ -3,6 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Hawk example</title>
+    <style>
+        section {
+            padding: 5px;
+            border-bottom: 1px solid rgba(26, 29, 38, 0.2);
+        }
+
+        h2 {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+    </style>
 </head>
 <body>
 <script>
@@ -18,6 +29,13 @@
       hawk.handleEvent(new Error('Test many error'));
     }
   }
+
+  function onConsoleCatcherTest() {
+    const consoleMethod = document.getElementById('consoleMethod').value;
+    const text = document.getElementById('consoleCatcherTestTextInput').value;
+
+    console[consoleMethod](text);
+  }
 </script>
 <script src="assets/hawk.js"></script>
 <script>
@@ -29,13 +47,37 @@
     secure: false
   })
 </script>
-<button onclick="window.hawk.test()">hawk.test()</button>
-<button onclick="throwError()">Real error</button>
-<button onclick="Promise.reject('Test reject')">Unhandled promise rejection</button>
-<div>
+<section>
+    <h2>Send test event</h2>
+    <button onclick="window.hawk.test()">hawk.test()</button>
+</section>
+<section>
+    <h2>Send real error</h2>
+    <button onclick="throwError()">Real error</button>
+</section>
+<section>
+    <h2>Send Unhandled promise rejection error</h2>
+    <button onclick="Promise.reject('Test reject')">Unhandled promise rejection</button>
+</section>
+<section>
+    <h2>Send the specified number of errors</h2>
     <label for="errorsNumber">Enter the number of errors to send</label>
     <input type="number" id="errorsNumber" value="1000">
     <button onclick="sendManyErrors()">Send errors</button>
-</div>
+</section>
+<section>
+    <h2>Test console catcher</h2>
+    <label for="consoleCatcherTestTextInput">Enter text</label>
+    <input type="text" id="consoleCatcherTestTextInput"> <br>
+    <label for="consoleMethod">console.</label>
+    <select id="consoleMethod">
+        <option value="log">log</option>
+        <option value="error">error</option>
+        <option value="info">info</option>
+        <option value="debug">debug</option>
+        <option value="warn">warn</option>
+    </select>
+    <button onclick="onConsoleCatcherTest()">Make</button>
+</section>
 </body>
 </html>
