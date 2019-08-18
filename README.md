@@ -58,20 +58,20 @@ You'll get an Integration Token.
 
 ### Initialize Hawk
 
-Create `HawkClient` class instance when script will be ready and pass your Integration Token:
+Create `HawkCatcher` class instance when script will be ready and pass your Integration Token:
 
 ```js
-const hawk = new HawkClient({token: 'INTEGRATION_TOKEN'});
+const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'});
 
 // or 
 
-const hawk = new HawkClient('INTEGRATION_TOKEN');
+const hawk = new HawkCatcher('INTEGRATION_TOKEN');
 ```
 
-Alternately, add `onload="const hawk = new HawkClient({token: 'INTEGRATION_TOKEN'})"` attribute to the `<script>` tag.
+Alternately, add `onload="const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'})"` attribute to the `<script>` tag.
 
 ```html
-<script src="https://cdn.rawgit.com/codex-team/hawk.javascript/master/hawk.js" onload="const hawk = new HawkClient({token: 'INTEGRATION_TOKEN'})"></script>
+<script src="https://cdn.rawgit.com/codex-team/hawk.javascript/master/hawk.js" onload="const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'})"></script>
 ```
 
 ### Source map support
@@ -80,15 +80,15 @@ Hawk supports JS SourceMaps for showing more useful information from your minifi
 
 1. Bundle ends with line contains anchor to the source map, like `//# sourceMappingURL=all.min.js.map`. It can be absolute or relative (relatively the bundle) path.    
 2. Source map are publicly available by its URL.
-3. Every build you are updating the `revision` and pass it with `HawkClient` constructor. It can be heximal-hash or simply file's modification timestamp.
+3. Every build you are updating the `revision` and pass it with `HawkCatcher` constructor. It can be heximal-hash or simply file's modification timestamp.
 
 ```js
-const hawk = new HawkClient({token: 'INTEGRATION_TOKEN', revision: 12345654345})
+const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN', revision: 12345654345})
 ```
 
 ## Testing and server responses
 
-To make sure that Hawk is working right, call `test()` method from `HawkClient` class instance in browser's console.
+To make sure that Hawk is working right, call `test()` method from `HawkCatcher` class instance in browser's console.
 `test()` method sends fake error to server. So if you get it in your profile, everything works correctly.
 
 Also in browser's console you can find out some Hawk warnings and server responses.

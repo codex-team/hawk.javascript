@@ -3,7 +3,7 @@ require('regenerator-runtime/runtime');
 /*!
  * Hawk client for error catching
  * @usage
- * const hawk = new HawkClient('token');
+ * const hawk = new HawkCatcher('token');
  * hawk.test();
  * hawk.handleEvent();
  */
@@ -87,11 +87,11 @@ function filterEventFields(event) {
 }
 
 /**
- * @typedef {Object} HawkClientSettings
+ * @typedef {Object} HawkCatcherSettings
  * @property {string} token - personal token
- * @property {string} host - optional: client catcher hostname
- * @property {Number} port - optional: client catcher port
- * @property {string} path - hawk catcher route
+ * @property {string} host - optional: Hawk collector hostname
+ * @property {Number} port - optional: Hawk collector port
+ * @property {string} path - Hawk collector route for websocket connection
  * @property {Boolean} secure - pass FALSE to disable secure connection
  * @property {string} revision - identifier of bundle's revision
  */
@@ -99,14 +99,14 @@ function filterEventFields(event) {
 /**
  * Hawk client for error catching
  * @usage
- * const hawk = new HawkClient('token');
+ * const hawk = new HawkCatcher('token');
  * hawk.test();
  * hawk.handleEvent();
  */
-class HawkClient {
+class HawkCatcher {
   /**
-   * Hawk client constructor
-   * @param {HawkClientSettings|string} settings - settings object or token
+   * HawkCatcher constructor
+   * @param {HawkCatcherSettings|string} settings - settings object or token
    */
   constructor(settings) {
     if (typeof settings === 'string') {
@@ -149,7 +149,7 @@ class HawkClient {
    */
   test() {
     const fakeEvent = {
-      message: 'Hawk client catcher test',
+      message: 'Hawk JavaScript catcher test',
       filename: 'hawk.js',
       lineno: 0,
       colno: 0,
@@ -194,4 +194,4 @@ class HawkClient {
   }
 }
 
-module.exports = HawkClient;
+module.exports = HawkCatcher;
