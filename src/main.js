@@ -14,7 +14,9 @@ const config = require('./config');
 const Socket = require('./modules/socket');
 const logger = require('./modules/logger');
 
-const consoleCatcher = require('./modules/consoleCatcher');
+const consoleCatcher = require('./integrations/consoleCatcher');
+const userAgentInfo = require('./integrations/userAgentInfo');
+const eventFilter = require('./integrations/eventFilter');
 /**
  * Listeners for websocket events
  */
@@ -48,46 +50,6 @@ const socketHandlers = {
     );
   }
 };
-
-/**
- * Allows to select only the necessary fields from the error object
- * @param {Object} event - event for filtering
- */
-function filterEventFields(event) {
-  const necessaryFields = [
-    'colno',
-    'lineno',
-    'filename',
-    'message',
-    'type',
-    'isTrusted',
-    'error.message',
-    'error.stack'
-  ];
-
-  const result = {};
-
-  necessaryFields.forEach(fieldPath => {
-    const fields = fieldPath.split('.');
-    let eventCache = event;
-    let resultCache = result;
-
-    for (let i = 0, length = fields.length; i < length; i++) {
-      const fieldName = fields[i];
-
-      if (!eventCache[fieldName]) {
-        break;
-      }
-      eventCache = eventCache[fieldName];
-      if (i === length - 1) {
-        resultCache[fieldName] = eventCache;
-      } else {
-        resultCache = resultCache[fieldName] = {};
-      }
-    }
-  });
-  return result;
-}
 
 /**
  * @typedef {Object} HawkCatcherSettings
@@ -125,6 +87,8 @@ class HawkCatcher {
 
     this.integrations = [];
     this.use(consoleCatcher);
+    this.use(eventFilter);
+    this.use(userAgentInfo);
 
     config.socket.host = this.host || config.socket.host;
     config.socket.port = this.port || config.socket.port;
@@ -176,7 +140,6 @@ class HawkCatcher {
       token: this.token,
       catcherType: 'errors/javascript',
       payload: {
-        event: filterEventFields(event),
         revision: this.revision || null,
         location: {
           url: window.location.href,
@@ -185,14 +148,7 @@ class HawkCatcher {
           path: window.location.pathname,
           port: window.location.port
         },
-        timestamp: Date.now(),
-        navigator: {
-          ua: window.navigator.userAgent,
-          frame: {
-            width: window.innerWidth,
-            height: window.innerHeight
-          }
-        }
+        timestamp: Date.now()
       }
     };
 
