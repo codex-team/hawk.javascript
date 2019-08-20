@@ -48,40 +48,46 @@ const socketHandlers = {
 };
 
 /**
+ * @typedef {function} HawkCatcherIntegration
+ * @param {Object} event - occurred event
+ * @param {Object} data - data that will be send to the Hawk Collector
+ */
+
+/**
  * @typedef {Object} HawkCatcherSettings
  * @property {string} token - personal token
+ * @property {[HawkCatcherIntegration]} integrations - catcher integrations
  * @property {string} host - optional: Hawk collector hostname
  * @property {Number} port - optional: Hawk collector port
  * @property {string} path - Hawk collector route for websocket connection
  * @property {Boolean} secure - pass FALSE to disable secure connection
- * @property {string} revision - identifier of bundle's revision
  */
 
 /**
- * HawkCatcher for events tracking
+ * Catcher for events tracking
  * @usage
- * const hawk = new HawkCatcher('token');
+ * const hawk = new Catcher('token');
  * hawk.test();
  * hawk.handleEvent();
  */
-class HawkCatcher {
+class Catcher {
   /**
-   * HawkCatcher constructor
+   * Catcher constructor
    * @param {HawkCatcherSettings|string} settings - settings object or token
    */
   constructor(settings) {
     if (typeof settings === 'string') {
       this.token = settings;
+      this.integrations = [];
     } else {
       this.token = settings.token;
+      this.integrations = settings.integrations;
       this.host = settings.host;
       this.port = settings.port;
       this.path = settings.path;
       this.secure = settings.secure;
       this.revision = settings.revision;
     }
-
-    this.integrations = [];
 
     config.socket.host = this.host || config.socket.host;
     config.socket.port = this.port || config.socket.port;
@@ -148,10 +154,6 @@ class HawkCatcher {
     this.integrations.forEach(int => int(event, data));
     this.ws.send(data);
   }
-
-  use(integration) {
-    this.integrations.push(integration);
-  }
 }
 
-module.exports = HawkCatcher;
+module.exports = Catcher;
