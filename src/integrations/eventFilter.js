@@ -1,4 +1,8 @@
 /**
+ * @file Integration for processing occurred events
+ */
+
+/**
  * Allows to select only the necessary fields from the error object
  * @param {Object} event - event for filtering
  */
