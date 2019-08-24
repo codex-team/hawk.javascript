@@ -24,9 +24,10 @@
   function sendManyErrors() {
     const inputElement = document.getElementById('errorsNumber');
     const errorsNumber = inputElement.value;
+    const errorType = document.getElementById('errorType').value;
 
     for (let i = 0; i < errorsNumber; i++){
-      hawk.handleEvent(new Error('Test many error'));
+      hawk.handleEvent(new window[errorType]('Test many error'));
     }
   }
 
@@ -63,6 +64,12 @@
     <h2>Send the specified number of errors</h2>
     <label for="errorsNumber">Enter the number of errors to send</label>
     <input type="number" id="errorsNumber" value="1000">
+    <label for="errorType">Select errors type</label>
+    <select id="errorType">
+        <option value="TypeError">TypeError</option>
+        <option value="RangeError">RangeError</option>
+        <option value="Error">Error</option>
+    </select>
     <button onclick="sendManyErrors()">Send errors</button>
 </section>
 <section>
