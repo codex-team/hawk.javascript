@@ -1,15 +1,17 @@
 // eslint-disable-next-line multiline-comment-style
 /*!
- * Hawk client for error catching
- * @usage
- * const hawk = new HawkClient('token');
- * hawk.test();
- * hawk.handleEvent();
+ * Hawk JavaScript catcher
+ * https://github.com/codex-team/hawk.javascript
+ *
+ * Codex Hawk - https://hawk.so
+ * Codex Team - https://codex.so
+ *
+ * @license MIT (c) CodeX 2019
  */
 
-const config = require('../config');
-const Socket = require('./socket');
-const logger = require('./logger');
+const config = require('./config');
+const Socket = require('./modules/socket');
+const logger = require('./modules/logger');
 
 /**
  * Listeners for websocket events
@@ -46,72 +48,40 @@ const socketHandlers = {
 };
 
 /**
- * Allows to select only the necessary fields from the error object
- * @param {Object} event - event for filtering
+ * @typedef {function} HawkCatcherIntegration
+ * @param {Object} event - occurred event
+ * @param {Object} data - data that will be send to the Hawk Collector
  */
-function filterEventFields(event) {
-  const necessaryFields = [
-    'colno',
-    'lineno',
-    'filename',
-    'message',
-    'type',
-    'isTrusted',
-    'error.message',
-    'error.stack'
-  ];
-
-  const result = {};
-
-  necessaryFields.forEach(fieldPath => {
-    const fields = fieldPath.split('.');
-    let eventCache = event;
-    let resultCache = result;
-
-    for (let i = 0, length = fields.length; i < length; i++) {
-      const fieldName = fields[i];
-
-      if (!eventCache[fieldName]) {
-        break;
-      }
-      eventCache = eventCache[fieldName];
-      if (i === length - 1) {
-        resultCache[fieldName] = eventCache;
-      } else {
-        resultCache = resultCache[fieldName] = {};
-      }
-    }
-  });
-  return result;
-}
 
 /**
- * @typedef {Object} HawkClientSettings
+ * @typedef {Object} HawkCatcherSettings
  * @property {string} token - personal token
- * @property {string} host - optional: client catcher hostname
- * @property {Number} port - optional: client catcher port
- * @property {string} path - hawk catcher route
+ * @property {[HawkCatcherIntegration]} integrations - catcher integrations
+ * @property {string} host - optional: Hawk collector hostname
+ * @property {Number} port - optional: Hawk collector port
+ * @property {string} path - Hawk collector route for websocket connection
  * @property {Boolean} secure - pass FALSE to disable secure connection
- * @property {string} revision - identifier of bundle's revision
  */
 
 /**
- * Hawk client for error catching
+ * Catcher for events tracking
  * @usage
- * const hawk = new HawkClient('token');
+ * const hawk = new Catcher('token');
  * hawk.test();
  * hawk.handleEvent();
  */
-class HawkClient {
+class Catcher {
   /**
-   * Hawk client constructor
-   * @param {HawkClientSettings|string} settings - settings object or token
+   * Catcher constructor
+   * @param {HawkCatcherSettings|string} settings - settings object or token
    */
   constructor(settings) {
     if (typeof settings === 'string') {
       this.token = settings;
+      this.integrations = [];
     } else {
       this.token = settings.token;
+      this.integrations = settings.integrations;
       this.host = settings.host;
       this.port = settings.port;
       this.path = settings.path;
@@ -148,7 +118,7 @@ class HawkClient {
    */
   test() {
     const fakeEvent = {
-      message: 'Hawk client catcher test',
+      message: 'Hawk JavaScript catcher test',
       filename: 'hawk.js',
       lineno: 0,
       colno: 0,
@@ -167,10 +137,8 @@ class HawkClient {
   handleEvent(event) {
     const data = {
       token: this.token,
-      // eslint-disable-next-line camelcase
-      catcher_type: 'errors/javascript',
+      catcherType: 'errors/javascript',
       payload: {
-        event: filterEventFields(event),
         revision: this.revision || null,
         location: {
           url: window.location.href,
@@ -179,19 +147,13 @@ class HawkClient {
           path: window.location.pathname,
           port: window.location.port
         },
-        timestamp: Date.now(),
-        navigator: {
-          ua: window.navigator.userAgent,
-          frame: {
-            width: window.innerWidth,
-            height: window.innerHeight
-          }
-        }
+        timestamp: Date.now()
       }
     };
 
+    this.integrations.forEach(int => int(event, data));
     this.ws.send(data);
   }
 }
 
-module.exports = HawkClient;
+module.exports = Catcher;

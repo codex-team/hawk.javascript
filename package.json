@@ -2,11 +2,11 @@
   "name": "hawk.javascript",
   "version": "2.0.0",
   "description": "JavaScript errors tracking for Hawk.so",
-  "main": "./dist/hawk.js",
+  "main": "./dist/hawk.umd.js",
   "scripts": {
     "dev": "webpack-dev-server --config ./webpack.config.dev.js",
     "build": "webpack && yarn stats",
-    "stats": "size-limit ./dist/hawk.js > stats.txt"
+    "stats": "size-limit > stats.txt"
   },
   "repository": {
     "type": "git",
