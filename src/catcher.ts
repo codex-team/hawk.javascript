@@ -19,7 +19,7 @@ export default class Catcher {
   /**
    * JS Catcher version
    */
-  public readonly version: string;
+  public readonly version: string = VERSION;
 
   /**
    * Catcher Type
@@ -49,7 +49,7 @@ export default class Catcher {
 
   /**
    * Catcher constructor
-   * @param {InitialSettings|string} settings - If settings is a string, it means
+   * @param {InitialSettings|string} settings - If settings is a string, it means an Integration Token
    */
   constructor(settings: InitialSettings | string) {
     if (typeof settings === 'string') {
@@ -61,7 +61,6 @@ export default class Catcher {
     this.token = settings.token;
     this.release = settings.release;
     this.user = settings.user;
-    this.version = VERSION;
 
     if (!this.token) {
       log(
@@ -139,6 +138,11 @@ export default class Catcher {
    * Sends formatted HawkEvent to the Collector
    */
   private sendErrorFormatted(errorFormatted: HawkEvent): void {
+
+    /**
+     * Temporary log for catcher development
+     * @todo remove after adding a context and user
+     */
     console.log('sending', errorFormatted);
 
     this.transport.send(errorFormatted)
@@ -173,7 +177,7 @@ export default class Catcher {
     const notAnError = !(error instanceof Error);
 
     /**
-     * Case when error is 'reason' of UnhandledPromiseRejectionEvent
+     * Case when error is 'reason' of PromiseRejectionEvent
      * and reject() provided with text reason instead of Error()
      */
     if (notAnError) {
@@ -242,7 +246,7 @@ export default class Catcher {
     const notAnError = !(error instanceof Error);
 
     /**
-     * Case when error is 'reason' of UnhandledPromiseRejectionEvent
+     * Case when error is 'reason' of PromiseRejectionEvent
      * and reject() provided with text reason instead of Error()
      */
     if (notAnError) {

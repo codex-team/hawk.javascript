@@ -100,12 +100,16 @@ export default class Socket {
     switch (this.ws.readyState) {
       case WebSocket.OPEN:
         return this.ws.send(JSON.stringify(event));
+
       case WebSocket.CLOSED:
         this.eventsQueue.push(event);
+
         return this.reconnect();
+
       case WebSocket.CONNECTING:
       case WebSocket.CLOSING:
         this.eventsQueue.push(event);
+
         return;
     }
   }
@@ -151,7 +155,7 @@ export default class Socket {
   }
 
   /**
-   * Tries to reconnect to the server a specified number of times with the interval
+   * Tries to reconnect to the server for specified number of times with the interval
    *
    * @param {boolean} [isForcedCall] - call function despite on timer
    * @return {Promise<void>}
