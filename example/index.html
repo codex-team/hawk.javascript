@@ -2,83 +2,123 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Hawk example</title>
+    <title>Hawk JavaScript example</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
     <style>
+        body {
+            font-family: Roboto, system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #2F3341;
+            color: #DBE6FF;
+            font-size: 13px;
+        }
+
+        header {
+            padding: 30px;
+            background: #242732;
+        }
+
+        h1 {
+            font-weight: bold;
+            font-size: 20px;
+            margin: 0 0 15px;
+        }
+
+        a {
+            color: inherit;
+        }
+
         section {
-            padding: 5px;
-            border-bottom: 1px solid rgba(26, 29, 38, 0.2);
+            padding: 15px;
+            border: 1px solid rgba(219,230,255,0.10);
+            border-radius: 4px;
+            margin: 15px;
         }
 
         h2 {
-            font-size: 18px;
-            margin: 5px 0;
+            font-weight: 500;
+            margin: 0 0 10px;
+            font-size: 17px;
+            color: rgba(219,230,255,0.60);
+            letter-spacing: 0.2px;
+            text-align: left;
+            font-variant: all-petite-caps;
+        }
+
+        button {
+            display: inline-block;
+            padding: 8px 20px;
+            border: 0;
+            border-radius: 5px;
+            background: #4979E4;
+            color: #DBE6FF;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #4869d2;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        input, select {
+            background: rgba(36,39,50,0.68);
+            border: 1px solid rgba(0,0,0,0.18);
+            border-radius: 3px;
+            padding: 10px 15px;
+            font-size: 15px;
+            color:inherit;
         }
     </style>
 </head>
 <body>
-<script>
-  function throwError() {
-    const a = 1;
-
-    a = 2;
-  }
-
-  function sendManyErrors() {
-    const inputElement = document.getElementById('errorsNumber');
-    const errorsNumber = inputElement.value;
-    const errorType = document.getElementById('errorType').value;
-
-    for (let i = 0; i < errorsNumber; i++){
-      hawk.handleEvent(new window[errorType]('Test many error'));
-    }
-  }
-
-  function onConsoleCatcherTest() {
-    const consoleMethod = document.getElementById('consoleMethod').value;
-    const text = document.getElementById('consoleCatcherTestTextInput').value;
-
-    console[consoleMethod](text);
-  }
-</script>
-<script src="assets/hawk.js"></script>
-<script>
-  window.hawk = new HawkCatcher({
-    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZDIwNmY3ZjlhYWY3YzAwNzFkNjQ1OTYiLCJpYXQiOjE1NjU5NzM0OTh9.FpzxP0P27SrVEM1N84eZAl-PbqbeqRU8A8aV2Uzmq8o',
-    host: 'localhost',
-    path: 'ws',
-    port: 3000,
-    secure: false
-  })
-</script>
+<header>
+    <h1>
+        Hawk JavaScript Catcher
+    </h1>
+    <a href="https://github.com/codex-team/hawk.javascript">https://github.com/codex-team/hawk.javascript</a>
+</header>
 <section>
     <h2>Send test event</h2>
     <button onclick="window.hawk.test()">hawk.test()</button>
 </section>
 <section>
     <h2>Send real error</h2>
-    <button onclick="throwError()">Real error</button>
+    <button id="btn-real-error">Real error</button>
 </section>
 <section>
     <h2>Send Unhandled promise rejection error</h2>
-    <button onclick="Promise.reject('Test reject')">Unhandled promise rejection</button>
+    <button id="btn-promise-rejection">
+        Unhandled promise rejection
+    </button>
 </section>
 <section>
     <h2>Send the specified number of errors</h2>
     <label for="errorsNumber">Enter the number of errors to send</label>
     <input type="number" id="errorsNumber" value="1000">
+    <br><br>
     <label for="errorType">Select errors type</label>
     <select id="errorType">
         <option value="TypeError">TypeError</option>
         <option value="RangeError">RangeError</option>
         <option value="Error">Error</option>
     </select>
-    <button onclick="sendManyErrors()">Send errors</button>
+    <br><br>
+    <button id="btn-send-many">Send errors</button>
 </section>
 <section>
     <h2>Test console catcher</h2>
     <label for="consoleCatcherTestTextInput">Enter text</label>
-    <input type="text" id="consoleCatcherTestTextInput"> <br>
-    <label for="consoleMethod">console.</label>
+    <input type="text" id="consoleCatcherTestTextInput">
+    <br><br>
+    <label for="consoleMethod" style="display: inline">console.</label>
     <select id="consoleMethod">
         <option value="log">log</option>
         <option value="error">error</option>
@@ -86,7 +126,19 @@
         <option value="debug">debug</option>
         <option value="warn">warn</option>
     </select>
-    <button onclick="onConsoleCatcherTest()">Make</button>
+    <br><br>
+    <button id="btn-console-test">Make</button>
 </section>
+<script src="assets/hawk.js"></script>
+<script src="sample-errors.js"></script>
+<script>
+    window.hawk = new HawkCatcher({
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZDIwNmY3ZjlhYWY3YzAwNzFkNjQ1OTYiLCJpYXQiOjE1NjU5NzM0OTh9.FpzxP0P27SrVEM1N84eZAl-PbqbeqRU8A8aV2Uzmq8o',
+        host: 'localhost',
+        path: 'ws',
+        port: 3000,
+        secure: false
+    })
+</script>
 </body>
 </html>

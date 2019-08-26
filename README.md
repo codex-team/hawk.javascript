@@ -74,22 +74,9 @@ Alternately, add `onload="const hawk = new HawkCatcher({token: 'INTEGRATION_TOKE
 <script src="https://cdn.rawgit.com/codex-team/hawk.javascript/master/hawk.js" onload="const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'})"></script>
 ```
 
-### Source map support
-
-Hawk supports JS SourceMaps for showing more useful information from your minified bundle. There a few conditions:
-
-1. Bundle ends with line contains anchor to the source map, like `//# sourceMappingURL=all.min.js.map`. It can be absolute or relative (relatively the bundle) path.    
-2. Source map are publicly available by its URL.
-3. Every build you are updating the `revision` and pass it with `HawkCatcher` constructor. It can be heximal-hash or simply file's modification timestamp.
-
-```js
-const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN', revision: 12345654345})
-```
+Other available [initial settings](types/initial-settings.d.ts) are described at the type definition.
 
 ## Testing and server responses
 
 To make sure that Hawk is working right, call `test()` method from `HawkCatcher` class instance in browser's console.
-`test()` method sends fake error to server. So if you get it in your profile, everything works correctly.
-
-Also in browser's console you can find out some Hawk warnings and server responses.
-For example, if you get `Access denied` response, something wrong with your token.
+`test()` method sends fake error to server. Then, open Hawk and find a test event at the Project's page.

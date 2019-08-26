@@ -1,4 +1,6 @@
+const webpack = require('webpack');
 const merge = require('webpack-merge');
+const path = require('path');
 
 /**
  * Returns base config or its modification if mergeObject passed
@@ -6,22 +8,55 @@ const merge = require('webpack-merge');
  * @return {Object}
  */
 function getBaseConfig(mergeObject = {}) {
+  const pkg = require('./package.json');
+  const VERSION = process.env.VERSION || pkg.version;
+
   const baseConfig = {
     mode: 'production',
-    entry: './src/main.js',
+    entry: './src/index.ts',
     output: {
       filename: './hawk.js',
       library: 'HawkCatcher',
       libraryExport: 'default'
     },
+    resolve: {
+      modules: [path.join(__dirname, 'src'), 'node_modules'],
+      extensions: ['.js', '.ts']
+    },
     module: {
       rules: [
         {
-          test: /\.js/,
-          use: 'babel-loader'
-        }
+          test: /\.ts$/,
+          use: [
+            {
+              loader: 'babel-loader',
+              options: {
+                cacheDirectory: true,
+              }
+            },
+            {
+              loader: 'ts-loader'
+            },
+            {
+              loader: 'tslint-loader',
+              options: {
+                fix: true
+              }
+            }
+          ]
+        },
       ]
-    }
+    },
+    plugins: [
+      /** Pass variables into modules */
+      new webpack.DefinePlugin({
+        VERSION: JSON.stringify(VERSION)
+      }),
+
+      new webpack.BannerPlugin({
+        banner: `Hawk JS Catcher.js\n\n@version ${VERSION}\n\n@licence Apache-2.0\n@author CodeX <https://codex.so>\n\n@see https://hawk.so\n@see https://github.com/codex-team/hawk.javascript`
+      }),
+    ]
   };
 
   return merge(baseConfig, mergeObject);
