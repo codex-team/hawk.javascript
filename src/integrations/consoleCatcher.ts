@@ -28,6 +28,6 @@ Object.keys(window.console).forEach(key => {
   };
 });
 
-module.exports = function (event, data) {
+export default function (event, data) {
   data.payload.consoleOutput = consoleOutput;
 };
