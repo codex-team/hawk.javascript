@@ -1,4 +1,4 @@
-const logger = require('./logger');
+import log from './logger';
 
 /**
  * @typedef {Object} SocketOptions
@@ -18,7 +18,7 @@ const logger = require('./logger');
 /**
  * Custom WebSocket wrapper class
  */
-class Socket {
+export default class Socket {
   /**
    * Creates new Socket instance. Setup initial socket params.
    * @param {SocketOptions} options - parameters for establishing a connection with server
@@ -87,7 +87,7 @@ class Socket {
     this.reconnectionTimeout = null;
     try {
       await this.init();
-      logger.log('Successfully reconnected to socket server', 'info');
+      log('Successfully reconnected to socket server', 'info');
     } catch (e) {
       if (attempts - 1 > 0) {
         const timeout = 1000 * 15; // 15 secs
@@ -121,5 +121,3 @@ class Socket {
     }
   }
 }
-
-module.exports = Socket;

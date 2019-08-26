@@ -33,5 +33,8 @@
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.7.2",
     "webpack-merge": "^4.2.1"
+  },
+  "dependencies": {
+    "error-stack-parser": "^2.0.3"
   }
 }

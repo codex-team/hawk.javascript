@@ -2,7 +2,7 @@
  * @file Integration for adding application revision number
  */
 
-module.exports = function (revision) {
+export default function (revision) {
   return function (event, data) {
     data.payload.revision = revision;
   };

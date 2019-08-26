@@ -1,4 +1,3 @@
-// eslint-disable-next-line multiline-comment-style
 /*!
  * Hawk JavaScript catcher
  * https://github.com/codex-team/hawk.javascript
@@ -9,9 +8,9 @@
  * @license MIT (c) CodeX 2019
  */
 
-const config = require('./config');
-const Socket = require('./modules/socket');
-const logger = require('./modules/logger');
+import config from './config';
+import Socket from './modules/socket';
+import log from './modules/logger';
 
 /**
  * Listeners for websocket events
@@ -33,14 +32,14 @@ const socketHandlers = {
       type = 'info';
     }
 
-    logger.log('Hawk says: ' + message, type);
+    log('Hawk says: ' + message, type);
   },
 
   /**
    * Handles close event from the socket
    */
   close() {
-    logger.log(
+    log(
       'Connection lost. Connection will be restored when new errors occurred',
       'info'
     );
@@ -70,7 +69,7 @@ const socketHandlers = {
  * hawk.test();
  * hawk.handleEvent();
  */
-class Catcher {
+export default class Catcher {
   /**
    * Catcher constructor
    * @param {HawkCatcherSettings|string} settings - settings object or token
@@ -95,7 +94,7 @@ class Catcher {
     config.socket.secure = !!this.secure;
 
     if (!this.token) {
-      logger.log(
+      log(
         'Please, pass your integration token for Hawk error tracker. You can get it on hawk.so',
         'warn'
       );
@@ -151,9 +150,13 @@ class Catcher {
       }
     };
 
+    /**
+     * @todo handle self-errors infinity loop & large occurrences
+     */
+
     this.integrations.forEach(int => int(event, data));
+
+    console.log('schaa ', data);
     this.ws.send(data);
   }
 }
-
-module.exports = Catcher;

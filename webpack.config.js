@@ -11,7 +11,8 @@ function getBaseConfig(mergeObject = {}) {
     entry: './src/main.js',
     output: {
       filename: './hawk.js',
-      library: 'HawkCatcher'
+      library: 'HawkCatcher',
+      libraryExport: 'default'
     },
     module: {
       rules: [

@@ -1,10 +1,10 @@
-require('regenerator-runtime/runtime');
-const HawkCatcher = require('./catcher');
-
-const consoleCatcher = require('./integrations/consoleCatcher');
-const userAgentInfo = require('./integrations/userAgentInfo');
-const eventFilter = require('./integrations/eventFilter');
-const revision = require('./integrations/revision');
+import 'regenerator-runtime/runtime';
+import HawkCatcher from './catcher';
+import consoleCatcher from './integrations/consoleCatcher';
+import userAgentInfo from './integrations/userAgentInfo';
+import eventFilter from './integrations/eventFilter';
+import revision from './integrations/revision';
+import stackParser from './integrations/stackParser';
 
 /**
  * @typedef {Object} HawkCatcherDefaultSettings
@@ -19,7 +19,7 @@ const revision = require('./integrations/revision');
 /**
  * Hawk Catcher class with default setup
  */
-class HawkCatcherDefault extends HawkCatcher {
+export default class HawkCatcherDefault extends HawkCatcher {
   /**
    * Creates catcher instance
    * @param {HawkCatcherDefaultSettings|string} settings - settings object or token
@@ -28,12 +28,11 @@ class HawkCatcherDefault extends HawkCatcher {
     super(settings);
 
     this.integrations = [
-      consoleCatcher,
+      // consoleCatcher,
       userAgentInfo,
       eventFilter,
-      revision(settings.revision)
+      revision(settings.revision),
+      stackParser,
     ];
   }
 }
-
-module.exports = HawkCatcherDefault;

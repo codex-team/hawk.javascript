@@ -42,6 +42,6 @@ function filterEventFields(event) {
   return result;
 }
 
-module.exports = function (event, data) {
+export default function (event, data) {
   data.payload.event = filterEventFields(event);
 };

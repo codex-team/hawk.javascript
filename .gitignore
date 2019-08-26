@@ -60,3 +60,4 @@ typings/
 .idea/*
 .idea/watcherTasks.xml
 package-lock.json
+.DS_Store

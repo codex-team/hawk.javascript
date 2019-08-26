@@ -2,13 +2,13 @@
  * Logger module
  *
  * @usage
- * logger.log('We got an error', 'error')
+ * log('We got an error', 'error')
  *
  * @param message
  * @param type - log type: error, warn, info, log, etc.
  * @param {*} arg - logging argument
  */
-module.exports.log = function (message, type, arg) {
+export default function log(message, type, arg) {
   type = type || 'info';
 
   message = '[CodeX Hawk]: ' + message;
@@ -20,4 +20,4 @@ module.exports.log = function (message, type, arg) {
       window.console[type](message);
     }
   }
-};
+}
