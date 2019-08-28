@@ -198,7 +198,13 @@ export default class Catcher {
    * Current timestamp
    */
   private getTime(): number {
-    return (new Date()).getTime();
+    let timestamp = (new Date()).getTime();
+    /**
+     * Convert JS timestamp to Unix timestamp
+     */
+    timestamp = timestamp / 1000;
+
+    return timestamp;
   }
 
   /**
