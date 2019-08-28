@@ -105,7 +105,7 @@ export interface BacktraceFrame {
   /**
    * Function arguments extracted from current stack frame
    */
-  arguments?: string;
+  arguments?: string[];
 }
 
 /**

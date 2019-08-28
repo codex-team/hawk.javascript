@@ -146,13 +146,6 @@ export default class Catcher {
    * Sends formatted HawkEvent to the Collector
    */
   private sendErrorFormatted(errorFormatted: HawkEvent): void {
-
-    /**
-     * Temporary log for catcher development
-     * @todo remove after adding a context and user
-     */
-    console.log('sending', errorFormatted.payload.backtrace);
-
     this.transport.send(errorFormatted)
       .catch(((sendingError) => {
         log('WebSocket sending error', 'error', sendingError);

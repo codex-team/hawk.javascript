@@ -44,6 +44,14 @@ export default class StackParser {
         return null;
       }
 
+      /**
+       * If error occurred in large column number, the script probably minified
+       * Skip minified bundles — they will be processed if user enabled source-maps tracking
+       */
+      if (frame.columnNumber > 200) {
+        return null;
+      }
+
       const file = await this.loadSourceFile(frame.fileName);
 
       if (!file) {
@@ -64,7 +72,7 @@ export default class StackParser {
         };
       });
     } catch (e) {
-      return [];
+      return null;
     }
   }
 
