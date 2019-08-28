@@ -2,9 +2,16 @@
  * Real error sample
  */
 function realErrorSample() {
+  /**
+   * Error wrapper used to fill stack
+   */
+  function errorWrapperForStack(initialValue) {
     const a = 1;
 
-    a = 2;
+    a = initialValue;
+  }
+
+  errorWrapperForStack(2);
 }
 
 /**
