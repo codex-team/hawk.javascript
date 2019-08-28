@@ -1,6 +1,6 @@
 import Socket from './modules/socket';
 import log from './modules/logger';
-import parseStack from './modules/stackParser';
+import StackParser from './modules/stackParser';
 import { InitialSettings } from '../types/initial-settings';
 import { BacktraceFrame, HawkEvent, User } from '../types/hawk-event';
 
@@ -46,6 +46,11 @@ export default class Catcher {
    * (WebSocket decorator)
    */
   private readonly transport: Socket;
+
+  /**
+   * Module for parsing backtrace
+   */
+  private readonly stackParser: StackParser = new StackParser();
 
   /**
    * Catcher constructor
@@ -112,39 +117,41 @@ export default class Catcher {
    * This method prepares and sends an Error to Hawk
    * User can fire it manually on try-catch
    */
-  public catchError(error: Error) {
-    const errorFormatted = this.prepareErrorFormatted(error);
+  public async catchError(error: Error) {
+    try {
+      const errorFormatted = await this.prepareErrorFormatted(error);
 
-    this.sendErrorFormatted(errorFormatted);
+      this.sendErrorFormatted(errorFormatted);
+    } catch (formattingError) {
+      log('Internal error ლ(´ڡ`ლ)', 'error', formattingError);
+    }
   }
 
   /**
    * Handles the event and sends it to the server
    * @param {ErrorEvent|PromiseRejectionEvent} event — (!) both for Error and Promise Rejection
    */
-  private handleEvent(event: ErrorEvent | PromiseRejectionEvent) {
+  private async handleEvent(event: ErrorEvent | PromiseRejectionEvent) {
     /**
      * Promise rejection reason is recommended to be an Error, but it can be a string:
      * - Promise.reject(new Error('Reason message')) ——— recommended
      * - Promise.reject('Reason message')
      */
     const error = (event as ErrorEvent).error || (event as PromiseRejectionEvent).reason;
-    const errorFormatted = this.prepareErrorFormatted(error);
 
-    this.sendErrorFormatted(errorFormatted);
+    try {
+      const errorFormatted = await this.prepareErrorFormatted(error);
+
+      this.sendErrorFormatted(errorFormatted);
+    } catch (formattingError) {
+      log('Internal error ლ(´ڡ`ლ)', 'error', formattingError);
+    }
   }
 
   /**
    * Sends formatted HawkEvent to the Collector
    */
   private sendErrorFormatted(errorFormatted: HawkEvent): void {
-
-    /**
-     * Temporary log for catcher development
-     * @todo remove after adding a context and user
-     */
-    console.log('sending', errorFormatted);
-
     this.transport.send(errorFormatted)
       .catch(((sendingError) => {
         log('WebSocket sending error', 'error', sendingError);
@@ -154,7 +161,7 @@ export default class Catcher {
   /**
    * Formats the event
    */
-  private prepareErrorFormatted(error: Error|string): HawkEvent {
+  private async prepareErrorFormatted(error: Error|string): Promise<HawkEvent> {
     return {
       token: this.token,
       catcherType: this.type,
@@ -165,7 +172,7 @@ export default class Catcher {
         context: this.getContext(),
         user: this.getUser(),
         get: this.getGetParams(),
-        backtrace: this.getBacktrace(error),
+        backtrace: await this.getBacktrace(error),
       },
     };
   }
@@ -248,7 +255,7 @@ export default class Catcher {
   /**
    * Return parsed backtrace information
    */
-  private getBacktrace(error: Error|string): BacktraceFrame[] {
+  private async getBacktrace(error: Error|string): Promise<BacktraceFrame[]> {
     const notAnError = !(error instanceof Error);
 
     /**
@@ -259,17 +266,6 @@ export default class Catcher {
       return null;
     }
 
-    const stackParsed = parseStack(error as Error);
-
-    return stackParsed.map((frame) => {
-      return {
-        file: frame.fileName,
-        line: frame.lineNumber,
-        column: frame.columnNumber,
-        function: frame.functionName,
-        arguments: frame.args,
-        source: frame.source,
-      };
-    });
+    return this.stackParser.parse(error as Error);
   }
 }

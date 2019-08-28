@@ -2,9 +2,16 @@
  * Real error sample
  */
 function realErrorSample() {
+  /**
+   * Error wrapper used to fill stack
+   */
+  function errorWrapperForStack(initialValue) {
     const a = 1;
 
-    a = 2;
+    a = initialValue;
+  }
+
+  errorWrapperForStack(2);
 }
 
 /**
@@ -29,7 +36,7 @@ buttonPromiseRejection.addEventListener('click', function promiseRejectionSample
  */
 const buttonSendMany = document.getElementById('btn-send-many');
 
-buttonSendMany.addEventListener('click', function sendManyErrors(){
+buttonSendMany.addEventListener('click', function sendManyErrors() {
   const inputElement = document.getElementById('errorsNumber');
   const errorType = document.getElementById('errorType').value;
   const errorsNumber = inputElement.value;
