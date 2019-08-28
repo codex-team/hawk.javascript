@@ -117,17 +117,21 @@ export default class Catcher {
    * This method prepares and sends an Error to Hawk
    * User can fire it manually on try-catch
    */
-  public catchError(error: Error) {
-    this.prepareErrorFormatted(error).then((errorFormatted) => {
+  public async catchError(error: Error) {
+    try {
+      const errorFormatted = await this.prepareErrorFormatted(error);
+
       this.sendErrorFormatted(errorFormatted);
-    });
+    } catch (formattingError) {
+      log('Internal error ლ(´ڡ`ლ)', 'error', formattingError);
+    }
   }
 
   /**
    * Handles the event and sends it to the server
    * @param {ErrorEvent|PromiseRejectionEvent} event — (!) both for Error and Promise Rejection
    */
-  private handleEvent(event: ErrorEvent | PromiseRejectionEvent) {
+  private async handleEvent(event: ErrorEvent | PromiseRejectionEvent) {
     /**
      * Promise rejection reason is recommended to be an Error, but it can be a string:
      * - Promise.reject(new Error('Reason message')) ——— recommended
@@ -135,11 +139,13 @@ export default class Catcher {
      */
     const error = (event as ErrorEvent).error || (event as PromiseRejectionEvent).reason;
 
-    this.prepareErrorFormatted(error).then((errorFormatted) => {
+    try {
+      const errorFormatted = await this.prepareErrorFormatted(error);
+
       this.sendErrorFormatted(errorFormatted);
-    }).catch((formattingError) => {
+    } catch (formattingError) {
       log('Internal error ლ(´ڡ`ლ)', 'error', formattingError);
-    });
+    }
   }
 
   /**
