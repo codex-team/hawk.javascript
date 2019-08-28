@@ -28,7 +28,6 @@ export default class StackParser {
         sourceCode: await this.extractSourceCode(frame),
         function: frame.functionName,
         arguments: frame.args,
-        // source: frame.source,
       };
     }));
   }
