@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "description": "JavaScript errors tracking for Hawk.so",
   "main": "./dist/hawk.umd.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "webpack-dev-server --config ./webpack.config.dev.js",
     "build": "webpack && yarn stats",
