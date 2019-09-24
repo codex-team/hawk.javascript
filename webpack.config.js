@@ -35,7 +35,11 @@ function getBaseConfig(mergeObject = {}) {
               }
             },
             {
-              loader: 'ts-loader'
+              loader: 'ts-loader',
+              options: {
+                transpileOnly: false,
+                happyPackMode: false
+              }
             },
             {
               loader: 'tslint-loader',
