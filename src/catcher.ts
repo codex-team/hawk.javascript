@@ -274,10 +274,12 @@ export default class Catcher {
    * Return some details
    */
   private getAddons(): object {
-    const { width, height }  = window.screen;
-    return { screen: {
-        width,
-        height,
+    const { innerWidth, innerHeight }  = window;
+
+    return {
+      window: {
+        innerWidth,
+        innerHeight,
       }};
   }
 }
