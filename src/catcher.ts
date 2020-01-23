@@ -172,6 +172,7 @@ export default class Catcher {
         context: this.getContext(),
         user: this.getUser(),
         get: this.getGetParams(),
+        addons: this.getAddons(),
         backtrace: await this.getBacktrace(error),
       },
     };
@@ -267,5 +268,18 @@ export default class Catcher {
     }
 
     return this.stackParser.parse(error as Error);
+  }
+
+  /**
+   * Return some details
+   */
+  private getAddons(): object {
+    const { innerWidth, innerHeight }  = window;
+
+    return {
+      window: {
+        innerWidth,
+        innerHeight,
+      }};
   }
 }
