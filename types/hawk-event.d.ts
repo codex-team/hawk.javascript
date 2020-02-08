@@ -71,6 +71,11 @@ export interface EventData {
    * Any other information to send with event
    */
   context?: object;
+
+  /**
+   * Some useful details
+   */
+  addons?: object;
 }
 
 /**
