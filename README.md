@@ -13,17 +13,17 @@ We recommend to add Hawk script to page above others to prevent missing any erro
 Install package
 
 ```shell
-npm install hawk.javascript --save
+npm install @hawk.so/javascript --save
 ```
 
 ```shell
-yarn add hawk.javascript
+yarn add @hawk.so/javascript
 ```
 
-Then require `hawk.javascript` module
+Then require `@hawk.so/javascript` module
 
 ```js
-const hawk = require('hawk.javascript');
+const hawk = require('@hawk.so/javascript');
 ````
 
 ### Load from CDN

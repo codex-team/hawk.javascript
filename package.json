@@ -1,5 +1,5 @@
 {
-  "name": "hawk.javascript",
+  "name": "@hawk.so/javascript",
   "version": "2.0.0",
   "description": "JavaScript errors tracking for Hawk.so",
   "main": "./dist/hawk.umd.js",
@@ -15,7 +15,7 @@
   },
   "author": {
     "name": "CodeX",
-    "email": "team@ifmo.su"
+    "email": "team@codex.so"
   },
   "license": "MIT",
   "bugs": {
