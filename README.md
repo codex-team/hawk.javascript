@@ -20,10 +20,10 @@ npm install @hawk.so/javascript --save
 yarn add @hawk.so/javascript
 ```
 
-Then require `@hawk.so/javascript` module
+Then import `@hawk.so/javascript` module to your code.
 
 ```js
-const hawk = require('@hawk.so/javascript');
+import HawkCatcher from '@hawk.so/javascript';
 ````
 
 ### Load from CDN

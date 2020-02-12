@@ -94,4 +94,8 @@ export default class Catcher {
      * Return parsed backtrace information
      */
     private getBacktrace;
+    /**
+     * Return some details
+     */
+    private getAddons;
 }
