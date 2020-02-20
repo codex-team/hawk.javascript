@@ -79,7 +79,7 @@ export default class Catcher {
      * Init transport
      */
     this.transport = new Socket({
-      collectorEndpoint: settings.collectorEndpoint || 'wss://catcher.hawk.so:443/ws',
+      collectorEndpoint: settings.collectorEndpoint || 'wss://collector.hawk.so:443/ws',
       reconnectionAttempts: settings.reconnectionAttempts,
       reconnectionTimeout: settings.reconnectionTimeout,
       onClose() {
