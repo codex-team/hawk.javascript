@@ -137,7 +137,16 @@ export default class Catcher {
      * - Promise.reject(new Error('Reason message')) ——— recommended
      * - Promise.reject('Reason message')
      */
-    const error = (event as ErrorEvent).error || (event as PromiseRejectionEvent).reason;
+    let error = (event as ErrorEvent).error || (event as PromiseRejectionEvent).reason;
+
+    /**
+     * Case when error triggered in external script
+     * We can't access event error object because of CORS
+     * Event message will be 'Script error.'
+     */
+    if (event instanceof ErrorEvent && error === undefined) {
+      error = (event as ErrorEvent).message;
+    }
 
     try {
       const errorFormatted = await this.prepareErrorFormatted(error);
