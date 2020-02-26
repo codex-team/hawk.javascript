@@ -265,7 +265,7 @@ export default class Catcher {
   /**
    * Return parsed backtrace information
    */
-  private async getBacktrace(error: Error|string): Promise<BacktraceFrame[]> {
+  private async getBacktrace(error: Error|string): Promise<BacktraceFrame[]|null> {
     const notAnError = !(error instanceof Error);
 
     /**
@@ -276,7 +276,12 @@ export default class Catcher {
       return null;
     }
 
-    return this.stackParser.parse(error as Error);
+    try {
+      return await this.stackParser.parse(error as Error);
+    } catch (error) {
+      log('Can not parse stack:', 'warn', error);
+      return null;
+    }
   }
 
   /**
