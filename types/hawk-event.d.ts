@@ -76,11 +76,6 @@ export interface EventData {
    * Some useful details
    */
   addons?: object;
-
-  /**
-   * User-Agent
-   */
-  userAgent?: string;
 }
 
 /**

@@ -182,7 +182,6 @@ export default class Catcher {
         user: this.getUser(),
         get: this.getGetParams(),
         addons: this.getAddons(),
-        userAgent: this.getUserAgent(),
         backtrace: await this.getBacktrace(error),
       },
     };
@@ -290,18 +289,11 @@ export default class Catcher {
    */
   private getAddons(): object {
     const { innerWidth, innerHeight }  = window;
+    const userAgent = window.navigator.userAgent;
 
     return {
-      window: {
-        innerWidth,
-        innerHeight,
-      }};
-  }
-
-  /**
-   * Return User-Agent
-   */
-  private getUserAgent(): string {
-    return window.navigator.userAgent;
+        window : innerWidth + 'x' + innerHeight,
+        userAgent,
+      };
   }
 }
