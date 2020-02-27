@@ -182,6 +182,7 @@ export default class Catcher {
         user: this.getUser(),
         get: this.getGetParams(),
         addons: this.getAddons(),
+        userAgent: this.getUserAgent(),
         backtrace: await this.getBacktrace(error),
       },
     };
@@ -234,7 +235,7 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private getUser() {
+  private getUser(): User | null  {
     return this.user || null;
   }
 
@@ -295,5 +296,12 @@ export default class Catcher {
         innerWidth,
         innerHeight,
       }};
+  }
+
+  /**
+   * Return User-Agent
+   */
+  private getUserAgent(): string {
+    return window.navigator.userAgent;
   }
 }

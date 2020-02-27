@@ -98,4 +98,9 @@ export default class Catcher {
      * Return some details
      */
     private getAddons;
+
+    /**
+     * User-Agent
+     */
+    private userAgent;
 }
