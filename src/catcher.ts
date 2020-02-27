@@ -234,7 +234,7 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private getUser() {
+  private getUser(): User | null  {
     return this.user || null;
   }
 
@@ -289,11 +289,14 @@ export default class Catcher {
    */
   private getAddons(): object {
     const { innerWidth, innerHeight }  = window;
+    const userAgent = window.navigator.userAgent;
 
     return {
-      window: {
-        innerWidth,
-        innerHeight,
-      }};
+        window: {
+          innerWidth,
+          innerHeight,
+        },
+        userAgent,
+      };
   }
 }
