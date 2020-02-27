@@ -292,7 +292,10 @@ export default class Catcher {
     const userAgent = window.navigator.userAgent;
 
     return {
-        window : innerWidth + 'x' + innerHeight,
+        window: {
+          innerWidth,
+          innerHeight,
+        },
         userAgent,
       };
   }
