@@ -80,9 +80,9 @@ Initialization settings:
 | -- | -- | -- | -- |
 | `token` | string | **required** | Your project's Integration Token |
 | `release` | string/number | optional | Unique identifier of the release. Used for source map consuming (see below) |
-| `user` | {id: number, name?: string, image?: string, url?: string} | optional | Current authenticated user |
+| `user` | {id: string, name?: string, image?: string, url?: string} | optional | Current authenticated user |
 
-Other available [initial settings](types/initial-settings.d.ts) are described at the type definition.
+Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
 ## Source maps consuming
 

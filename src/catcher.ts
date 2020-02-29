@@ -1,8 +1,8 @@
 import Socket from './modules/socket';
 import log from './modules/logger';
 import StackParser from './modules/stackParser';
-import { InitialSettings } from '../types/initial-settings';
-import { BacktraceFrame, HawkEvent, User } from '../types/hawk-event';
+import { HawkInitialSettings } from '../types/hawk-initial-settings';
+import { BacktraceFrame, HawkEvent, HawkUser } from '../types/hawk-event';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -39,7 +39,7 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private readonly user: User;
+  private readonly user: HawkUser;
 
   /**
    * Transport for dialog between Catcher and Collector
@@ -54,13 +54,13 @@ export default class Catcher {
 
   /**
    * Catcher constructor
-   * @param {InitialSettings|string} settings - If settings is a string, it means an Integration Token
+   * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
    */
-  constructor(settings: InitialSettings | string) {
+  constructor(settings: HawkInitialSettings | string) {
     if (typeof settings === 'string') {
       settings = {
         token: settings,
-      } as InitialSettings;
+      } as HawkInitialSettings;
     }
 
     this.token = settings.token;
@@ -234,7 +234,7 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private getUser(): User | null  {
+  private getUser(): HawkUser | null  {
     return this.user || null;
   }
 

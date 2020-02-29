@@ -3,9 +3,9 @@
  *
  * @copyright CodeX
  */
-import { User } from './hawk-event';
+import { HawkUser } from './hawk-event';
 
-export interface InitialSettings {
+export interface HawkInitialSettings {
   /**
    * User project's Integration Token
    */
@@ -19,7 +19,7 @@ export interface InitialSettings {
   /**
    * Current user information
    */
-  user?: User;
+  user?: HawkUser;
 
   /**
    * How many time we should try to reconnect when connection lost.
@@ -38,3 +38,7 @@ export interface InitialSettings {
    */
   collectorEndpoint?: string;
 }
+
+export {
+  HawkUser,
+};

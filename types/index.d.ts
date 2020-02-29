@@ -1,7 +1,7 @@
 import HawkEvent from './hawk-event';
-import InitialSettings from './initial-settings';
+import HawkInitialSettings from './hawk-initial-settings';
 
 export {
   HawkEvent,
-  InitialSettings,
+  HawkInitialSettings,
 };
