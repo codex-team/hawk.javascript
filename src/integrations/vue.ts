@@ -67,19 +67,23 @@ export class VueIntegration {
   private spoilAddons(vm: {[key: string]: any}, info: string): VueIntegrationAddons {
     const addons: VueIntegrationAddons = {
       lifecycle: info,
-      component: '',
+      component: null,
     };
 
     /**
      * Get component name
      */
     if (vm.$root === vm) {
-      addons.component = 'root instance';
+      addons.component = vm.$el.outerHTML.replace(/>.*/, '>') + ' (root)';
     } else {
-      /**
-       * @todo check
-       */
-      addons.component = vm._isVue ? vm.$options.name || vm.$options._componentTag : vm.name;
+      addons.component = '<' + (vm._isVue ? vm.$options.name || vm.$options._componentTag : vm.name) + '>';
+    }
+
+    /**
+     * Fill props
+     */
+    if (vm.$options && vm.$options.propsData) {
+      addons.props = vm.$options.propsData;
     }
 
     return addons;
@@ -92,11 +96,14 @@ export class VueIntegration {
    * @param component - where error was occurred
    */
   private printError(err: Error, info: string, component: string): void {
-    console.error(`[${component}][${info}]`, err);
+    console.error(`${component} @ ${info}`, err);
   }
 
 }
 
+/**
+ * Additional data spoiled from Vue app
+ */
 export interface VueIntegrationAddons {
   /**
    * A Vue-specific error info, e.g. which lifecycle hook the error was found in.
@@ -107,4 +114,9 @@ export interface VueIntegrationAddons {
    * Component name where error occurred
    */
   component: string;
+
+  /**
+   * Component props
+   */
+  props?: {[key: string]: any};
 }

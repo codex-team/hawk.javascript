@@ -38,6 +38,9 @@ export declare class VueIntegration {
      */
     private printError;
 }
+/**
+ * Additional data spoiled from Vue app
+ */
 export interface VueIntegrationAddons {
     /**
      * A Vue-specific error info, e.g. which lifecycle hook the error was found in.
@@ -47,4 +50,10 @@ export interface VueIntegrationAddons {
      * Component name where error occurred
      */
     component: string;
+    /**
+     * Component props
+     */
+    props?: {
+        [key: string]: any;
+    };
 }

@@ -57,7 +57,7 @@ export default class Catcher {
      * Add error handing to the passed Vue app
      * @param vue - Vue app
      */
-    private addVueIntegreation;
+    private addVueIntegration;
     /**
      * Handles the event and sends it to the server
      * @param {ErrorEvent|PromiseRejectionEvent} event — (!) both for Error and Promise Rejection
@@ -120,5 +120,5 @@ export default class Catcher {
      * @param errorFormatted - Hawk event prepared for sending
      * @param integrationAddons - extra addons
      */
-    private appendIntegreationAddons;
+    private appendIntegrationAddons;
 }

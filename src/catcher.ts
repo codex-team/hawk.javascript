@@ -97,7 +97,7 @@ export default class Catcher {
     this.initGlobalHandlers();
 
     if (settings.vue) {
-      this.addVueIntegreation(settings.vue);
+      this.addVueIntegration(settings.vue);
     }
   }
 
@@ -130,10 +130,12 @@ export default class Catcher {
    * Add error handing to the passed Vue app
    * @param vue - Vue app
    */
-  private addVueIntegreation(vue): void {
+  private addVueIntegration(vue): void {
     new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
       console.log('error, addons', error, addons);
-      this.formatAndSend(error, addons);
+      this.formatAndSend(error, {
+        vue: addons,
+      });
     });
   }
 
@@ -174,7 +176,7 @@ export default class Catcher {
        * If this event catched by integration (Vue or other), it can pass extra addons
        */
       if (integrationAddons) {
-        this.appendIntegreationAddons(errorFormatted, integrationAddons);
+        this.appendIntegrationAddons(errorFormatted, integrationAddons);
       }
 
       this.sendErrorFormatted(errorFormatted);
@@ -351,7 +353,7 @@ export default class Catcher {
    * @param errorFormatted - Hawk event prepared for sending
    * @param integrationAddons - extra addons
    */
-  private appendIntegreationAddons(errorFormatted: HawkEvent, integrationAddons: {[key: string]: any}): void {
+  private appendIntegrationAddons(errorFormatted: HawkEvent, integrationAddons: {[key: string]: any}): void {
     Object.assign(errorFormatted.payload.addons, integrationAddons);
   }
 }

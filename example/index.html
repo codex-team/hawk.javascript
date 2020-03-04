@@ -129,22 +129,54 @@
     <br><br>
     <button id="btn-console-test">Make</button>
 </section>
+<script src="https://unpkg.com/vue"></script>
 <section>
-    <h2>Test Vue integration</h2>
-    <div id="vue-app">
-        <p>{{ hello }}</p>
-        <button @click="buttonClicked">Error inside Vue-component</button>
+    <h2>Test Vue integration: $root</h2>
+    <div id="vue-app-1">
+        <button @click="buttonClicked">{{ label }}</button>
     </div>
-    <script src="https://unpkg.com/vue"></script>
     <script>
       new Vue({
-        el: '#vue-app',
-        data: { hello: 'Hello World!' },
+        el: '#vue-app-1',
+        data: {
+          label: 'Error in Vue $root'
+        },
+        methods:{
+          buttonClicked(){
+            foo();
+          }
+        }
+      })
+    </script>
+</section>
+<section>
+    <h2>Test Vue integration: &lt;test-component&gt;</h2>
+    <div id="vue-app-2">
+        <test-component :title="label"/>
+    </div>
+    <script>
+      Vue.component('test-component', {
+        data(){
+          return {
+            item: 1
+          }
+        },
+        props: {
+          title: String
+        },
+        template: '<button @click="buttonClicked" :data-item="item">{{ title }}</button>',
         methods: {
           buttonClicked(){
             foo();
           }
         }
+      });
+
+      new Vue({
+        el: '#vue-app-2',
+        data: {
+          label: 'Error in Vue-component'
+        },
       })
     </script>
 </section>
