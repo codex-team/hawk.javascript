@@ -176,7 +176,7 @@ export default class Catcher {
       catcherType: this.type,
       payload: {
         title: this.getTitle(error),
-        label: this.getLabel(error),
+        type: this.getType(error),
         release: this.getRelease(),
         timestamp: this.getTime(),
         context: this.getContext(),
@@ -206,10 +206,10 @@ export default class Catcher {
   }
 
   /**
-   * Return event label: TypeError, ReferenceError etc
+   * Return event type: TypeError, ReferenceError etc
    * @param error - catched error
    */
-  private getLabel(error: Error | string): string {
+  private getType(error: Error | string): string {
     const notAnError = !(error instanceof Error);
 
     /**

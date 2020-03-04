@@ -71,10 +71,10 @@ export default class Catcher {
      */
     private getTitle;
     /**
-     * Return event label: TypeError, ReferenceError etc
+     * Return event type: TypeError, ReferenceError etc
      * @param error - catched error
      */
-    private getLabel;
+    private getType;
     /**
      * Release version
      */

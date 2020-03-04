@@ -33,11 +33,12 @@ export interface EventData {
   /**
    * Event type: TypeError, ReferenceError etc
    */
-  label: string;
+  type?: string;
 
   /**
    * Occurrence time
    * [!] Must be a Unix timestamp in seconds (example: 1567009247.576)
+   * @deprecated
    */
   timestamp: number;
 
