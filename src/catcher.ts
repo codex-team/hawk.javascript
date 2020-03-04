@@ -3,6 +3,7 @@ import log from './modules/logger';
 import StackParser from './modules/stackParser';
 import { HawkInitialSettings } from '../types/hawk-initial-settings';
 import { BacktraceFrame, HawkEvent, HawkUser } from '../types/hawk-event';
+import { VueIntegration, VueIntegrationAddons } from './integrations/vue';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -94,14 +95,10 @@ export default class Catcher {
      * Set handlers
      */
     this.initGlobalHandlers();
-  }
 
-  /**
-   * Init global errors handler
-   */
-  public initGlobalHandlers() {
-    window.addEventListener('error', (event: ErrorEvent) => this.handleEvent(event));
-    window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => this.handleEvent(event));
+    if (settings.vue) {
+      this.addVueIntegreation(settings.vue);
+    }
   }
 
   /**
@@ -118,13 +115,26 @@ export default class Catcher {
    * User can fire it manually on try-catch
    */
   public async catchError(error: Error) {
-    try {
-      const errorFormatted = await this.prepareErrorFormatted(error);
+    this.formatAndSend(error);
+  }
 
-      this.sendErrorFormatted(errorFormatted);
-    } catch (formattingError) {
-      log('Internal error ლ(´ڡ`ლ)', 'error', formattingError);
-    }
+  /**
+   * Init global errors handler
+   */
+  private initGlobalHandlers() {
+    window.addEventListener('error', (event: ErrorEvent) => this.handleEvent(event));
+    window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => this.handleEvent(event));
+  }
+
+  /**
+   * Add error handing to the passed Vue app
+   * @param vue - Vue app
+   */
+  private addVueIntegreation(vue): void {
+    new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
+      console.log('error, addons', error, addons);
+      this.formatAndSend(error, addons);
+    });
   }
 
   /**
@@ -148,8 +158,24 @@ export default class Catcher {
       error = (event as ErrorEvent).message;
     }
 
+    this.formatAndSend(error);
+  }
+
+  /**
+   * Format and send an error
+   * @param error - error to send
+   * @param {object} integrationAddons - addons spoiled by Integration
+   */
+  private async formatAndSend(error: Error | string, integrationAddons?: {[key: string]: any}): Promise<void> {
     try {
       const errorFormatted = await this.prepareErrorFormatted(error);
+
+      /**
+       * If this event catched by integration (Vue or other), it can pass extra addons
+       */
+      if (integrationAddons) {
+        this.appendIntegreationAddons(errorFormatted, integrationAddons);
+      }
 
       this.sendErrorFormatted(errorFormatted);
     } catch (formattingError) {
@@ -317,5 +343,15 @@ export default class Catcher {
         },
         userAgent,
       };
+  }
+
+  /**
+   * Extend addons object with addons spoiled by integreation
+   * This method mutates original event
+   * @param errorFormatted - Hawk event prepared for sending
+   * @param integrationAddons - extra addons
+   */
+  private appendIntegreationAddons(errorFormatted: HawkEvent, integrationAddons: {[key: string]: any}): void {
+    Object.assign(errorFormatted.payload.addons, integrationAddons);
   }
 }

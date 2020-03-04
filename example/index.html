@@ -129,12 +129,32 @@
     <br><br>
     <button id="btn-console-test">Make</button>
 </section>
+<section>
+    <h2>Test Vue integration</h2>
+    <div id="vue-app">
+        <p>{{ hello }}</p>
+        <button @click="buttonClicked">Error inside Vue-component</button>
+    </div>
+    <script src="https://unpkg.com/vue"></script>
+    <script>
+      new Vue({
+        el: '#vue-app',
+        data: { hello: 'Hello World!' },
+        methods: {
+          buttonClicked(){
+            foo();
+          }
+        }
+      })
+    </script>
+</section>
 <script src="../dist/hawk.umd.js"></script>
 <script src="sample-errors.js"></script>
 <script>
     window.hawk = new HawkCatcher({
         token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZTRjNGNlNjkyYjlhZTAwMjQ4YzlhMWEiLCJpYXQiOjE1ODIwNTg3MjZ9.3HzK0WvWUN1qhWkxrM6uEjWoYvZlV9cRTGqbe_HDxU8',
         // collectorEndpoint: 'ws://localhost:3000/ws'
+        vue: window.Vue
     })
 </script>
 </body>

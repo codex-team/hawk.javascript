@@ -41,10 +41,6 @@ export default class Catcher {
      */
     constructor(settings: HawkInitialSettings | string);
     /**
-     * Init global errors handler
-     */
-    initGlobalHandlers(): void;
-    /**
      * Send test event from client
      */
     test(): void;
@@ -54,10 +50,25 @@ export default class Catcher {
      */
     catchError(error: Error): Promise<void>;
     /**
+     * Init global errors handler
+     */
+    private initGlobalHandlers;
+    /**
+     * Add error handing to the passed Vue app
+     * @param vue - Vue app
+     */
+    private addVueIntegreation;
+    /**
      * Handles the event and sends it to the server
      * @param {ErrorEvent|PromiseRejectionEvent} event — (!) both for Error and Promise Rejection
      */
     private handleEvent;
+    /**
+     * Format and send an error
+     * @param error - error to send
+     * @param {object} integrationAddons - addons spoiled by Integration
+     */
+    private formatAndSend;
     /**
      * Sends formatted HawkEvent to the Collector
      */
@@ -103,4 +114,11 @@ export default class Catcher {
      * Return some details
      */
     private getAddons;
+    /**
+     * Extend addons object with addons spoiled by integreation
+     * This method mutates original event
+     * @param errorFormatted - Hawk event prepared for sending
+     * @param integrationAddons - extra addons
+     */
+    private appendIntegreationAddons;
 }
