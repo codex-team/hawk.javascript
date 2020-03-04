@@ -97,6 +97,17 @@ export class VueIntegration {
       });
     }
 
+    /**
+     * Fill computed
+     */
+    if (vm._computedWatchers) {
+      addons.computed = {};
+
+      Object.entries(vm._computedWatchers).forEach(([key, watcher]) => {
+        addons.computed[key] = (watcher as {[key: string]: any}).value;
+      });
+    }
+
     return addons;
   }
 
@@ -135,4 +146,9 @@ export interface VueIntegrationAddons {
    * Component local variables
    */
   data?: {[key: string]: any};
+
+  /**
+   * Component computed variables
+   */
+  computed?: {[key: string]: any};
 }

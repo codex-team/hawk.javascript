@@ -62,4 +62,10 @@ export interface VueIntegrationAddons {
     data?: {
         [key: string]: any;
     };
+    /**
+     * Component computed variables
+     */
+    computed?: {
+        [key: string]: any;
+    };
 }

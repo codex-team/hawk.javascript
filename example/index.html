@@ -164,7 +164,12 @@
         props: {
           title: String
         },
-        template: '<button @click="buttonClicked" :data-item="item">{{ title }}</button>',
+        computed: {
+          changedItem(){
+            return this.item + 1;
+          }
+        },
+        template: '<button @click="buttonClicked" :data-item="item" data-changed-item="changedItem">{{ title }} - {{ changedItem }}</button>',
         methods: {
           buttonClicked(){
             foo();
