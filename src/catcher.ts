@@ -176,6 +176,7 @@ export default class Catcher {
       catcherType: this.type,
       payload: {
         title: this.getTitle(error),
+        type: this.getType(error),
         release: this.getRelease(),
         timestamp: this.getTime(),
         context: this.getContext(),
@@ -202,6 +203,24 @@ export default class Catcher {
     }
 
     return (error as Error).message;
+  }
+
+  /**
+   * Return event type: TypeError, ReferenceError etc
+   * @param error - catched error
+   */
+  private getType(error: Error | string): string {
+    const notAnError = !(error instanceof Error);
+
+    /**
+     * Case when error is 'reason' of PromiseRejectionEvent
+     * and reject() provided with text reason instead of Error()
+     */
+    if (notAnError) {
+      return null;
+    }
+
+    return (error as Error).name;
   }
 
   /**
