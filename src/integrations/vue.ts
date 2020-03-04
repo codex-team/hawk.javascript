@@ -86,6 +86,17 @@ export class VueIntegration {
       addons.props = vm.$options.propsData;
     }
 
+    /**
+     * Fill component's data values
+     */
+    if (vm._data) {
+      addons.data = {};
+
+      Object.entries(vm._data).forEach(([key, value]) => {
+        addons.data[key] = value;
+      });
+    }
+
     return addons;
   }
 
@@ -119,4 +130,9 @@ export interface VueIntegrationAddons {
    * Component props
    */
   props?: {[key: string]: any};
+
+  /**
+   * Component local variables
+   */
+  data?: {[key: string]: any};
 }

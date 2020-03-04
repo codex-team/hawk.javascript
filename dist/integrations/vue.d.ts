@@ -56,4 +56,10 @@ export interface VueIntegrationAddons {
     props?: {
         [key: string]: any;
     };
+    /**
+     * Component local variables
+     */
+    data?: {
+        [key: string]: any;
+    };
 }
