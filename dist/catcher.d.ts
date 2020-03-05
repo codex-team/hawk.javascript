@@ -50,14 +50,14 @@ export default class Catcher {
      */
     catchError(error: Error): Promise<void>;
     /**
-     * Init global errors handler
-     */
-    private initGlobalHandlers;
-    /**
      * Add error handing to the passed Vue app
      * @param vue - Vue app
      */
-    private addVueIntegration;
+    connectVue(vue: any): void;
+    /**
+     * Init global errors handler
+     */
+    private initGlobalHandlers;
     /**
      * Handles the event and sends it to the server
      * @param {ErrorEvent|PromiseRejectionEvent} event — (!) both for Error and Promise Rejection

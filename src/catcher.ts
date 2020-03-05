@@ -97,7 +97,7 @@ export default class Catcher {
     this.initGlobalHandlers();
 
     if (settings.vue) {
-      this.addVueIntegration(settings.vue);
+      this.connectVue(settings.vue);
     }
   }
 
@@ -119,24 +119,23 @@ export default class Catcher {
   }
 
   /**
+   * Add error handing to the passed Vue app
+   * @param vue - Vue app
+   */
+  public connectVue(vue): void {
+    new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
+      this.formatAndSend(error, {
+        vue: addons,
+      });
+    });
+  }
+
+  /**
    * Init global errors handler
    */
   private initGlobalHandlers() {
     window.addEventListener('error', (event: ErrorEvent) => this.handleEvent(event));
     window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => this.handleEvent(event));
-  }
-
-  /**
-   * Add error handing to the passed Vue app
-   * @param vue - Vue app
-   */
-  private addVueIntegration(vue): void {
-    new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
-      console.log('error, addons', error, addons);
-      this.formatAndSend(error, {
-        vue: addons,
-      });
-    });
   }
 
   /**
