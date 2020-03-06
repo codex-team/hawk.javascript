@@ -172,7 +172,7 @@
         template: '<button @click="buttonClicked" :data-item="item" data-changed-item="changedItem">{{ title }} - {{ changedItem }}</button>',
         methods: {
           buttonClicked(){
-            foo();
+            bar();
           }
         }
       });
@@ -189,8 +189,8 @@
 <script src="sample-errors.js"></script>
 <script>
     window.hawk = new HawkCatcher({
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZTRjNGNlNjkyYjlhZTAwMjQ4YzlhMWEiLCJpYXQiOjE1ODIwNTg3MjZ9.3HzK0WvWUN1qhWkxrM6uEjWoYvZlV9cRTGqbe_HDxU8',
-        // collectorEndpoint: 'ws://localhost:3000/ws'
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZGYwYTFmZjkyMmRjYjAxMDM3YmMwYzkiLCJpYXQiOjE1NzYwNTExOTl9.4wOKwQ1z_tujBhazdR-UQjIOcKGZ2I_q2fbffYwQ9gw',
+        collectorEndpoint: 'ws://localhost:3000/ws',
         vue: window.Vue
     })
 </script>
