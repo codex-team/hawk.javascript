@@ -59,12 +59,17 @@ export interface EventData {
   /**
    * Current authenticated user
    */
-  user?: User;
+  user?: HawkUser;
 
   /**
    * Any other information to send with event
    */
   context?: object;
+
+  /**
+   * Some useful details
+   */
+  addons?: object;
 }
 
 /**
@@ -121,11 +126,11 @@ export interface SourceCodeLine {
 /**
  * Represents User object
  */
-export interface User {
+export interface HawkUser {
   /**
    * Internal user's identifier inside an app
    */
-  id: number;
+  id: string;
 
   /**
    * User public name

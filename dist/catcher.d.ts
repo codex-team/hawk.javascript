@@ -1,4 +1,4 @@
-import { InitialSettings } from '../types/initial-settings';
+import { HawkInitialSettings } from '../types/hawk-initial-settings';
 /**
  * Hawk JavaScript Catcher
  * Module for errors and exceptions tracking
@@ -37,9 +37,9 @@ export default class Catcher {
     private readonly stackParser;
     /**
      * Catcher constructor
-     * @param {InitialSettings|string} settings - If settings is a string, it means an Integration Token
+     * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
      */
-    constructor(settings: InitialSettings | string);
+    constructor(settings: HawkInitialSettings | string);
     /**
      * Init global errors handler
      */
@@ -71,6 +71,11 @@ export default class Catcher {
      */
     private getTitle;
     /**
+     * Return event type: TypeError, ReferenceError etc
+     * @param error - catched error
+     */
+    private getType;
+    /**
      * Release version
      */
     private getRelease;
@@ -94,4 +99,8 @@ export default class Catcher {
      * Return parsed backtrace information
      */
     private getBacktrace;
+    /**
+     * Return some details
+     */
+    private getAddons;
 }

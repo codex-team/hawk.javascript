@@ -1,8 +1,8 @@
 import Socket from './modules/socket';
 import log from './modules/logger';
 import StackParser from './modules/stackParser';
-import { InitialSettings } from '../types/initial-settings';
-import { BacktraceFrame, HawkEvent, User } from '../types/hawk-event';
+import { HawkInitialSettings } from '../types/hawk-initial-settings';
+import { BacktraceFrame, HawkEvent, HawkUser } from '../types/hawk-event';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -39,7 +39,7 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private readonly user: User;
+  private readonly user: HawkUser;
 
   /**
    * Transport for dialog between Catcher and Collector
@@ -54,13 +54,13 @@ export default class Catcher {
 
   /**
    * Catcher constructor
-   * @param {InitialSettings|string} settings - If settings is a string, it means an Integration Token
+   * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
    */
-  constructor(settings: InitialSettings | string) {
+  constructor(settings: HawkInitialSettings | string) {
     if (typeof settings === 'string') {
       settings = {
         token: settings,
-      } as InitialSettings;
+      } as HawkInitialSettings;
     }
 
     this.token = settings.token;
@@ -79,7 +79,7 @@ export default class Catcher {
      * Init transport
      */
     this.transport = new Socket({
-      collectorEndpoint: settings.collectorEndpoint || 'wss://kepler.codex.so:443/ws',
+      collectorEndpoint: settings.collectorEndpoint || 'wss://k1.hawk.so:443/ws',
       reconnectionAttempts: settings.reconnectionAttempts,
       reconnectionTimeout: settings.reconnectionTimeout,
       onClose() {
@@ -137,7 +137,16 @@ export default class Catcher {
      * - Promise.reject(new Error('Reason message')) ——— recommended
      * - Promise.reject('Reason message')
      */
-    const error = (event as ErrorEvent).error || (event as PromiseRejectionEvent).reason;
+    let error = (event as ErrorEvent).error || (event as PromiseRejectionEvent).reason;
+
+    /**
+     * Case when error triggered in external script
+     * We can't access event error object because of CORS
+     * Event message will be 'Script error.'
+     */
+    if (event instanceof ErrorEvent && error === undefined) {
+      error = (event as ErrorEvent).message;
+    }
 
     try {
       const errorFormatted = await this.prepareErrorFormatted(error);
@@ -167,10 +176,12 @@ export default class Catcher {
       catcherType: this.type,
       payload: {
         title: this.getTitle(error),
+        type: this.getType(error),
         release: this.getRelease(),
         context: this.getContext(),
         user: this.getUser(),
         get: this.getGetParams(),
+        addons: this.getAddons(),
         backtrace: await this.getBacktrace(error),
       },
     };
@@ -194,6 +205,24 @@ export default class Catcher {
   }
 
   /**
+   * Return event type: TypeError, ReferenceError etc
+   * @param error - catched error
+   */
+  private getType(error: Error | string): string {
+    const notAnError = !(error instanceof Error);
+
+    /**
+     * Case when error is 'reason' of PromiseRejectionEvent
+     * and reject() provided with text reason instead of Error()
+     */
+    if (notAnError) {
+      return null;
+    }
+
+    return (error as Error).name;
+  }
+
+  /**
    * Release version
    */
   private getRelease(): string | null {
@@ -210,7 +239,7 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private getUser() {
+  private getUser(): HawkUser | null  {
     return this.user || null;
   }
 
@@ -241,7 +270,7 @@ export default class Catcher {
   /**
    * Return parsed backtrace information
    */
-  private async getBacktrace(error: Error|string): Promise<BacktraceFrame[]> {
+  private async getBacktrace(error: Error|string): Promise<BacktraceFrame[]|null> {
     const notAnError = !(error instanceof Error);
 
     /**
@@ -252,6 +281,27 @@ export default class Catcher {
       return null;
     }
 
-    return this.stackParser.parse(error as Error);
+    try {
+      return await this.stackParser.parse(error as Error);
+    } catch (error) {
+      log('Can not parse stack:', 'warn', error);
+      return null;
+    }
+  }
+
+  /**
+   * Return some details
+   */
+  private getAddons(): object {
+    const { innerWidth, innerHeight }  = window;
+    const userAgent = window.navigator.userAgent;
+
+    return {
+        window: {
+          innerWidth,
+          innerHeight,
+        },
+        userAgent,
+      };
   }
 }
