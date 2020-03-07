@@ -31,6 +31,11 @@ export interface EventData {
   title: string;
 
   /**
+   * Event type: TypeError, ReferenceError etc
+   */
+  type?: string;
+
+  /**
    * Stack
    * From the latest call to the earliest
    */
