@@ -37,6 +37,12 @@ export interface HawkInitialSettings {
    * @example ws://localhost:3000/ws
    */
   collectorEndpoint?: string;
+
+  /**
+   * Instance of a vue application
+   * to handle its errors
+   */
+  vue?: any;
 }
 
 export {

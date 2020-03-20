@@ -40,13 +40,6 @@ Then require this script on your site.
 <script src="..." async></script>
 ```
 
-### Or upload it to your project
-
-Download [hawk.js](dist/hawk.js) file and add it to all pages of your site.
-```
-<script src="hawk.js" async></script>
-```
-
 ## Usage
 
 ### Get token
@@ -81,6 +74,7 @@ Initialization settings:
 | `token` | string | **required** | Your project's Integration Token |
 | `release` | string/number | optional | Unique identifier of the release. Used for source map consuming (see below) |
 | `user` | {id: string, name?: string, image?: string, url?: string} | optional | Current authenticated user |
+| `vue` | Vue constructor | optional | Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application) |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -97,3 +91,31 @@ To enable source map consuming you should do two things:
 
 To make sure that Hawk is working right, call `test()` method from `HawkCatcher` class instance in browser's console.
 `test()` method sends fake error to server. Then, open Hawk and find a test event at the Project's page.
+
+## Integrate to Vue application
+
+Vue apps have their own error handler, so if you want to catcher errors thrown inside Vue components, you should set up a Vue integration.
+
+Pass the Vue constructor with the initial settings:
+
+```js
+import Vue from 'vue';
+
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  vue: Vue // the Vue constructor you tweak
+});
+``` 
+
+or pass it any moment after Hawk Catcher was instantiated:
+
+
+```js
+import Vue from 'vue';
+
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+});
+
+hawk.connectVue(Vue)
+``` 
