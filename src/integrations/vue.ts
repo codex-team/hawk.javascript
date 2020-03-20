@@ -43,10 +43,6 @@ export class VueIntegration {
        * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
        */
       (err: Error, vm: { [key: string]: any }, info: string) => {
-        console.log('err', err);
-        console.log('vm', vm);
-        console.log('info', info);
-
         if (typeof this.existedHandler === 'function') {
           this.existedHandler.call(this.vue, err, vm, info);
         }
