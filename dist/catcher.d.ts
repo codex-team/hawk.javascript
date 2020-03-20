@@ -80,10 +80,6 @@ export default class Catcher {
      */
     private getRelease;
     /**
-     * Current timestamp
-     */
-    private getTime;
-    /**
      * Collects additional information
      */
     private getContext;
