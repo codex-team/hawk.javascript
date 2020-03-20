@@ -1,13 +1,13 @@
 
   hawk browser
-  Package size: 7.44 KB with all dependencies, minified and gzipped
-  Loading time: 149 ms  on slow 3G
-  Running time: 111 ms  on Snapdragon 410
-  Total time:   260 ms
+  Package size: 7.4 KB with all dependencies, minified and gzipped
+  Loading time: 148 ms on slow 3G
+  Running time: 84 ms  on Snapdragon 410
+  Total time:   232 ms
 
   hawk umd
-  Package size: 7.47 KB with all dependencies, minified and gzipped
-  Loading time: 150 ms  on slow 3G
-  Running time: 122 ms  on Snapdragon 410
-  Total time:   272 ms
+  Package size: 7.42 KB with all dependencies, minified and gzipped
+  Loading time: 149 ms  on slow 3G
+  Running time: 110 ms  on Snapdragon 410
+  Total time:   259 ms
 

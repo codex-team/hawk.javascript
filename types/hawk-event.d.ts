@@ -36,13 +36,6 @@ export interface EventData {
   type?: string;
 
   /**
-   * Occurrence time
-   * [!] Must be a Unix timestamp in seconds (example: 1567009247.576)
-   * @deprecated
-   */
-  timestamp: number;
-
-  /**
    * Stack
    * From the latest call to the earliest
    */
