@@ -178,7 +178,6 @@ export default class Catcher {
         title: this.getTitle(error),
         type: this.getType(error),
         release: this.getRelease(),
-        timestamp: this.getTime(),
         context: this.getContext(),
         user: this.getUser(),
         get: this.getGetParams(),
@@ -228,19 +227,6 @@ export default class Catcher {
    */
   private getRelease(): string | null {
     return this.release || null;
-  }
-
-  /**
-   * Current timestamp
-   */
-  private getTime(): number {
-    let timestamp = (new Date()).getTime();
-    /**
-     * Convert JS timestamp to Unix timestamp
-     */
-    timestamp = timestamp / 1000;
-
-    return timestamp;
   }
 
   /**
