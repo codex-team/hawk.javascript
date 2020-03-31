@@ -322,6 +322,7 @@ export default class Catcher {
   private getAddons(): object {
     const { innerWidth, innerHeight }  = window;
     const userAgent = window.navigator.userAgent;
+    const location = window.location.href;
 
     return {
         window: {
@@ -329,6 +330,7 @@ export default class Catcher {
           innerHeight,
         },
         userAgent,
+        url: location,
       };
   }
 
