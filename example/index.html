@@ -155,21 +155,1438 @@
         <test-component :title="label"/>
     </div>
     <script>
+      class Editor {}
+
+      const tag = document.createElement('div');
+
+      tag.classList.add('my-class', 'my-class--second');
+      tag.setAttribute('title', 'My title');
+      tag.dataset.index = 123;
+      tag.innerHTML = document.body.innerHTML;
+
       Vue.component('test-component', {
         data(){
           return {
-            item: 1
+            number: 1,
+            bool: false,
+            arr: [1,2,3, [], {foo: 'bar'}],
+            el: tag,
+            instance: new Editor(),
+            classProto: Editor,
+            longText: 'Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.',
+            bigObject: {
+              "rc": 200,
+              "rm": "",
+              "data": {
+                "channels": [
+                  {
+                    "id": "9",
+                    "idOriginal": "a34db2005e01685bf1f7821bdb134ff1fe4bdbad",
+                    "type": 1,
+                    "title": "Слава Крайнов",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/6908d53d-c6a2-bcf6-de3e-5a4518821b29/",
+                    "lastMessage": {
+                      "id": "5e6b7eb047c0690209342442",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 9,
+                        "title": "Слава Крайнов",
+                        "picture": "https://leonardo.osnova.io/6908d53d-c6a2-bcf6-de3e-5a4518821b29/",
+                        "lastSeen": "Был 2 дня назад",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "456",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "a34db2005e01685bf1f7821bdb134ff1fe4bdbad",
+                        "idOriginal": "a34db2005e01685bf1f7821bdb134ff1fe4bdbad",
+                        "type": 1
+                      },
+                      "dtCreated": 1584103088.819
+                    },
+                    "dtCreated": 1584103088.656,
+                    "dtUpdated": 1584103088.656,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 9,
+                        "title": "Слава Крайнов",
+                        "picture": "https://leonardo.osnova.io/6908d53d-c6a2-bcf6-de3e-5a4518821b29/",
+                        "lastSeen": "Был 2 дня назад",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 2,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "166622",
+                    "idOriginal": "9562044f9eaae73cfbc4c434b7e50ecd1a212df8",
+                    "type": 1,
+                    "title": "DoberMan",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/b259ee3a-aa41-3bb4-8bcc-07c863dd3aa1/",
+                    "lastMessage": {
+                      "id": "5e5923a4a9de67765f3dbfa2",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "цуцм",
+                      "media": null,
+                      "replyTo": {
+                        "id": "5e5923a08d4dd00d7e462602",
+                        "type": 0,
+                        "status": 1,
+                        "author": {
+                          "id": 18912,
+                          "title": "Orzemes Mirzov",
+                          "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                          "lastSeen": "Онлайн",
+                          "isVerified": false,
+                          "isBanned": false
+                        },
+                        "text": "Привет пока раз раз раз это хардбасс, кто не с нами тот под нами аул ахала как смешно еееее бойПривет пока раз раз раз это хардбасс, кто не с нами тот под нами аул ахала как смешно еееее бой Привет пока раз раз раз это хардбасс, кто не с нами тот под нами аул ахала как смешно еееее бой",
+                        "media": null,
+                        "replyTo": {
+                          "id": "5e591f33ed052a0718168a14",
+                          "type": 0,
+                          "status": 1,
+                          "author": {
+                            "id": 18912,
+                            "title": "Orzemes Mirzov",
+                            "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                            "lastSeen": "Онлайн",
+                            "isVerified": false,
+                            "isBanned": false
+                          },
+                          "text": "Привет пока раз раз раз это хардбасс, кто не с нами тот под нами аул ахала как смешно еееее бой",
+                          "media": null,
+                          "replyTo": null,
+                          "replyToId": null,
+                          "removed": false,
+                          "channel": {
+                            "id": "9562044f9eaae73cfbc4c434b7e50ecd1a212df8",
+                            "idOriginal": "9562044f9eaae73cfbc4c434b7e50ecd1a212df8",
+                            "type": 1
+                          },
+                          "dtCreated": 1582898995.802
+                        },
+                        "replyToId": "5e591f33ed052a0718168a14",
+                        "removed": false,
+                        "channel": {
+                          "id": "9562044f9eaae73cfbc4c434b7e50ecd1a212df8",
+                          "idOriginal": "9562044f9eaae73cfbc4c434b7e50ecd1a212df8",
+                          "type": 1
+                        },
+                        "dtCreated": 1582900128.804
+                      },
+                      "replyToId": "5e5923a08d4dd00d7e462602",
+                      "removed": false,
+                      "channel": {
+                        "id": "9562044f9eaae73cfbc4c434b7e50ecd1a212df8",
+                        "idOriginal": "9562044f9eaae73cfbc4c434b7e50ecd1a212df8",
+                        "type": 1
+                      },
+                      "dtCreated": 1582900132.488
+                    },
+                    "dtCreated": 1582900132.588,
+                    "dtUpdated": 1582900132.588,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 166622,
+                        "title": "DoberMan",
+                        "picture": "https://leonardo.osnova.io/b259ee3a-aa41-3bb4-8bcc-07c863dd3aa1/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "83212",
+                    "idOriginal": "6d37045e1a8849f895ebfd7410727f77fe6eacbf",
+                    "type": 1,
+                    "title": "Usaku",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/247c03e8-ce18-3c0a-bc7f-b83b61ddf0cb/",
+                    "lastMessage": {
+                      "id": "5d939f38e2f5e42f46688151",
+                      "type": 0,
+                      "status": 2,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "ыыы",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "6d37045e1a8849f895ebfd7410727f77fe6eacbf",
+                        "idOriginal": "6d37045e1a8849f895ebfd7410727f77fe6eacbf",
+                        "type": 1
+                      },
+                      "dtCreated": 1569955640.248
+                    },
+                    "dtCreated": 1569955640.317,
+                    "dtUpdated": 1569955640.317,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 83212,
+                        "title": "Usaku",
+                        "picture": "https://leonardo.osnova.io/247c03e8-ce18-3c0a-bc7f-b83b61ddf0cb/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "18912",
+                    "idOriginal": "eecb2b1eceb8d09a445222c5b37eac3c7370bdfd",
+                    "type": 1,
+                    "title": "Сохраненные сообщения",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/7d5cfb64-7eef-5c5c-26cf-6db0d687f01c/",
+                    "lastMessage": {
+                      "id": "5dd3003d67496170382f3bb1",
+                      "type": 0,
+                      "status": 2,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "рр",
+                      "media": [
+                        {
+                          "type": "image",
+                          "data": {
+                            "uuid": "6c08144b-ac3a-220c-32be-907c115a1bf9",
+                            "width": 1080,
+                            "height": 1920,
+                            "size": 1552677,
+                            "type": "png",
+                            "color": "272729",
+                            "external_service": []
+                          }
+                        }
+                      ],
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "eecb2b1eceb8d09a445222c5b37eac3c7370bdfd",
+                        "idOriginal": "eecb2b1eceb8d09a445222c5b37eac3c7370bdfd",
+                        "type": 1
+                      },
+                      "dtCreated": 1574109244
+                    },
+                    "dtCreated": 1574109245.701,
+                    "dtUpdated": 1574109245.701,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": false,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "118054",
+                    "idOriginal": "95354d14cec21511cbb9a50019924fca411cb033",
+                    "type": 1,
+                    "title": "Angry Cat.",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/c6da986a-e307-c327-f2e2-a77eb67c6688/",
+                    "lastMessage": {
+                      "id": "5ddce19d835bc2520465a001",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "wevwev",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "95354d14cec21511cbb9a50019924fca411cb033",
+                        "idOriginal": "95354d14cec21511cbb9a50019924fca411cb033",
+                        "type": 1
+                      },
+                      "dtCreated": 1574756765.585
+                    },
+                    "dtCreated": 1574756765.702,
+                    "dtUpdated": 1574756765.702,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 118054,
+                        "title": "Angry Cat.",
+                        "picture": "https://leonardo.osnova.io/c6da986a-e307-c327-f2e2-a77eb67c6688/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "178693",
+                    "idOriginal": "b72ecb7a2dd3e419a309452a0e62999b503f025c",
+                    "type": 1,
+                    "title": "StupidMaronGuy",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/c8087db2-8b92-cfbd-9c9b-c65634b1bad4/",
+                    "lastMessage": {
+                      "id": "5ddce1a39648770f821c9ed1",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "45n54",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "b72ecb7a2dd3e419a309452a0e62999b503f025c",
+                        "idOriginal": "b72ecb7a2dd3e419a309452a0e62999b503f025c",
+                        "type": 1
+                      },
+                      "dtCreated": 1574756771.868
+                    },
+                    "dtCreated": 1574756771.978,
+                    "dtUpdated": 1574756771.978,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 178693,
+                        "title": "StupidMaronGuy",
+                        "picture": "https://leonardo.osnova.io/c8087db2-8b92-cfbd-9c9b-c65634b1bad4/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "104309",
+                    "idOriginal": "f96a1156895dc7d57d495debf07262f23620bad2",
+                    "type": 1,
+                    "title": "Сергей Воронов",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/b3e49dc4-4881-b493-7591-ae6a3167a3f5/",
+                    "lastMessage": {
+                      "id": "5ddce1aa91439567a635c882",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "eree",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "f96a1156895dc7d57d495debf07262f23620bad2",
+                        "idOriginal": "f96a1156895dc7d57d495debf07262f23620bad2",
+                        "type": 1
+                      },
+                      "dtCreated": 1574756778.568
+                    },
+                    "dtCreated": 1574756778.678,
+                    "dtUpdated": 1574756778.678,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 104309,
+                        "title": "Сергей Воронов",
+                        "picture": "https://leonardo.osnova.io/b3e49dc4-4881-b493-7591-ae6a3167a3f5/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "49416",
+                    "idOriginal": "0f643e7a0504d60f95fb479e7a463aec0126795f",
+                    "type": 1,
+                    "title": "Рондо",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/46d92b5f-8a74-a038-0bc1-a227770a2f41/",
+                    "lastMessage": {
+                      "id": "5ddce1b05f624705e123f211",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "rtnrnrn",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "0f643e7a0504d60f95fb479e7a463aec0126795f",
+                        "idOriginal": "0f643e7a0504d60f95fb479e7a463aec0126795f",
+                        "type": 1
+                      },
+                      "dtCreated": 1574756784.038
+                    },
+                    "dtCreated": 1574756784.295,
+                    "dtUpdated": 1574756784.295,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 49416,
+                        "title": "Рондо",
+                        "picture": "https://leonardo.osnova.io/46d92b5f-8a74-a038-0bc1-a227770a2f41/",
+                        "lastSeen": "Был недавно",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "67762",
+                    "idOriginal": "2f52785ac3af25090157709c5cbf02178e86cfa5",
+                    "type": 1,
+                    "title": "RoughDIamond",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/1693c0f0-e168-920f-3e74-27e364a1b28f/",
+                    "lastMessage": {
+                      "id": "5ddce1b82d149568c214cf02",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "rtnrj65j",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "2f52785ac3af25090157709c5cbf02178e86cfa5",
+                        "idOriginal": "2f52785ac3af25090157709c5cbf02178e86cfa5",
+                        "type": 1
+                      },
+                      "dtCreated": 1574756792.291
+                    },
+                    "dtCreated": 1574756792.429,
+                    "dtUpdated": 1574756792.429,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 67762,
+                        "title": "RoughDIamond",
+                        "picture": "https://leonardo.osnova.io/1693c0f0-e168-920f-3e74-27e364a1b28f/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "64969",
+                    "idOriginal": "391e58a37b54ac17c3cfb4808c413af4bcfe4c9f",
+                    "type": 1,
+                    "title": "Сломалось",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/5a6930a2-807d-a0cf-c715-74d352490f85/",
+                    "lastMessage": {
+                      "id": "5e26ff91f119512861154002",
+                      "type": 0,
+                      "status": 2,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "gcv",
+                      "media": null,
+                      "replyTo": {
+                        "id": "5e26ff1e3cbf2b2d10580d11",
+                        "type": 0,
+                        "status": 2,
+                        "author": {
+                          "id": 64969,
+                          "title": "Сломалось",
+                          "picture": "https://leonardo.osnova.io/5a6930a2-807d-a0cf-c715-74d352490f85/",
+                          "lastSeen": "Был больше недели назад",
+                          "isVerified": false,
+                          "isBanned": false
+                        },
+                        "text": "lnl",
+                        "media": null,
+                        "replyTo": null,
+                        "replyToId": null,
+                        "removed": false,
+                        "channel": {
+                          "id": "391e58a37b54ac17c3cfb4808c413af4bcfe4c9f",
+                          "idOriginal": "391e58a37b54ac17c3cfb4808c413af4bcfe4c9f",
+                          "type": 1
+                        },
+                        "dtCreated": 1579613982.787
+                      },
+                      "replyToId": "5e26ff1e3cbf2b2d10580d11",
+                      "removed": false,
+                      "channel": {
+                        "id": "391e58a37b54ac17c3cfb4808c413af4bcfe4c9f",
+                        "idOriginal": "391e58a37b54ac17c3cfb4808c413af4bcfe4c9f",
+                        "type": 1
+                      },
+                      "dtCreated": 1579614097.451
+                    },
+                    "dtCreated": 1579614097.451,
+                    "dtUpdated": 1579614097.451,
+                    "dtLeave": 1579614073.289,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 64969,
+                        "title": "Сломалось",
+                        "picture": "https://leonardo.osnova.io/5a6930a2-807d-a0cf-c715-74d352490f85/",
+                        "lastSeen": "Был больше недели назад",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "64971",
+                    "idOriginal": "e3e45ccda74d22332fb0b87f51350f22df003e71",
+                    "type": 1,
+                    "title": "Тайлер Дерден",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/9c5fb329-3b45-feaa-d528-9827a4bf2cf3/",
+                    "lastMessage": {
+                      "id": "5e6203965702b1469f389412",
+                      "type": 0,
+                      "status": 2,
+                      "author": {
+                        "id": 64971,
+                        "title": "Тайлер Дерден",
+                        "picture": "https://leonardo.osnova.io/9c5fb329-3b45-feaa-d528-9827a4bf2cf3/",
+                        "lastSeen": "Был 2 дня назад",
+                        "isVerified": false,
+                        "isBanned": true
+                      },
+                      "text": "Ага",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "e3e45ccda74d22332fb0b87f51350f22df003e71",
+                        "idOriginal": "e3e45ccda74d22332fb0b87f51350f22df003e71",
+                        "type": 1
+                      },
+                      "dtCreated": 1583481750.615
+                    },
+                    "dtCreated": 1583481750.744,
+                    "dtUpdated": 1583481750.744,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 64971,
+                        "title": "Тайлер Дерден",
+                        "picture": "https://leonardo.osnova.io/9c5fb329-3b45-feaa-d528-9827a4bf2cf3/",
+                        "lastSeen": "Был 2 дня назад",
+                        "isVerified": false,
+                        "isBanned": true
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": false,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": true
+                  },
+                  {
+                    "id": "64963",
+                    "idOriginal": "0083cd8499881cf72b1733339ba99060da54699e",
+                    "type": 1,
+                    "title": "Видео и гифки",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/fac10315-1c6f-4dd0-1f7c-8fdd394acdad/",
+                    "lastMessage": {
+                      "id": "5e6b6da646236c5bce596a92",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "кцмкм",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "0083cd8499881cf72b1733339ba99060da54699e",
+                        "idOriginal": "0083cd8499881cf72b1733339ba99060da54699e",
+                        "type": 1
+                      },
+                      "dtCreated": 1584098726.086
+                    },
+                    "dtCreated": 1584098726.173,
+                    "dtUpdated": 1584098726.173,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 64963,
+                        "title": "Видео и гифки",
+                        "picture": "https://leonardo.osnova.io/fac10315-1c6f-4dd0-1f7c-8fdd394acdad/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "198990",
+                    "idOriginal": "a717ed2880f22d5fcc7228d4d62d28ca626d4fa1",
+                    "type": 1,
+                    "title": "Stepan",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/bc433487-03a6-88e0-f5c0-fbaf43fab9ac/",
+                    "lastMessage": {
+                      "id": "5e6b6c35278876224c240572",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "qq",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "a717ed2880f22d5fcc7228d4d62d28ca626d4fa1",
+                        "idOriginal": "a717ed2880f22d5fcc7228d4d62d28ca626d4fa1",
+                        "type": 1
+                      },
+                      "dtCreated": 1584098357.308
+                    },
+                    "dtCreated": 1584098357.459,
+                    "dtUpdated": 1584098357.459,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 198990,
+                        "title": "Stepan",
+                        "picture": "https://leonardo.osnova.io/bc433487-03a6-88e0-f5c0-fbaf43fab9ac/",
+                        "lastSeen": "Был недавно",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "87855",
+                    "idOriginal": "788f1354bf9a90bdb9c9c36557d23622b3a89cde",
+                    "type": 1,
+                    "title": "Индустрия игр",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/f488fca4-88d6-c978-d052-4d49a3a62a44/",
+                    "lastMessage": {
+                      "id": "5e6b6c474434d77fa70eaf12",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "qqqq",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "788f1354bf9a90bdb9c9c36557d23622b3a89cde",
+                        "idOriginal": "788f1354bf9a90bdb9c9c36557d23622b3a89cde",
+                        "type": 1
+                      },
+                      "dtCreated": 1584098375.539
+                    },
+                    "dtCreated": 1584098375.641,
+                    "dtUpdated": 1584098375.641,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 87855,
+                        "title": "Индустрия игр",
+                        "picture": "https://leonardo.osnova.io/f488fca4-88d6-c978-d052-4d49a3a62a44/",
+                        "lastSeen": "Был 4 дня назад",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "64954",
+                    "idOriginal": "2dac789341e42b3095c65db5c20327421d6fcc80",
+                    "type": 1,
+                    "title": "Gamedev",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/c4d42926-eae9-816c-dda8-a666c7fac9db/",
+                    "lastMessage": {
+                      "id": "5e6b6c6ae31a5d7975133143",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "jhvk",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "2dac789341e42b3095c65db5c20327421d6fcc80",
+                        "idOriginal": "2dac789341e42b3095c65db5c20327421d6fcc80",
+                        "type": 1
+                      },
+                      "dtCreated": 1584098410.054
+                    },
+                    "dtCreated": 1584098410.165,
+                    "dtUpdated": 1584098410.165,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 64954,
+                        "title": "Gamedev",
+                        "picture": "https://leonardo.osnova.io/c4d42926-eae9-816c-dda8-a666c7fac9db/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "94357",
+                    "idOriginal": "991b8c0b0db5efa7326eebe7a6b80ca3a5f808c5",
+                    "type": 1,
+                    "title": "Владимир Семыкин",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/a778aadb-177e-57d6-97c5-b65f844ba8d6/",
+                    "lastMessage": {
+                      "id": "5e6b6c75d83f1e6ac42cdc22",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "khkb",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "991b8c0b0db5efa7326eebe7a6b80ca3a5f808c5",
+                        "idOriginal": "991b8c0b0db5efa7326eebe7a6b80ca3a5f808c5",
+                        "type": 1
+                      },
+                      "dtCreated": 1584098421.673
+                    },
+                    "dtCreated": 1584098421.771,
+                    "dtUpdated": 1584098421.771,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 94357,
+                        "title": "Владимир Семыкин",
+                        "picture": "https://leonardo.osnova.io/a778aadb-177e-57d6-97c5-b65f844ba8d6/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "185656",
+                    "idOriginal": "15a407486b2948eaef0b05c1f4c47cc06fccab74",
+                    "type": 1,
+                    "title": "Johnny Walker",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/4035a095-17ce-f0d8-57cf-1ad20bfbc8b3/",
+                    "lastMessage": {
+                      "id": "5e6b6c931da84d1fcf73c102",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "bjbj",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "15a407486b2948eaef0b05c1f4c47cc06fccab74",
+                        "idOriginal": "15a407486b2948eaef0b05c1f4c47cc06fccab74",
+                        "type": 1
+                      },
+                      "dtCreated": 1584098451.853
+                    },
+                    "dtCreated": 1584098451.963,
+                    "dtUpdated": 1584098451.963,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 185656,
+                        "title": "Johnny Walker",
+                        "picture": "https://leonardo.osnova.io/4035a095-17ce-f0d8-57cf-1ad20bfbc8b3/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "165189",
+                    "idOriginal": "41d9dd525c120250e3f18f95e0d4c8441cc9d64e",
+                    "type": 1,
+                    "title": "Гость DTF",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/778ff036-5181-6560-7589-0eb3311d8b1e/",
+                    "lastMessage": {
+                      "id": "5e6b6c9e28eaef2e0a08f052",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "jbl bl",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "41d9dd525c120250e3f18f95e0d4c8441cc9d64e",
+                        "idOriginal": "41d9dd525c120250e3f18f95e0d4c8441cc9d64e",
+                        "type": 1
+                      },
+                      "dtCreated": 1584098462.272
+                    },
+                    "dtCreated": 1584098462.418,
+                    "dtUpdated": 1584098462.418,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 165189,
+                        "title": "Гость DTF",
+                        "picture": "https://leonardo.osnova.io/778ff036-5181-6560-7589-0eb3311d8b1e/",
+                        "lastSeen": "Был 1 день назад",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "87848",
+                    "idOriginal": "cabe59d3532073993ff75376ac699d79786405ff",
+                    "type": 1,
+                    "title": "Творчество",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/34be5067-2cdf-2eb3-d9af-415abb861967/",
+                    "lastMessage": {
+                      "id": "5e6b6cd4b5c3e14aac0cf4c2",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "jbkljb",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "cabe59d3532073993ff75376ac699d79786405ff",
+                        "idOriginal": "cabe59d3532073993ff75376ac699d79786405ff",
+                        "type": 1
+                      },
+                      "dtCreated": 1584098515.902
+                    },
+                    "dtCreated": 1584098516.116,
+                    "dtUpdated": 1584098516.116,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 87848,
+                        "title": "Творчество",
+                        "picture": "https://leonardo.osnova.io/34be5067-2cdf-2eb3-d9af-415abb861967/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "125100",
+                    "idOriginal": "d7b119773f6bf60bc905d49a6d0211a03542c1b2",
+                    "type": 1,
+                    "title": "Барахолка",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/4bb862f4-05a2-27da-2259-caf970e2b9f4/",
+                    "lastMessage": {
+                      "id": "5e6b6ce2b61eec127816bfd2",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "kbkb",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "d7b119773f6bf60bc905d49a6d0211a03542c1b2",
+                        "idOriginal": "d7b119773f6bf60bc905d49a6d0211a03542c1b2",
+                        "type": 1
+                      },
+                      "dtCreated": 1584098530.107
+                    },
+                    "dtCreated": 1584098530.238,
+                    "dtUpdated": 1584098530.238,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 125100,
+                        "title": "Барахолка",
+                        "picture": "https://leonardo.osnova.io/4bb862f4-05a2-27da-2259-caf970e2b9f4/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "147670",
+                    "idOriginal": "07309cc0efca305cec723d69636c9da82c79d35c",
+                    "type": 1,
+                    "title": "Скриншоты",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/a01f5a6a-6f5c-cfd1-af75-36e0815ba8e1/",
+                    "lastMessage": {
+                      "id": "5e6b6ced848f6e51cd308c42",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "dggydy",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "07309cc0efca305cec723d69636c9da82c79d35c",
+                        "idOriginal": "07309cc0efca305cec723d69636c9da82c79d35c",
+                        "type": 1
+                      },
+                      "dtCreated": 1584098541.357
+                    },
+                    "dtCreated": 1584098541.443,
+                    "dtUpdated": 1584098541.443,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 147670,
+                        "title": "Скриншоты",
+                        "picture": "https://leonardo.osnova.io/a01f5a6a-6f5c-cfd1-af75-36e0815ba8e1/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": true,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  },
+                  {
+                    "id": "128871",
+                    "idOriginal": "b7e3db93aed2481788342cf8f2b95e47a3488fad",
+                    "type": 1,
+                    "title": "Жизнь",
+                    "description": null,
+                    "picture": "https://leonardo.osnova.io/8b2698a2-9f62-e5b8-d9bb-a4ea8e529059/",
+                    "lastMessage": {
+                      "id": "5d9335c3a05cdf6da7656721",
+                      "type": 0,
+                      "status": 1,
+                      "author": {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      "text": "Дарова",
+                      "media": null,
+                      "replyTo": null,
+                      "replyToId": null,
+                      "removed": false,
+                      "channel": {
+                        "id": "b7e3db93aed2481788342cf8f2b95e47a3488fad",
+                        "idOriginal": "b7e3db93aed2481788342cf8f2b95e47a3488fad",
+                        "type": 1
+                      },
+                      "dtCreated": 1569928643.647
+                    },
+                    "dtCreated": 1569928643.801,
+                    "dtUpdated": 1569928643.801,
+                    "dtLeave": null,
+                    "pendingAcceptance": false,
+                    "members": [
+                      {
+                        "id": 18912,
+                        "title": "Orzemes Mirzov",
+                        "picture": "https://leonardo.osnova.io/dc97b123-c730-d9bb-c122-5c0f7966feb9/",
+                        "lastSeen": "Онлайн",
+                        "isVerified": false,
+                        "isBanned": false
+                      },
+                      {
+                        "id": 128871,
+                        "title": "Жизнь",
+                        "picture": "https://leonardo.osnova.io/8b2698a2-9f62-e5b8-d9bb-a4ea8e529059/",
+                        "lastSeen": "Не в сети",
+                        "isVerified": false,
+                        "isBanned": false
+                      }
+                    ],
+                    "unreadCount": 0,
+                    "isMuted": false,
+                    "isEnabledMessenger": false,
+                    "isIgnored": false,
+                    "ignoredType": 0,
+                    "isBanned": false
+                  }
+                ]
+              }
+            }
           }
         },
         props: {
-          title: String
+          title: String,
         },
         computed: {
           changedItem(){
-            return this.item + 1;
+            return this.number + 1;
           }
         },
-        template: '<button @click="buttonClicked" :data-item="item" data-changed-item="changedItem">{{ title }} - {{ changedItem }}</button>',
+        template: '<button @click="buttonClicked" :data-item="number    " data-changed-item="changedItem">{{ title }} - {{ changedItem }}</button>',
         methods: {
           buttonClicked(){
             bar();
@@ -189,7 +1606,7 @@
 <script src="sample-errors.js"></script>
 <script>
     window.hawk = new HawkCatcher({
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZGYwYTFmZjkyMmRjYjAxMDM3YmMwYzkiLCJpYXQiOjE1NzYwNTExOTl9.4wOKwQ1z_tujBhazdR-UQjIOcKGZ2I_q2fbffYwQ9gw',
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZTY5NjBmOWZkMGU5YjAwMjIzODU4ZjQiLCJpYXQiOjE1ODM5NjQ0MDl9.9ZtkCO-9kaWiiqRQDPegXZwmAARDQ2XaESplfSgT6OA',
         collectorEndpoint: 'ws://localhost:3000/ws',
         vue: window.Vue,
     })
