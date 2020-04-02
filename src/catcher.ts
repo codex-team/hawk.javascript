@@ -125,8 +125,6 @@ export default class Catcher {
    */
   public connectVue(vue): void {
     new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
-      addons = this.sanitize(addons as {[key: string]: any} ) as VueIntegrationAddons;
-
       this.formatAndSend(error, {
         vue: addons,
       });
@@ -263,7 +261,7 @@ export default class Catcher {
    * Collects additional information
    */
   private getContext(): object {
-    return this.sanitize({});
+    return Sanitizer.sanitize({});
   }
 
   /**
@@ -345,17 +343,5 @@ export default class Catcher {
    */
   private appendIntegrationAddons(errorFormatted: HawkEvent, integrationAddons: {[key: string]: any}): void {
     Object.assign(errorFormatted.payload.addons, integrationAddons);
-  }
-
-  /**
-   * Sanitize and beautify data
-   * - trim long strings
-   * - represent html elements like <div ...> as "<div>" instead of "{}"
-   * - represent big objects as "<big object>"
-   * - represent class as <class SomeClass> or <instance of SomeClass>
-   * @param data - object to sanitize
-   */
-  private sanitize(data: {[key: string]: any}): object {
-    return Sanitizer.sanitizeObject(data);
   }
 }

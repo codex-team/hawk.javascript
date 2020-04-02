@@ -117,13 +117,4 @@ export default class Catcher {
      * @param integrationAddons - extra addons
      */
     private appendIntegrationAddons;
-    /**
-     * Sanitize and beautify data
-     * - trim long strings
-     * - represent html elements like <div ...> as "<div>" instead of "{}"
-     * - represent big objects as "<big object>"
-     * - represent class as <class SomeClass> or <instance of SomeClass>
-     * @param data - object to sanitize
-     */
-    private sanitize;
 }

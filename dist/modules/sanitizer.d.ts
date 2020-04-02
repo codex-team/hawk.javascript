@@ -7,25 +7,39 @@
  */
 export default class Sanitizer {
     /**
-     * Process object values recursive
-     * @param data - object to beautify
+     * Apply sanitizing for array/object/primitives
+     * @param data - any object to sanitize
      */
-    static sanitizeObject(data: {
-        [key: string]: any;
-    }): object;
+    static sanitize(data: any): any;
     /**
      * Maximum string length
      */
     private static readonly maxStringLen;
     /**
-     * Maximum object length in JSON
+     * If object in stringified JSON will reach this length,
+     * it will be represented as "<big object>"
      */
     private static readonly maxObjectLen;
+    /**
+     * Apply sanitizing for each element of the array
+     * @param arr
+     */
+    private static sanitizeArray;
+    /**
+     * Process object values recursive
+     * @param data - object to beautify
+     */
+    private static sanitizeObject;
     /**
      * Check if passed variable is an object
      * @param target - variable to check
      */
     private static isObject;
+    /**
+     * Check if passed variable is an array
+     * @param target - variable to check
+     */
+    private static isArray;
     /**
      * Check if passed variable is a not-constructed class
      * @param target - variable to check

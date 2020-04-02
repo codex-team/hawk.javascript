@@ -7,57 +7,91 @@
  */
 export default class Sanitizer {
   /**
+   * Apply sanitizing for array/object/primitives
+   * @param data - any object to sanitize
+   */
+  public static sanitize(data: any): any {
+    /**
+     * If value is an Array, apply sanitizing for each element
+     */
+    if (Sanitizer.isArray(data)) {
+      return this.sanitizeArray(data);
+
+    /**
+     * If value is an Element, format it as string with outer HTML
+     * HTMLDivElement -> "<div ...></div>"
+     */
+    } else if (Sanitizer.isElement(data)) {
+      return Sanitizer.formatElement(data);
+
+    /**
+     * If values is a not-constructed class, it will be formatted as "<class SomeClass>"
+     * class Editor {...} -> <class Editor>
+     */
+    } else if (Sanitizer.isClassPrototype(data)) {
+      return Sanitizer.formatClassPrototype(data);
+
+    /**
+     * If values is a some class instance, it will be formatted as "<instance of SomeClass>"
+     * new Editor() -> <instance of Editor>
+     */
+    } else if (Sanitizer.isClassInstance(data)) {
+      return Sanitizer.formatClassInstance(data);
+
+    /**
+     * If values is an object, do recursive call
+     */
+    } else if (Sanitizer.isObject(data)) {
+      /**
+       * If object is too big, represent is as a "<big object>"
+       */
+      if (Sanitizer.isBigObject(data)) {
+        return Sanitizer.formatBigObject(data);
+      } else {
+        return Sanitizer.sanitizeObject(data);
+      }
+
+    /**
+     * If values is a string, trim it for max-length
+     */
+    } else if (Sanitizer.isString(data)) {
+      return Sanitizer.trimString(data);
+    }
+
+    /**
+     * If values is a number, boolean and other primitive, leave as is
+     */
+    return data;
+  }
+  /**
+   * Maximum string length
+   */
+  private static readonly maxStringLen: number = 200;
+
+  /**
+   * If object in stringified JSON will reach this length,
+   * it will be represented as "<big object>"
+   */
+  private static readonly maxObjectLen: number = 500;
+
+  /**
+   * Apply sanitizing for each element of the array
+   * @param arr
+   */
+  private static sanitizeArray(arr: any[]): any[] {
+    return arr.map((item: any) => {
+      return Sanitizer.sanitize(item);
+    });
+  }
+
+  /**
    * Process object values recursive
    * @param data - object to beautify
    */
-  public static sanitizeObject(data: {[key: string]: any}): object {
+  private static sanitizeObject(data: {[key: string]: any}): object {
     for (const key in data) {
       if (data.hasOwnProperty(key)) {
-        const value = data[key];
-
-        /**
-         * If value is an Element, format it as string with outer HTML
-         * HTMLDivElement -> "<div ...></div>"
-         */
-        if (Sanitizer.isElement(value)) {
-          data[key] = Sanitizer.formatElement(value);
-
-        /**
-         * If values is a not-constructed class, it will be formatted as "<class SomeClass>"
-         * class Editor {...} -> <class Editor>
-         */
-        } else if (Sanitizer.isClassPrototype(value)) {
-          data[key] = Sanitizer.formatClassPrototype(value);
-        /**
-         * If values is a some class instance, it will be formatted as "<instance of SomeClass>"
-         * new Editor() -> <instance of Editor>
-         */
-        } else if (Sanitizer.isClassInstance(value)) {
-          data[key] = Sanitizer.formatClassInstance(value);
-
-        /**
-         * If values is an object, do recursive call
-         */
-        } else if (Sanitizer.isObject(value)) {
-          /**
-           * If object is too big, represent is as a "<big object>"
-           */
-          if (Sanitizer.isBigObject(value)) {
-            data[key] = Sanitizer.formatBigObject(value);
-          } else {
-            data[key] = Sanitizer.sanitizeObject(value);
-          }
-
-        /**
-         * If values is a string, trim it for max-length
-         */
-        } else if (Sanitizer.isString(value)) {
-          data[key] = Sanitizer.trimString(value);
-        }
-
-        /**
-         * If values is a number, boolean and other primitive, leave as is
-         */
+        data[key] = Sanitizer.sanitize(data[key]);
       }
     }
 
@@ -65,21 +99,19 @@ export default class Sanitizer {
   }
 
   /**
-   * Maximum string length
-   */
-  private static readonly maxStringLen: number = 200;
-
-  /**
-   * Maximum object length in JSON
-   */
-  private static readonly maxObjectLen: number = 500;
-
-  /**
    * Check if passed variable is an object
    * @param target - variable to check
    */
   private static isObject(target: any): boolean {
     return typeof target === 'object';
+  }
+
+  /**
+   * Check if passed variable is an array
+   * @param target - variable to check
+   */
+  private static isArray(target: any): boolean {
+    return Array.isArray(target);
   }
 
   /**

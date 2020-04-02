@@ -1,3 +1,5 @@
+import Sanitizer from './../modules/sanitizer';
+
 /**
  * Errors fired inside Vue components are not dispatched by global handlers.
  * This integration allow us to set up own error handler
@@ -79,7 +81,7 @@ export class VueIntegration {
      * Fill props
      */
     if (vm.$options && vm.$options.propsData) {
-      addons.props = vm.$options.propsData;
+      addons.props = Sanitizer.sanitize(vm.$options.propsData);
     }
 
     /**
@@ -89,7 +91,7 @@ export class VueIntegration {
       addons.data = {};
 
       Object.entries(vm._data).forEach(([key, value]) => {
-        addons.data[key] = value;
+        addons.data[key] = Sanitizer.sanitize(value);
       });
     }
 
@@ -100,7 +102,7 @@ export class VueIntegration {
       addons.computed = {};
 
       Object.entries(vm._computedWatchers).forEach(([key, watcher]) => {
-        addons.computed[key] = (watcher as {[key: string]: any}).value;
+        addons.computed[key] = Sanitizer.sanitize((watcher as {[key: string]: any}).value);
       });
     }
 
