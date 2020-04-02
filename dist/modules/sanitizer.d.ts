@@ -56,6 +56,12 @@ export default class Sanitizer {
      */
     private static isString;
     /**
+     * Return string representation of the object type
+     *
+     * @param {any} object
+     */
+    private static typeOf;
+    /**
      * Check if passed variable is an HTML Element
      * @param target - variable to check
      */

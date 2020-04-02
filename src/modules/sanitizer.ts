@@ -103,7 +103,7 @@ export default class Sanitizer {
    * @param target - variable to check
    */
   private static isObject(target: any): boolean {
-    return typeof target === 'object';
+    return Sanitizer.typeOf(target) === 'object';
   }
 
   /**
@@ -148,6 +148,15 @@ export default class Sanitizer {
    */
   private static isString(target: any): boolean {
     return typeof target === 'string';
+  }
+
+  /**
+   * Return string representation of the object type
+   *
+   * @param {any} object
+   */
+  private static typeOf(object: any): string {
+    return Object.prototype.toString.call(object).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
   }
 
   /**
