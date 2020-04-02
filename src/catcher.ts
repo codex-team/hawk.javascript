@@ -1,4 +1,5 @@
 import Socket from './modules/socket';
+import Sanitizer from './modules/sanitizer';
 import log from './modules/logger';
 import StackParser from './modules/stackParser';
 import { HawkInitialSettings } from '../types/hawk-initial-settings';
@@ -260,7 +261,7 @@ export default class Catcher {
    * Collects additional information
    */
   private getContext(): object {
-    return {};
+    return Sanitizer.sanitize({});
   }
 
   /**

@@ -155,21 +155,36 @@
         <test-component :title="label"/>
     </div>
     <script>
+      class Editor {}
+
+      const tag = document.createElement('div');
+
+      tag.classList.add('my-class', 'my-class--second');
+      tag.setAttribute('title', 'My title');
+      tag.dataset.index = 123;
+      tag.innerHTML = document.body.innerHTML;
+
       Vue.component('test-component', {
         data(){
           return {
-            item: 1
+            number: 1,
+            bool: false,
+            arr: [1,2,3, [new Editor(), tag.cloneNode()], {foo: 'bar'}],
+            el: tag,
+            instance: new Editor(),
+            classProto: Editor,
+            longText: 'Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.',
           }
         },
         props: {
-          title: String
+          title: String,
         },
         computed: {
           changedItem(){
-            return this.item + 1;
+            return this.number + 1;
           }
         },
-        template: '<button @click="buttonClicked" :data-item="item" data-changed-item="changedItem">{{ title }} - {{ changedItem }}</button>',
+        template: '<button @click="buttonClicked" :data-item="number" data-changed-item="changedItem">{{ title }} - {{ changedItem }}</button>',
         methods: {
           buttonClicked(){
             bar();
@@ -189,7 +204,7 @@
 <script src="sample-errors.js"></script>
 <script>
     window.hawk = new HawkCatcher({
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZGYwYTFmZjkyMmRjYjAxMDM3YmMwYzkiLCJpYXQiOjE1NzYwNTExOTl9.4wOKwQ1z_tujBhazdR-UQjIOcKGZ2I_q2fbffYwQ9gw',
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZTY5NjBmOWZkMGU5YjAwMjIzODU4ZjQiLCJpYXQiOjE1ODM5NjQ0MDl9.9ZtkCO-9kaWiiqRQDPegXZwmAARDQ2XaESplfSgT6OA',
         collectorEndpoint: 'ws://localhost:3000/ws',
         vue: window.Vue,
     })
