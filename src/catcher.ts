@@ -68,7 +68,7 @@ export default class Catcher {
 
     this.token = settings.token;
     this.release = settings.release;
-    this.user = settings.user;
+    this.user = settings.user || Catcher.getGeneratedUser();
 
     if (!this.token) {
       log(
@@ -286,6 +286,35 @@ export default class Catcher {
   private getUser(): HawkUser | null {
     return this.user || null;
   }
+
+  /**
+   * Generates user if no one provided via HawkCatcher settings
+   * After generating, stores user for feature requests
+   */
+  private static getGeneratedUser(): HawkUser {
+    let userId: string;
+    const LOCAL_STORAGE_KEY = 'hawk-user-id';
+
+    if (localStorage.getItem(LOCAL_STORAGE_KEY)) {
+      userId = localStorage.getItem('hawk-user-id');
+    } else {
+      userId = Catcher.generateRandomId();
+      localStorage.setItem(LOCAL_STORAGE_KEY, userId);
+    }
+
+    return {
+      id: userId,
+    };
+  }
+
+  /**
+   * Returns random string
+   */
+  private static generateRandomId(): string {
+    return Math.random().toString(36).substring(2, 15)
+         + Math.random().toString(36).substring(2, 15);
+  }
+
 
   /**
    * Get parameters
