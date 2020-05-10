@@ -31,7 +31,7 @@ function getBaseConfig(mergeObject = {}) {
             {
               loader: 'babel-loader',
               options: {
-                cacheDirectory: true,
+                cacheDirectory: true
               }
             },
             {
@@ -40,15 +40,9 @@ function getBaseConfig(mergeObject = {}) {
                 transpileOnly: false,
                 happyPackMode: false
               }
-            },
-            {
-              loader: 'tslint-loader',
-              options: {
-                fix: true
-              }
             }
           ]
-        },
+        }
       ]
     },
     plugins: [
@@ -59,7 +53,7 @@ function getBaseConfig(mergeObject = {}) {
 
       new webpack.BannerPlugin({
         banner: `Hawk JS Catcher.js\n\n@version ${VERSION}\n\n@licence Apache-2.0\n@author CodeX <https://codex.so>\n\n@see https://hawk.so\n@see https://github.com/codex-team/hawk.javascript`
-      }),
+      })
     ]
   };
 
