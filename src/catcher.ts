@@ -5,6 +5,7 @@ import StackParser from './modules/stackParser';
 import {HawkInitialSettings} from '../types/hawk-initial-settings';
 import {BacktraceFrame, HawkEvent, HawkUser} from '../types/hawk-event';
 import {VueIntegration, VueIntegrationAddons} from './integrations/vue';
+import {generateRandomId} from "./utils";
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -177,7 +178,7 @@ export default class Catcher {
    * @param {object} integrationAddons - addons spoiled by Integration
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async formatAndSend(error: Error | string, integrationAddons?: {[key: string]: any}): Promise<void> {
+  private async formatAndSend(error: Error | string, integrationAddons?: { [key: string]: any }): Promise<void> {
     try {
       const errorFormatted = await this.prepareErrorFormatted(error);
 
@@ -211,7 +212,7 @@ export default class Catcher {
    *
    * @param error - error to format
    */
-  private async prepareErrorFormatted(error: Error|string): Promise<HawkEvent> {
+  private async prepareErrorFormatted(error: Error | string): Promise<HawkEvent> {
     return {
       token: this.token,
       catcherType: this.type,
@@ -298,7 +299,7 @@ export default class Catcher {
     if (localStorage.getItem(LOCAL_STORAGE_KEY)) {
       userId = localStorage.getItem('hawk-user-id');
     } else {
-      userId = Catcher.generateRandomId();
+      userId = generateRandomId();
       localStorage.setItem(LOCAL_STORAGE_KEY, userId);
     }
 
@@ -306,22 +307,6 @@ export default class Catcher {
       id: userId,
     };
   }
-
-  /**
-   * Returns random string
-   */
-  private static generateRandomId(): string {
-    const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-    let array = new Uint8Array(40);
-
-    window.crypto.getRandomValues(array);
-
-    array = array.map(x => validChars.charCodeAt(x % validChars.length));
-
-    return String.fromCharCode.apply(null, array);
-  }
-
 
   /**
    * Get parameters
@@ -352,7 +337,7 @@ export default class Catcher {
    *
    * @param error - event from which to get backtrace
    */
-  private async getBacktrace(error: Error|string): Promise<BacktraceFrame[]|null> {
+  private async getBacktrace(error: Error | string): Promise<BacktraceFrame[] | null> {
     const notAnError = !(error instanceof Error);
 
     /**
@@ -376,7 +361,7 @@ export default class Catcher {
    * Return some details
    */
   private getAddons(): object {
-    const { innerWidth, innerHeight } = window;
+    const {innerWidth, innerHeight} = window;
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
 
@@ -398,7 +383,7 @@ export default class Catcher {
    * @param integrationAddons - extra addons
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private appendIntegrationAddons(errorFormatted: HawkEvent, integrationAddons: {[key: string]: any}): void {
+  private appendIntegrationAddons(errorFormatted: HawkEvent, integrationAddons: { [key: string]: any }): void {
     Object.assign(errorFormatted.payload.addons, integrationAddons);
   }
 }
