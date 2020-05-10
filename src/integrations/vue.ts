@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import Sanitizer from './../modules/sanitizer';
 
 /**
@@ -20,10 +22,11 @@ export class VueIntegration {
    * Callback that should be triggered with catched error.
    * This callback is used by parent class to format and send an event.
    */
-  private callback: (error: Error, addons: {[key: string]: any}) => {};
+  private readonly callback: (error: Error, addons: {[key: string]: any}) => {};
 
   /**
    * Set up a new vue app
+   *
    * @param vue - Vue app to handle
    * @param callback - callback that accepts new error
    */
@@ -35,16 +38,20 @@ export class VueIntegration {
     this.setupHandler();
   }
 
-  private setupHandler() {
+  /**
+   * Setups event handlers for Vue.js instance
+   */
+  private setupHandler(): void {
     this.vue.config.errorHandler =
       /**
        * Vue app error handler
+       *
        * @see https://vuejs.org/v2/api/#errorHandler
        * @param err - error thrown
        * @param vm - vue VM
        * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
        */
-      (err: Error, vm: { [key: string]: any }, info: string) => {
+      (err: Error, vm: { [key: string]: any }, info: string): void => {
         if (typeof this.existedHandler === 'function') {
           this.existedHandler.call(this.vue, err, vm, info);
         }
@@ -54,11 +61,12 @@ export class VueIntegration {
         this.callback(err, addons);
 
         this.printError(err, info, addons.component);
-    };
+      };
   }
 
   /**
    * Extract additional useful information from the Vue app
+   *
    * @param vm - vue VM
    * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
    */
@@ -111,6 +119,7 @@ export class VueIntegration {
 
   /**
    * Write error to the console
+   *
    * @param err - error to print
    * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
    * @param component - where error was occurred
@@ -118,7 +127,6 @@ export class VueIntegration {
   private printError(err: Error, info: string, component: string): void {
     console.error(`${component} @ ${info}`, err);
   }
-
 }
 
 /**

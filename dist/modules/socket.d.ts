@@ -67,7 +67,7 @@ export default class Socket {
      * Tries to reconnect to the server for specified number of times with the interval
      *
      * @param {boolean} [isForcedCall] - call function despite on timer
-     * @return {Promise<void>}
+     * @returns {Promise<void>}
      */
     private reconnect;
     /**

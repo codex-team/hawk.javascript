@@ -3,12 +3,15 @@ import log from './logger';
 /**
  * Sends AJAX request and wait for some time.
  * If time is exceeded, cancel the request.
+ *
  * @param {string} url — request endpoint
  * @param {number} ms — maximum request time allowed
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function fetchTimer(url: string, ms: number): Promise<any> {
   /**
    * Using AbortController to cancel fetch request
+   *
    * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortController
    */
   const controller = new AbortController();

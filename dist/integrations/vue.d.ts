@@ -16,22 +16,28 @@ export declare class VueIntegration {
      * Callback that should be triggered with catched error.
      * This callback is used by parent class to format and send an event.
      */
-    private callback;
+    private readonly callback;
     /**
      * Set up a new vue app
+     *
      * @param vue - Vue app to handle
      * @param callback - callback that accepts new error
      */
     constructor(vue: any, callback: any);
+    /**
+     * Setups event handlers for Vue.js instance
+     */
     private setupHandler;
     /**
      * Extract additional useful information from the Vue app
+     *
      * @param vm - vue VM
      * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
      */
     private spoilAddons;
     /**
      * Write error to the console
+     *
      * @param err - error to print
      * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
      * @param component - where error was occurred

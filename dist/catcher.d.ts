@@ -37,6 +37,7 @@ export default class Catcher {
     private readonly stackParser;
     /**
      * Catcher constructor
+     *
      * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
      */
     constructor(settings: HawkInitialSettings | string);
@@ -47,10 +48,13 @@ export default class Catcher {
     /**
      * This method prepares and sends an Error to Hawk
      * User can fire it manually on try-catch
+     *
+     * @param error - error to catch
      */
-    catchError(error: Error): Promise<void>;
+    catchError(error: Error): void;
     /**
      * Add error handing to the passed Vue app
+     *
      * @param vue - Vue app
      */
     connectVue(vue: any): void;
@@ -60,29 +64,38 @@ export default class Catcher {
     private initGlobalHandlers;
     /**
      * Handles the event and sends it to the server
+     *
      * @param {ErrorEvent|PromiseRejectionEvent} event — (!) both for Error and Promise Rejection
      */
     private handleEvent;
     /**
      * Format and send an error
+     *
      * @param error - error to send
      * @param {object} integrationAddons - addons spoiled by Integration
      */
     private formatAndSend;
     /**
      * Sends formatted HawkEvent to the Collector
+     *
+     * @param errorFormatted - formatted error to send
      */
     private sendErrorFormatted;
     /**
      * Formats the event
+     *
+     * @param error - error to format
      */
     private prepareErrorFormatted;
     /**
      * Return event title
+     *
+     * @param error - event from which to get the title
      */
     private getTitle;
     /**
      * Return event type: TypeError, ReferenceError etc
+     *
      * @param error - catched error
      */
     private getType;
@@ -104,6 +117,8 @@ export default class Catcher {
     private getGetParams;
     /**
      * Return parsed backtrace information
+     *
+     * @param error - event from which to get backtrace
      */
     private getBacktrace;
     /**
@@ -113,6 +128,7 @@ export default class Catcher {
     /**
      * Extend addons object with addons spoiled by integreation
      * This method mutates original event
+     *
      * @param errorFormatted - Hawk event prepared for sending
      * @param integrationAddons - extra addons
      */
