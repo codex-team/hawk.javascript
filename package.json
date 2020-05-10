@@ -1,6 +1,6 @@
 {
   "name": "@hawk.so/javascript",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "JavaScript errors tracking for Hawk.so",
   "main": "./dist/hawk.js",
   "types": "./dist/index.d.ts",
