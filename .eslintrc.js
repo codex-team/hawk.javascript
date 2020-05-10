@@ -1,6 +1,7 @@
 module.exports = {
-  extends: ['codex'],
+  root: true,
+  extends: [ 'codex' ],
   env: {
     browser: true,
-  }
+  },
 };

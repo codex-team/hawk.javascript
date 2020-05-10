@@ -262,9 +262,9 @@ export default class Sanitizer {
     /**
      * Represent big object as a "<big object>"
      *
-     * @param target - object ot format
+     * @param _target - object ot format
      */
-    private static formatBigObject(target: any): string {
+    private static formatBigObject(_target: any): string {
       return '<big object>';
     }
 }

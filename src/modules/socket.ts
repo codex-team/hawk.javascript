@@ -59,7 +59,7 @@ export default class Socket {
   constructor({
     collectorEndpoint,
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    onMessage = (message: MessageEvent): void => {},
+    onMessage = (_message: MessageEvent): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     onClose = (): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
