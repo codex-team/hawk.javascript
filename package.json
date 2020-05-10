@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "webpack-dev-server --config ./webpack.config.dev.js",
     "build": "webpack && yarn stats",
-    "stats": "size-limit > stats.txt"
+    "stats": "size-limit > stats.txt",
+    "lint": "eslint -c ./.eslintrc.js src/ --ext .ts,.js --fix"
   },
   "repository": {
     "type": "git",

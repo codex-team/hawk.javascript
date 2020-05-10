@@ -2,7 +2,11 @@
  * @file Integration for adding User Agent info
  */
 
-export default function(event, data) {
+/**
+ * @param event - event to modify
+ * @param data - event data
+ */
+export default function (event, data): void {
   data.payload.userAgent = {
     name: window.navigator.userAgent,
     frame: {

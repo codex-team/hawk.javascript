@@ -1,11 +1,12 @@
-import ErrorStackParser, {StackFrame} from 'error-stack-parser';
-import {BacktraceFrame, SourceCodeLine} from '../../types/hawk-event';
+import ErrorStackParser, { StackFrame } from 'error-stack-parser';
+import { BacktraceFrame, SourceCodeLine } from '../../types/hawk-event';
 import log from './logger';
 import fetchTimer from './fetchTimer';
 
 /**
  * This module prepares parsed backtrace
- * @uses https://github.com/stacktracejs/error-stack-parser
+ *
+ * @requires https://github.com/stacktracejs/error-stack-parser
  */
 export default class StackParser {
   /**
@@ -16,6 +17,8 @@ export default class StackParser {
 
   /**
    * Parse Error stack string and return useful information about an Error
+   *
+   * @param error - event from which to get backtrace
    */
   public async parse(error: Error): Promise<BacktraceFrame[]> {
     const stackParsed = ErrorStackParser.parse(error) as StackFrame[];
@@ -34,11 +37,11 @@ export default class StackParser {
 
   /**
    * Extract 5 lines below and above the error's line
+   *
    * @param {StackFrame} frame — information about backtrace item
    */
   private async extractSourceCode(frame: StackFrame): Promise<SourceCodeLine[]> {
     try {
-
       if (!this.isValidUrl(frame.fileName)) {
         return null;
       }
@@ -77,6 +80,8 @@ export default class StackParser {
 
   /**
    * Check if string is a valid URL
+   *
+   * @param string - string with URL to check
    */
   private isValidUrl(string: string): boolean {
     try {
@@ -88,6 +93,7 @@ export default class StackParser {
 
   /**
    * Downloads source file
+   *
    * @param {string} fileName - name of file to download
    */
   private async loadSourceFile(fileName): Promise<string> {

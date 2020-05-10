@@ -56,6 +56,7 @@ export default class Catcher {
 
   /**
    * Catcher constructor
+   *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
    */
   constructor(settings: HawkInitialSettings | string) {
@@ -72,8 +73,9 @@ export default class Catcher {
     if (!this.token) {
       log(
         'Integration Token is missed. You can get it on https://hawk.so at Project Settings.',
-        'warn',
+        'warn'
       );
+
       return;
     }
 
@@ -84,10 +86,10 @@ export default class Catcher {
       collectorEndpoint: settings.collectorEndpoint || 'wss://k1.hawk.so:443/ws',
       reconnectionAttempts: settings.reconnectionAttempts,
       reconnectionTimeout: settings.reconnectionTimeout,
-      onClose() {
+      onClose(): void {
         log(
           'Connection lost. Connection will be restored when new errors occurred',
-          'info',
+          'info'
         );
       },
     });
@@ -105,7 +107,7 @@ export default class Catcher {
   /**
    * Send test event from client
    */
-  public test() {
+  public test(): void {
     const fakeEvent = new Error('Hawk JavaScript Catcher test message.');
 
     this.catchError(fakeEvent);
@@ -114,16 +116,20 @@ export default class Catcher {
   /**
    * This method prepares and sends an Error to Hawk
    * User can fire it manually on try-catch
+   *
+   * @param error - error to catch
    */
-  public async catchError(error: Error) {
+  public catchError(error: Error): void {
     this.formatAndSend(error);
   }
 
   /**
    * Add error handing to the passed Vue app
+   *
    * @param vue - Vue app
    */
   public connectVue(vue): void {
+    // eslint-disable-next-line no-new
     new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
       this.formatAndSend(error, {
         vue: addons,
@@ -134,16 +140,17 @@ export default class Catcher {
   /**
    * Init global errors handler
    */
-  private initGlobalHandlers() {
+  private initGlobalHandlers(): void {
     window.addEventListener('error', (event: ErrorEvent) => this.handleEvent(event));
     window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => this.handleEvent(event));
   }
 
   /**
    * Handles the event and sends it to the server
+   *
    * @param {ErrorEvent|PromiseRejectionEvent} event — (!) both for Error and Promise Rejection
    */
-  private async handleEvent(event: ErrorEvent | PromiseRejectionEvent) {
+  private async handleEvent(event: ErrorEvent | PromiseRejectionEvent): Promise<void> {
     /**
      * Promise rejection reason is recommended to be an Error, but it can be a string:
      * - Promise.reject(new Error('Reason message')) ——— recommended
@@ -165,9 +172,11 @@ export default class Catcher {
 
   /**
    * Format and send an error
+   *
    * @param error - error to send
    * @param {object} integrationAddons - addons spoiled by Integration
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async formatAndSend(error: Error | string, integrationAddons?: {[key: string]: any}): Promise<void> {
     try {
       const errorFormatted = await this.prepareErrorFormatted(error);
@@ -187,16 +196,20 @@ export default class Catcher {
 
   /**
    * Sends formatted HawkEvent to the Collector
+   *
+   * @param errorFormatted - formatted error to send
    */
   private sendErrorFormatted(errorFormatted: HawkEvent): void {
     this.transport.send(errorFormatted)
-      .catch(((sendingError) => {
+      .catch((sendingError) => {
         log('WebSocket sending error', 'error', sendingError);
-      }));
+      });
   }
 
   /**
    * Formats the event
+   *
+   * @param error - error to format
    */
   private async prepareErrorFormatted(error: Error|string): Promise<HawkEvent> {
     return {
@@ -217,6 +230,8 @@ export default class Catcher {
 
   /**
    * Return event title
+   *
+   * @param error - event from which to get the title
    */
   private getTitle(error: Error | string): string {
     const notAnError = !(error instanceof Error);
@@ -234,6 +249,7 @@ export default class Catcher {
 
   /**
    * Return event type: TypeError, ReferenceError etc
+   *
    * @param error - catched error
    */
   private getType(error: Error | string): string {
@@ -267,7 +283,7 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private getUser(): HawkUser | null  {
+  private getUser(): HawkUser | null {
     return this.user || null;
   }
 
@@ -297,6 +313,8 @@ export default class Catcher {
 
   /**
    * Return parsed backtrace information
+   *
+   * @param error - event from which to get backtrace
    */
   private async getBacktrace(error: Error|string): Promise<BacktraceFrame[]|null> {
     const notAnError = !(error instanceof Error);
@@ -311,8 +329,9 @@ export default class Catcher {
 
     try {
       return await this.stackParser.parse(error as Error);
-    } catch (error) {
-      log('Can not parse stack:', 'warn', error);
+    } catch (e) {
+      log('Can not parse stack:', 'warn', e);
+
       return null;
     }
   }
@@ -321,26 +340,28 @@ export default class Catcher {
    * Return some details
    */
   private getAddons(): object {
-    const { innerWidth, innerHeight }  = window;
+    const { innerWidth, innerHeight } = window;
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
 
     return {
-        window: {
-          innerWidth,
-          innerHeight,
-        },
-        userAgent,
-        url: location,
-      };
+      window: {
+        innerWidth,
+        innerHeight,
+      },
+      userAgent,
+      url: location,
+    };
   }
 
   /**
    * Extend addons object with addons spoiled by integreation
    * This method mutates original event
+   *
    * @param errorFormatted - Hawk event prepared for sending
    * @param integrationAddons - extra addons
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private appendIntegrationAddons(errorFormatted: HawkEvent, integrationAddons: {[key: string]: any}): void {
     Object.assign(errorFormatted.payload.addons, integrationAddons);
   }

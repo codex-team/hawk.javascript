@@ -1,7 +1,7 @@
 /**
  * Logger module
  *
- * @usage
+ * @example
  * log('We got an error', 'error')
  */
 
@@ -18,9 +18,9 @@ declare const VERSION: string;
  * @param {*} [args]      - argument to log with a message
  * @param {string} style  - additional styling to message
  */
-export default function log(msg: string, type: string = 'log', args?: any, style: string = 'color: inherit'): void {
-
-  if ( !('console' in window) || !window.console[ type ] ) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function log(msg: string, type = 'log', args?: any, style = 'color: inherit'): void {
+  if (!('console' in window) || !window.console[type]) {
     return;
   }
 

@@ -58,9 +58,12 @@ export default class Socket {
    */
   constructor({
     collectorEndpoint,
-    onMessage = (message: MessageEvent) => {},
-    onClose = () => {},
-    onOpen = () => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    onMessage = (message: MessageEvent): void => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    onClose = (): void => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    onOpen = (): void => {},
     reconnectionAttempts = 5,
     reconnectionTimeout = 10 * 1000, // 10 sec
   }) {
@@ -75,15 +78,15 @@ export default class Socket {
     this.ws = null;
 
     this.init()
-        .then(() => {
-          /**
-           * Send queued events if exists
-           */
-          this.sendQueue();
-        })
-        .catch((error) => {
-          log('WebSocket error', 'error', error);
-        });
+      .then(() => {
+        /**
+         * Send queued events if exists
+         */
+        this.sendQueue();
+      })
+      .catch((error) => {
+        log('WebSocket error', 'error', error);
+      });
   }
 
   /**
@@ -94,6 +97,7 @@ export default class Socket {
   public async send(event: HawkEvent): Promise<void> {
     if (this.ws === null) {
       this.eventsQueue.push(event);
+
       return this.init();
     }
 
@@ -109,8 +113,6 @@ export default class Socket {
       case WebSocket.CONNECTING:
       case WebSocket.CLOSING:
         this.eventsQueue.push(event);
-
-        return;
     }
   }
 
@@ -130,8 +132,10 @@ export default class Socket {
 
       /**
        * Connection closing handler
+       *
+       * @param event - websocket event on closing
        */
-      this.ws.onclose = (event: CloseEvent) => {
+      this.ws.onclose = (event: CloseEvent): void => {
         if (typeof this.onClose === 'function') {
           this.onClose(event);
         }
@@ -139,12 +143,14 @@ export default class Socket {
 
       /**
        * Error handler
+       *
+       * @param event - websocket event on error
        */
-      this.ws.onerror = (event: Event) => {
+      this.ws.onerror = (event: Event): void => {
         reject(event);
       };
 
-      this.ws.onopen = (event: Event) => {
+      this.ws.onopen = (event: Event): void => {
         if (typeof this.onOpen === 'function') {
           this.onOpen(event);
         }
@@ -158,9 +164,9 @@ export default class Socket {
    * Tries to reconnect to the server for specified number of times with the interval
    *
    * @param {boolean} [isForcedCall] - call function despite on timer
-   * @return {Promise<void>}
+   * @returns {Promise<void>}
    */
-  private async reconnect(isForcedCall: boolean = false): Promise<void> {
+  private async reconnect(isForcedCall = false): Promise<void> {
     if (this.reconnectionTimer && !isForcedCall) {
       return;
     }
@@ -190,9 +196,9 @@ export default class Socket {
   private sendQueue(): void {
     while (this.eventsQueue.length) {
       this.send(this.eventsQueue.shift())
-        .catch(((sendingError) => {
+        .catch((sendingError) => {
           log('WebSocket sending error', 'error', sendingError);
-        }));
+        });
     }
   }
 }
