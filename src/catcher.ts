@@ -2,9 +2,9 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './modules/logger';
 import StackParser from './modules/stackParser';
-import { HawkInitialSettings } from '../types/hawk-initial-settings';
-import { BacktraceFrame, HawkEvent, HawkUser } from '../types/hawk-event';
-import { VueIntegration, VueIntegrationAddons } from './integrations/vue';
+import {HawkInitialSettings} from '../types/hawk-initial-settings';
+import {BacktraceFrame, HawkEvent, HawkUser} from '../types/hawk-event';
+import {VueIntegration, VueIntegrationAddons} from './integrations/vue';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -311,8 +311,15 @@ export default class Catcher {
    * Returns random string
    */
   private static generateRandomId(): string {
-    return Math.random().toString(36).substring(2, 15)
-         + Math.random().toString(36).substring(2, 15);
+    const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+    let array = new Uint8Array(40);
+
+    window.crypto.getRandomValues(array);
+
+    array = array.map(x => validChars.charCodeAt(x % validChars.length));
+
+    return String.fromCharCode.apply(null, array);
   }
 
 
