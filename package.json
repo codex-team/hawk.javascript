@@ -2,13 +2,14 @@
   "name": "@hawk.so/javascript",
   "version": "2.3.0",
   "description": "JavaScript errors tracking for Hawk.so",
-  "main": "./dist/hawk.umd.js",
+  "main": "./dist/hawk.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "webpack-dev-server --config ./webpack.config.dev.js",
     "build": "webpack && yarn stats",
     "stats": "size-limit > stats.txt",
-    "lint": "eslint -c ./.eslintrc.js src/ --ext .ts,.js --fix"
+    "lint": "eslint -c ./.eslintrc.js src/ --ext .ts,.js --fix",
+    "lint-test": "eslint -c ./.eslintrc.js src/ --ext .ts,.js"
   },
   "repository": {
     "type": "git",
