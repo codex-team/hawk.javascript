@@ -10,6 +10,8 @@ module.exports = {
   output: {
     filename: 'hawk.js',
     libraryTarget: 'umd',
+    libraryExport: 'default',
+    library: 'HawkCatcher',
   },
   resolve: {
     modules: [path.join(__dirname, 'src'), 'node_modules'],
@@ -21,17 +23,7 @@ module.exports = {
         test: /\.ts$/,
         use: [
           {
-            loader: 'babel-loader',
-            options: {
-              cacheDirectory: true,
-            },
-          },
-          {
             loader: 'ts-loader',
-            options: {
-              transpileOnly: false,
-              happyPackMode: false,
-            },
           },
         ],
       },

@@ -1,7 +1,7 @@
 {
   "compilerOptions" : {
     "sourceMap": true,
-    "target": "es2017",
+    "target": "es2015",
     "declaration": true,
     "declarationDir": "dist",
     "moduleResolution": "node", // This resolution strategy attempts to mimic the Node.js module resolution mechanism at runtime
