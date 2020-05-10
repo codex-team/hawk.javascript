@@ -2,7 +2,7 @@ const merge = require('webpack-merge');
 const baseConfig = require('./webpack.config');
 const path = require('path');
 
-module.exports = merge(baseConfig[0], {
+module.exports = merge(baseConfig, {
   mode: 'development',
   devtool: 'eval-source-map',
   devServer: {
@@ -10,6 +10,6 @@ module.exports = merge(baseConfig[0], {
     open: true,
     publicPath: '/assets/',
     contentBase: path.resolve(__dirname, 'example'),
-    watchContentBase: true
-  }
+    watchContentBase: true,
+  },
 });

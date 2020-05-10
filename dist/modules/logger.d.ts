@@ -1,7 +1,7 @@
 /**
  * Logger module
  *
- * @usage
+ * @example
  * log('We got an error', 'error')
  */
 /**

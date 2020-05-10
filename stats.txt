@@ -1,7 +1,3 @@
   
-  hawk browser
-  Size: 8.22 KB with all dependencies, minified and gzipped
-  
-  hawk umd
-  Size: 8.21 KB with all dependencies, minified and gzipped
+  Size: 8.19 KB with all dependencies, minified and gzipped
   
