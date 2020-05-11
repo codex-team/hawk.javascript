@@ -112,9 +112,10 @@ export default class Catcher {
   private static getGeneratedUser(): HawkUser {
     let userId: string;
     const LOCAL_STORAGE_KEY = 'hawk-user-id';
+    const storedId = localStorage.getItem(LOCAL_STORAGE_KEY);
 
-    if (localStorage.getItem(LOCAL_STORAGE_KEY)) {
-      userId = localStorage.getItem('hawk-user-id');
+    if (storedId) {
+      userId = storedId;
     } else {
       userId = generateRandomId();
       localStorage.setItem(LOCAL_STORAGE_KEY, userId);
