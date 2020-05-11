@@ -5,6 +5,7 @@ import StackParser from './modules/stackParser';
 import { HawkInitialSettings } from '../types/hawk-initial-settings';
 import { BacktraceFrame, HawkEvent, HawkUser } from '../types/hawk-event';
 import { VueIntegration, VueIntegrationAddons } from './integrations/vue';
+import { generateRandomId } from './utils';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -68,7 +69,7 @@ export default class Catcher {
 
     this.token = settings.token;
     this.release = settings.release;
-    this.user = settings.user;
+    this.user = settings.user || Catcher.getGeneratedUser();
 
     if (!this.token) {
       log(
@@ -102,6 +103,27 @@ export default class Catcher {
     if (settings.vue) {
       this.connectVue(settings.vue);
     }
+  }
+
+  /**
+   * Generates user if no one provided via HawkCatcher settings
+   * After generating, stores user for feature requests
+   */
+  private static getGeneratedUser(): HawkUser {
+    let userId: string;
+    const LOCAL_STORAGE_KEY = 'hawk-user-id';
+    const storedId = localStorage.getItem(LOCAL_STORAGE_KEY);
+
+    if (storedId) {
+      userId = storedId;
+    } else {
+      userId = generateRandomId();
+      localStorage.setItem(LOCAL_STORAGE_KEY, userId);
+    }
+
+    return {
+      id: userId,
+    };
   }
 
   /**
@@ -177,7 +199,7 @@ export default class Catcher {
    * @param {object} integrationAddons - addons spoiled by Integration
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async formatAndSend(error: Error | string, integrationAddons?: {[key: string]: any}): Promise<void> {
+  private async formatAndSend(error: Error | string, integrationAddons?: { [key: string]: any }): Promise<void> {
     try {
       const errorFormatted = await this.prepareErrorFormatted(error);
 
@@ -211,7 +233,7 @@ export default class Catcher {
    *
    * @param error - error to format
    */
-  private async prepareErrorFormatted(error: Error|string): Promise<HawkEvent> {
+  private async prepareErrorFormatted(error: Error | string): Promise<HawkEvent> {
     return {
       token: this.token,
       catcherType: this.type,
@@ -316,7 +338,7 @@ export default class Catcher {
    *
    * @param error - event from which to get backtrace
    */
-  private async getBacktrace(error: Error|string): Promise<BacktraceFrame[]|null> {
+  private async getBacktrace(error: Error | string): Promise<BacktraceFrame[] | null> {
     const notAnError = !(error instanceof Error);
 
     /**
@@ -362,7 +384,7 @@ export default class Catcher {
    * @param integrationAddons - extra addons
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private appendIntegrationAddons(errorFormatted: HawkEvent, integrationAddons: {[key: string]: any}): void {
+  private appendIntegrationAddons(errorFormatted: HawkEvent, integrationAddons: { [key: string]: any }): void {
     Object.assign(errorFormatted.payload.addons, integrationAddons);
   }
 }
