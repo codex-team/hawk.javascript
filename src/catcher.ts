@@ -2,10 +2,10 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './modules/logger';
 import StackParser from './modules/stackParser';
-import {HawkInitialSettings} from '../types/hawk-initial-settings';
-import {BacktraceFrame, HawkEvent, HawkUser} from '../types/hawk-event';
-import {VueIntegration, VueIntegrationAddons} from './integrations/vue';
-import {generateRandomId} from "./utils";
+import { HawkInitialSettings } from '../types/hawk-initial-settings';
+import { BacktraceFrame, HawkEvent, HawkUser } from '../types/hawk-event';
+import { VueIntegration, VueIntegrationAddons } from './integrations/vue';
+import { generateRandomId } from './utils';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -103,6 +103,26 @@ export default class Catcher {
     if (settings.vue) {
       this.connectVue(settings.vue);
     }
+  }
+
+  /**
+   * Generates user if no one provided via HawkCatcher settings
+   * After generating, stores user for feature requests
+   */
+  private static getGeneratedUser(): HawkUser {
+    let userId: string;
+    const LOCAL_STORAGE_KEY = 'hawk-user-id';
+
+    if (localStorage.getItem(LOCAL_STORAGE_KEY)) {
+      userId = localStorage.getItem('hawk-user-id');
+    } else {
+      userId = generateRandomId();
+      localStorage.setItem(LOCAL_STORAGE_KEY, userId);
+    }
+
+    return {
+      id: userId,
+    };
   }
 
   /**
@@ -289,26 +309,6 @@ export default class Catcher {
   }
 
   /**
-   * Generates user if no one provided via HawkCatcher settings
-   * After generating, stores user for feature requests
-   */
-  private static getGeneratedUser(): HawkUser {
-    let userId: string;
-    const LOCAL_STORAGE_KEY = 'hawk-user-id';
-
-    if (localStorage.getItem(LOCAL_STORAGE_KEY)) {
-      userId = localStorage.getItem('hawk-user-id');
-    } else {
-      userId = generateRandomId();
-      localStorage.setItem(LOCAL_STORAGE_KEY, userId);
-    }
-
-    return {
-      id: userId,
-    };
-  }
-
-  /**
    * Get parameters
    */
   private getGetParams(): object | null {
@@ -361,7 +361,7 @@ export default class Catcher {
    * Return some details
    */
   private getAddons(): object {
-    const {innerWidth, innerHeight} = window;
+    const { innerWidth, innerHeight } = window;
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
 
