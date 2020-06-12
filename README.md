@@ -13,17 +13,17 @@ We recommend to add Hawk script to page above others to prevent missing any erro
 Install package
 
 ```shell
-npm install hawk.javascript --save
+npm install @hawk.so/javascript --save
 ```
 
 ```shell
-yarn add hawk.javascript
+yarn add @hawk.so/javascript
 ```
 
-Then require `hawk.javascript` module
+Then import `@hawk.so/javascript` module to your code.
 
 ```js
-const hawk = require('hawk.javascript');
+import HawkCatcher from '@hawk.so/javascript';
 ````
 
 ### Load from CDN
@@ -40,13 +40,6 @@ Then require this script on your site.
 <script src="..." async></script>
 ```
 
-### Or upload it to your project
-
-Download [hawk.js](dist/hawk.js) file and add it to all pages of your site.
-```
-<script src="hawk.js" async></script>
-```
-
 ## Usage
 
 ### Get token
@@ -56,40 +49,73 @@ First of all, you should register an account on [hawk.so](https://hawk.so/join).
 Then [create a new Project](https://hawk.so/websites/create).
 You'll get an Integration Token.
 
-### Initialize Hawk
+### Initialize Catcher
 
-Call the `hawk.init()` method when script will be ready and pass your Integration Token:
+Create `HawkCatcher` class instance when script will be ready and pass your Integration Token:
 
 ```js
-hawk.init({token: 'INTEGRATION_TOKEN'});
+const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'});
 
 // or 
 
-hawk.init('INTEGRATION_TOKEN');
+const hawk = new HawkCatcher('INTEGRATION_TOKEN');
 ```
 
-Alternately, add `onload="hawk.init({token: 'INTEGRATION_TOKEN'})"` attribute to the `<script>` tag.
+Alternately, add `onload="const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'})"` attribute to the `<script>` tag.
 
 ```html
-<script src="https://cdn.rawgit.com/codex-team/hawk.javascript/master/hawk.js" onload="hawk.init(token)"></script>
+<script src="https://cdn.rawgit.com/codex-team/hawk.javascript/master/hawk.js" onload="const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'})"></script>
 ```
 
-### Source map support
+Initialization settings:
 
-Hawk supports JS SourceMaps for showing more useful information from your minified bundle. There a few conditions:
+| name | type | required | description |
+| -- | -- | -- | -- |
+| `token` | string | **required** | Your project's Integration Token |
+| `release` | string/number | optional | Unique identifier of the release. Used for source map consuming (see below) |
+| `user` | {id: string, name?: string, image?: string, url?: string} | optional | Current authenticated user |
+| `vue` | Vue constructor | optional | Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application) |
 
-1. Bundle ends with line contains anchor to the source map, like `//# sourceMappingURL=all.min.js.map`. It can be absolute or relative (relatively the bundle) path.    
-2. Source map are publicly available by its URL.
-3. Every build you are updating the `revision` and pass it with `init` method. It can be heximal-hash or simply file's modification timestamp.
+Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
-```js
-hawk.init({token: 'INTEGRATION_TOKEN', revision: 12345654345})
-```
+## Source maps consuming
+
+If your bundle is minified, it is useful to pass source-map files to the Hawk. After that you will see beautiful original source code lines in Hawk Garage instead of minified code.
+
+To enable source map consuming you should do two things:
+
+- Send the source map and the release identifier to the Hawk after you build a new version of the script. For example with the [Hawk Webpack Plugin](https://github.com/codex-team/hawk.webpack.plugin) or with cURL request.
+- Pass the release identifier to the Hawk Catcher using `release` option.
 
 ## Testing and server responses
 
-To make sure that Hawk is working right, call `hawk.test()` method in browser's console.
-`test` method sends fake error to server. So if you get it in your profile, everything works correctly.
+To make sure that Hawk is working right, call `test()` method from `HawkCatcher` class instance in browser's console.
+`test()` method sends fake error to server. Then, open Hawk and find a test event at the Project's page.
 
-Also in browser's console you can find out some Hawk warnings and server responses.
-For example, if you get `Access denied` response, something wrong with your token.
+## Integrate to Vue application
+
+Vue apps have their own error handler, so if you want to catcher errors thrown inside Vue components, you should set up a Vue integration.
+
+Pass the Vue constructor with the initial settings:
+
+```js
+import Vue from 'vue';
+
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  vue: Vue // the Vue constructor you tweak
+});
+``` 
+
+or pass it any moment after Hawk Catcher was instantiated:
+
+
+```js
+import Vue from 'vue';
+
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+});
+
+hawk.connectVue(Vue)
+``` 
