@@ -58,8 +58,8 @@ export default class Socket {
    */
   constructor({
     collectorEndpoint,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    onMessage = (_message: MessageEvent): void => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars, @typescript-eslint/no-unused-vars-experimental
+    onMessage = (message: MessageEvent): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     onClose = (): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function

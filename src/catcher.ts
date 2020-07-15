@@ -3,7 +3,7 @@ import Sanitizer from './modules/sanitizer';
 import log from './modules/logger';
 import StackParser from './modules/stackParser';
 import { HawkInitialSettings } from '../types/hawk-initial-settings';
-import { BacktraceFrame, HawkEvent, HawkUser } from '../types/hawk-event';
+import { BacktraceFrame, HawkEvent, HawkEventContext, HawkUser } from '../types/hawk-event';
 import { VueIntegration, VueIntegrationAddons } from './integrations/vue';
 import { generateRandomId } from './utils';
 
@@ -45,6 +45,11 @@ export default class Catcher {
   private readonly user: HawkUser;
 
   /**
+   * Any additional data passed by user for sending with all messages
+   */
+  private readonly context: HawkEventContext;
+
+  /**
    * Transport for dialog between Catcher and Collector
    * (WebSocket decorator)
    */
@@ -70,6 +75,7 @@ export default class Catcher {
     this.token = settings.token;
     this.release = settings.release;
     this.user = settings.user || Catcher.getGeneratedUser();
+    this.context = settings.context || undefined;
 
     if (!this.token) {
       log(
@@ -132,17 +138,18 @@ export default class Catcher {
   public test(): void {
     const fakeEvent = new Error('Hawk JavaScript Catcher test message.');
 
-    this.catchError(fakeEvent);
+    this.send(fakeEvent);
   }
 
   /**
-   * This method prepares and sends an Error to Hawk
-   * User can fire it manually on try-catch
+   * Public method for manual sending messages to the Hawk
+   * Can be called in user's try-catch blocks or by other custom logic
    *
-   * @param error - error to catch
+   * @param message - what to send
+   * @param [context] - any additional data to send
    */
-  public catchError(error: Error): void {
-    this.formatAndSend(error);
+  public send(message: Error | string, context?: HawkEventContext): void {
+    this.formatAndSend(message, undefined, context);
   }
 
   /**
@@ -196,12 +203,17 @@ export default class Catcher {
    * Format and send an error
    *
    * @param error - error to send
-   * @param {object} integrationAddons - addons spoiled by Integration
+   * @param integrationAddons - addons spoiled by Integration
+   * @param context - any additional data passed by user
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async formatAndSend(error: Error | string, integrationAddons?: { [key: string]: any }): Promise<void> {
+  private async formatAndSend(
+    error: Error | string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    integrationAddons?: { [key: string]: any },
+    context?: HawkEventContext
+  ): Promise<void> {
     try {
-      const errorFormatted = await this.prepareErrorFormatted(error);
+      const errorFormatted = await this.prepareErrorFormatted(error, context);
 
       /**
        * If this event catched by integration (Vue or other), it can pass extra addons
@@ -232,8 +244,9 @@ export default class Catcher {
    * Formats the event
    *
    * @param error - error to format
+   * @param context - any additional data passed by user
    */
-  private async prepareErrorFormatted(error: Error | string): Promise<HawkEvent> {
+  private async prepareErrorFormatted(error: Error | string, context?: HawkEventContext): Promise<HawkEvent> {
     return {
       token: this.token,
       catcherType: this.type,
@@ -241,7 +254,7 @@ export default class Catcher {
         title: this.getTitle(error),
         type: this.getType(error),
         release: this.getRelease(),
-        context: this.getContext(),
+        context: this.getContext(context),
         user: this.getUser(),
         get: this.getGetParams(),
         addons: this.getAddons(),
@@ -297,9 +310,21 @@ export default class Catcher {
 
   /**
    * Collects additional information
+   *
+   * @param context - any additional data passed by user
    */
-  private getContext(): object {
-    return Sanitizer.sanitize({});
+  private getContext(context?: HawkEventContext): object {
+    const contextMerged = {};
+
+    if (this.context !== undefined) {
+      Object.assign(contextMerged, this.context);
+    }
+
+    if (context !== undefined) {
+      Object.assign(contextMerged, context);
+    }
+
+    return Sanitizer.sanitize(contextMerged);
   }
 
   /**

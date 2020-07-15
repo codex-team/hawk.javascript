@@ -56,7 +56,7 @@ Create `HawkCatcher` class instance when script will be ready and pass your Inte
 ```js
 const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'});
 
-// or 
+// or
 
 const hawk = new HawkCatcher('INTEGRATION_TOKEN');
 ```
@@ -74,9 +74,28 @@ Initialization settings:
 | `token` | string | **required** | Your project's Integration Token |
 | `release` | string/number | optional | Unique identifier of the release. Used for source map consuming (see below) |
 | `user` | {id: string, name?: string, image?: string, url?: string} | optional | Current authenticated user |
+| `context` | object | optional | Any data you want to pass with every message. |
 | `vue` | Vue constructor | optional | Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application) |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
+
+## Manual sending
+
+You can send errors or other messages to the Hawk manually, for example at your `catch` blocks or any debug conditions.
+
+Use the `.send(message, context)` method for that. This method accepts the `message` of type `Error` or `string`
+as the first parameter. The second parameter is optional, it allows passing any additional data with the event.
+If you specify the `context` with the `HawkCatcher` constructor, it will be merged with the context passed to the `send` method.
+
+```js
+// init Hawk Catcher instance
+const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'});
+
+// somewhere in try-catch block or other custom place
+hawk.send(new Error('Something went wrong', {
+  myOwnDebugInfo: '1234'
+}))
+```
 
 ## Source maps consuming
 
@@ -105,7 +124,7 @@ const hawk = new HawkCatcher({
   token: 'INTEGRATION_TOKEN',
   vue: Vue // the Vue constructor you tweak
 });
-``` 
+```
 
 or pass it any moment after Hawk Catcher was instantiated:
 
@@ -118,4 +137,4 @@ const hawk = new HawkCatcher({
 });
 
 hawk.connectVue(Vue)
-``` 
+```

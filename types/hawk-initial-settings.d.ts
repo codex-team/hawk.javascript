@@ -3,7 +3,7 @@
  *
  * @copyright CodeX
  */
-import { HawkUser } from './hawk-event';
+import {HawkEventContext, HawkUser} from './hawk-event';
 
 export interface HawkInitialSettings {
   /**
@@ -20,6 +20,11 @@ export interface HawkInitialSettings {
    * Current user information
    */
   user?: HawkUser;
+
+  /**
+   * Any additional data you want to send with every event
+   */
+  context?: HawkEventContext;
 
   /**
    * How many time we should try to reconnect when connection lost.
