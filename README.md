@@ -92,7 +92,7 @@ If you specify the `context` with the `HawkCatcher` constructor, it will be merg
 const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'});
 
 // somewhere in try-catch block or other custom place
-hawk.send(new Error('Something went wrong', {
+hawk.send(new Error('Something went wrong'), {
   myOwnDebugInfo: '1234'
 }))
 ```
