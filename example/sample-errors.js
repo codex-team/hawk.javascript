@@ -67,7 +67,7 @@ buttonManualSending.addEventListener('click', () => {
   const contextSample = document.getElementById('errorContext').value;
 
   window.hawk.send(
-    new Event('Manual sending example'),
+    new Error('Manual sending example'),
     contextSample.trim().length
       ? { contextSample }
       : undefined
