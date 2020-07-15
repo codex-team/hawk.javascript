@@ -39,11 +39,19 @@
         h2 {
             font-weight: 500;
             margin: 0 0 10px;
-            font-size: 17px;
+            font-size: 13px;
             color: rgba(219,230,255,0.60);
-            letter-spacing: 0.2px;
+            letter-spacing: 0.24px;
             text-align: left;
-            font-variant: all-petite-caps;
+            text-transform: uppercase;
+        }
+
+        h2 small {
+          text-transform: none;
+          font-size: 14px;
+          opacity: .6;
+          font-weight: normal;
+          margin-left: 15px;
         }
 
         button {
@@ -98,6 +106,21 @@
     <button id="btn-promise-rejection">
         Unhandled promise rejection
     </button>
+</section>
+<section>
+  <h2>
+    Send event manually
+    <small>
+      Through the <code>.send(error, context)</code> method
+    </small>
+  </h2>
+  <label for="errorContext">Error context</label>
+  <input type="text" id="errorContext" placeholder="Any data you want">
+  <br>
+  <br>
+  <button id="btn-manual-sending">
+    Send manual message
+  </button>
 </section>
 <section>
     <h2>Send the specified number of errors</h2>
@@ -203,11 +226,14 @@
 <script src="assets/hawk.js"></script>
 <script src="sample-errors.js"></script>
 <script>
-    window.hawk = new HawkCatcher({
-        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZWFmZWIwN2M3NjU2NDAwMjJmY2IwMjQiLCJpYXQiOjE1ODg1ODcyNzF9.mKBbgyynEApfh4I8VKRMTHR8lJpoauUcyeUfPQMGTO4',
-        collectorEndpoint: 'ws://localhost:3000/ws',
-        vue: window.Vue,
-    })
+  window.hawk = new HawkCatcher({
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9qZWN0SWQiOiI1ZTVhNzVjNzNlM2E5ZDE2YjUzMzczOTMiLCJpYXQiOjE1ODI5ODY2OTV9.oK_LPRxcpRuZE8eSbmdObRX712YXO_Twpq7mgg7-9pw',
+    collectorEndpoint: 'ws://localhost:3000/ws',
+    vue: window.Vue,
+    context: {
+      rootContextSample: '12345'
+    }
+  })
 </script>
 </body>
 </html>

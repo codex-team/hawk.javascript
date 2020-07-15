@@ -42,7 +42,7 @@ buttonSendMany.addEventListener('click', function sendManyErrors() {
   const errorsNumber = inputElement.value;
 
   for (let i = 0; i < errorsNumber; i++) {
-    window.hawk.catchError(new window[errorType]('Test many error'));
+    window.hawk.send(new window[errorType]('Test many error'));
   }
 });
 
@@ -56,4 +56,20 @@ buttonConsoleTest.addEventListener('click', function consoleLogPrint() {
   const text = document.getElementById('consoleCatcherTestTextInput').value;
 
   console[consoleMethod](text);
+});
+
+/**
+ * Button for the manual sending
+ */
+const buttonManualSending = document.getElementById('btn-manual-sending');
+
+buttonManualSending.addEventListener('click', () => {
+  const contextSample = document.getElementById('errorContext').value;
+
+  window.hawk.send(
+    new Error('Manual sending example'),
+    contextSample.trim().length
+      ? { contextSample }
+      : undefined
+  );
 });

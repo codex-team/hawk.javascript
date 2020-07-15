@@ -78,6 +78,13 @@ export interface EventData {
 }
 
 /**
+ * Any additional data passed by user
+ */
+export interface HawkEventContext {
+  [key: string]: any,
+}
+
+/**
  * Single item of backtrace
  */
 export interface BacktraceFrame {

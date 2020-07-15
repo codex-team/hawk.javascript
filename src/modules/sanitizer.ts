@@ -262,9 +262,10 @@ export default class Sanitizer {
     /**
      * Represent big object as a "<big object>"
      *
-     * @param _target - object ot format
+     * @param target - object ot format
      */
-    private static formatBigObject(_target: any): string {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-unused-vars-experimental
+    private static formatBigObject(target: any): string {
       return '<big object>';
     }
 }

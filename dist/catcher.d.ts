@@ -1,4 +1,5 @@
 import { HawkInitialSettings } from '../types/hawk-initial-settings';
+import { HawkEventContext } from '../types/hawk-event';
 /**
  * Hawk JavaScript Catcher
  * Module for errors and exceptions tracking
@@ -27,6 +28,10 @@ export default class Catcher {
      */
     private readonly user;
     /**
+     * Any additional data passed by user for sending with all messages
+     */
+    private readonly context;
+    /**
      * Transport for dialog between Catcher and Collector
      * (WebSocket decorator)
      */
@@ -42,16 +47,22 @@ export default class Catcher {
      */
     constructor(settings: HawkInitialSettings | string);
     /**
+     * Generates user if no one provided via HawkCatcher settings
+     * After generating, stores user for feature requests
+     */
+    private static getGeneratedUser;
+    /**
      * Send test event from client
      */
     test(): void;
     /**
-     * This method prepares and sends an Error to Hawk
-     * User can fire it manually on try-catch
+     * Public method for manual sending messages to the Hawk
+     * Can be called in user's try-catch blocks or by other custom logic
      *
-     * @param error - error to catch
+     * @param message - what to send
+     * @param [context] - any additional data to send
      */
-    catchError(error: Error): void;
+    send(message: Error | string, context?: HawkEventContext): void;
     /**
      * Add error handing to the passed Vue app
      *
@@ -72,7 +83,8 @@ export default class Catcher {
      * Format and send an error
      *
      * @param error - error to send
-     * @param {object} integrationAddons - addons spoiled by Integration
+     * @param integrationAddons - addons spoiled by Integration
+     * @param context - any additional data passed by user
      */
     private formatAndSend;
     /**
@@ -85,6 +97,7 @@ export default class Catcher {
      * Formats the event
      *
      * @param error - error to format
+     * @param context - any additional data passed by user
      */
     private prepareErrorFormatted;
     /**
@@ -105,6 +118,8 @@ export default class Catcher {
     private getRelease;
     /**
      * Collects additional information
+     *
+     * @param context - any additional data passed by user
      */
     private getContext;
     /**
