@@ -102,9 +102,11 @@ export default class Catcher {
     });
 
     /**
-     * Set handlers
+     * Set gloabal handlers
      */
-    this.initGlobalHandlers();
+    if (!settings.disableGlobalErrorsHandling) {
+      this.initGlobalHandlers();
+    }
 
     if (settings.vue) {
       this.connectVue(settings.vue);

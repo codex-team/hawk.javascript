@@ -76,6 +76,7 @@ Initialization settings:
 | `user` | {id: string, name?: string, image?: string, url?: string} | optional | Current authenticated user |
 | `context` | object | optional | Any data you want to pass with every message. |
 | `vue` | Vue constructor | optional | Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application) |
+| `disableGlobalErrorsHandling` | boolean | optional | Do not initialize global errors handling |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
