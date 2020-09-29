@@ -48,6 +48,12 @@ export interface HawkInitialSettings {
    * to handle its errors
    */
   vue?: any;
+
+  /**
+   * Do not initialize global errors handling
+   * This options still allow you send events manually
+   */
+  disableGlobalErrorsHandling?: boolean;
 }
 
 export {
