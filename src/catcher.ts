@@ -13,6 +13,11 @@ import { generateRandomId } from './utils';
 declare const VERSION: string;
 
 /**
+ * Field name for raw event data
+ */
+const RAW_EVENT_DATA_KEY = 'RAW_EVENT_DATA';
+
+/**
  * Hawk JavaScript Catcher
  * Module for errors and exceptions tracking
  *
@@ -33,6 +38,11 @@ export default class Catcher {
    * User project's Integration Token
    */
   private readonly token: string;
+
+  /**
+   * Enable debug mode
+   */
+  private readonly debug: boolean;
 
   /**
    * Current bundle version
@@ -73,6 +83,7 @@ export default class Catcher {
     }
 
     this.token = settings.token;
+    this.debug = settings.debug || false;
     this.release = settings.release;
     this.user = settings.user || Catcher.getGeneratedUser();
     this.context = settings.context || undefined;
@@ -259,7 +270,7 @@ export default class Catcher {
         context: this.getContext(context),
         user: this.getUser(),
         get: this.getGetParams(),
-        addons: this.getAddons(),
+        addons: this.getAddons(error),
         backtrace: await this.getBacktrace(error),
       },
     };
@@ -387,13 +398,15 @@ export default class Catcher {
 
   /**
    * Return some details
+   *
+   * @param {Error|string} error
    */
-  private getAddons(): object {
+  private getAddons(error): object {
     const { innerWidth, innerHeight } = window;
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
 
-    return {
+    const addons = {
       window: {
         innerWidth,
         innerHeight,
@@ -401,6 +414,31 @@ export default class Catcher {
       userAgent,
       url: location,
     };
+
+    if (this.debug) {
+      addons[RAW_EVENT_DATA_KEY] = this.getRawData(error);
+    }
+
+    return addons;
+  }
+
+  /**
+   * Compose raw data object
+   *
+   * @param {Error|string} error
+   */
+  private getRawData(error): object {
+    let errorData = null;
+
+    if (error instanceof Error) {
+      errorData = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      };
+    }
+
+    return errorData;
   }
 
   /**

@@ -3,13 +3,19 @@
  *
  * @copyright CodeX
  */
-import {HawkEventContext, HawkUser} from './hawk-event';
+import { HawkEventContext, HawkUser } from './hawk-event';
 
 export interface HawkInitialSettings {
   /**
    * User project's Integration Token
    */
   token: string;
+
+  /**
+   * Enable debug mode
+   * Send raw event's data additionally in addons field by key 'RAW_EVENT_DATA'
+   */
+  debug: boolean;
 
   /**
    * Current release and bundle version
@@ -39,6 +45,7 @@ export interface HawkInitialSettings {
   /**
    * Hawk Collector endpoint.
    * Can be overwritten for development purposes.
+   *
    * @example ws://localhost:3000/ws
    */
   collectorEndpoint?: string;
@@ -57,5 +64,5 @@ export interface HawkInitialSettings {
 }
 
 export {
-  HawkUser,
+  HawkUser
 };
