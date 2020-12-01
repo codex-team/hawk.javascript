@@ -399,9 +399,9 @@ export default class Catcher {
   /**
    * Return some details
    *
-   * @param {Error|string} error
+   * @param {Error|string} error — catched error
    */
-  private getAddons(error): object {
+  private getAddons(error: Error|string): object {
     const { innerWidth, innerHeight } = window;
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
@@ -425,9 +425,9 @@ export default class Catcher {
   /**
    * Compose raw data object
    *
-   * @param {Error|string} error
+   * @param {Error|string} error — catched error
    */
-  private getRawData(error): object {
+  private getRawData(error: Error|string): object {
     let errorData = null;
 
     if (error instanceof Error) {
