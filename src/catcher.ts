@@ -3,19 +3,23 @@ import Sanitizer from './modules/sanitizer';
 import log from './modules/logger';
 import StackParser from './modules/stackParser';
 import { HawkInitialSettings } from '../types/hawk-initial-settings';
-import { BacktraceFrame, HawkEvent, HawkEventContext, HawkUser } from '../types/hawk-event';
-import { VueIntegration, VueIntegrationAddons } from './integrations/vue';
+import CatcherMessage from '../types/catcher-message';
+import { VueIntegration } from './integrations/vue';
 import { generateRandomId } from './utils';
+import {
+  AffectedUser,
+  BacktraceFrame,
+  EventContext,
+  JavaScriptAddons,
+  VueIntegrationAddons,
+  Json
+} from 'hawk.types';
+import { JavaScriptCatcherIntegrations } from '../types/integrations';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
  */
 declare const VERSION: string;
-
-/**
- * Field name for raw event data
- */
-const RAW_EVENT_DATA_KEY = 'RAW_EVENT_DATA';
 
 /**
  * Hawk JavaScript Catcher
@@ -52,12 +56,12 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private readonly user: HawkUser;
+  private readonly user: AffectedUser;
 
   /**
    * Any additional data passed by user for sending with all messages
    */
-  private readonly context: HawkEventContext;
+  private readonly context: EventContext;
 
   /**
    * Transport for dialog between Catcher and Collector
@@ -113,7 +117,7 @@ export default class Catcher {
     });
 
     /**
-     * Set gloabal handlers
+     * Set global handlers
      */
     if (!settings.disableGlobalErrorsHandling) {
       this.initGlobalHandlers();
@@ -128,7 +132,7 @@ export default class Catcher {
    * Generates user if no one provided via HawkCatcher settings
    * After generating, stores user for feature requests
    */
-  private static getGeneratedUser(): HawkUser {
+  private static getGeneratedUser(): AffectedUser {
     let userId: string;
     const LOCAL_STORAGE_KEY = 'hawk-user-id';
     const storedId = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -161,7 +165,7 @@ export default class Catcher {
    * @param message - what to send
    * @param [context] - any additional data to send
    */
-  public send(message: Error | string, context?: HawkEventContext): void {
+  public send(message: Error | string, context?: EventContext): void {
     this.formatAndSend(message, undefined, context);
   }
 
@@ -222,14 +226,14 @@ export default class Catcher {
   private async formatAndSend(
     error: Error | string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    integrationAddons?: { [key: string]: any },
-    context?: HawkEventContext
+    integrationAddons?: JavaScriptCatcherIntegrations,
+    context?: EventContext
   ): Promise<void> {
     try {
       const errorFormatted = await this.prepareErrorFormatted(error, context);
 
       /**
-       * If this event catched by integration (Vue or other), it can pass extra addons
+       * If this event caught by integration (Vue or other), it can pass extra addons
        */
       if (integrationAddons) {
         this.appendIntegrationAddons(errorFormatted, integrationAddons);
@@ -246,7 +250,9 @@ export default class Catcher {
    *
    * @param errorFormatted - formatted error to send
    */
-  private sendErrorFormatted(errorFormatted: HawkEvent): void {
+  private sendErrorFormatted(errorFormatted: CatcherMessage): void {
+    console.log('send', errorFormatted);
+
     this.transport.send(errorFormatted)
       .catch((sendingError) => {
         log('WebSocket sending error', 'error', sendingError);
@@ -259,7 +265,7 @@ export default class Catcher {
    * @param error - error to format
    * @param context - any additional data passed by user
    */
-  private async prepareErrorFormatted(error: Error | string, context?: HawkEventContext): Promise<HawkEvent> {
+  private async prepareErrorFormatted(error: Error | string, context?: EventContext): Promise<CatcherMessage> {
     return {
       token: this.token,
       catcherType: this.type,
@@ -269,7 +275,6 @@ export default class Catcher {
         release: this.getRelease(),
         context: this.getContext(context),
         user: this.getUser(),
-        get: this.getGetParams(),
         addons: this.getAddons(error),
         backtrace: await this.getBacktrace(error),
       },
@@ -298,7 +303,7 @@ export default class Catcher {
   /**
    * Return event type: TypeError, ReferenceError etc
    *
-   * @param error - catched error
+   * @param error - caught error
    */
   private getType(error: Error | string): string {
     const notAnError = !(error instanceof Error);
@@ -326,7 +331,7 @@ export default class Catcher {
    *
    * @param context - any additional data passed by user
    */
-  private getContext(context?: HawkEventContext): object {
+  private getContext(context?: EventContext): EventContext {
     const contextMerged = {};
 
     if (this.context !== undefined) {
@@ -343,14 +348,14 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private getUser(): HawkUser | null {
+  private getUser(): AffectedUser | null {
     return this.user || null;
   }
 
   /**
    * Get parameters
    */
-  private getGetParams(): object | null {
+  private getGetParams(): Json | null {
     const searchString = window.location.search.substr(1);
 
     if (!searchString) {
@@ -399,14 +404,15 @@ export default class Catcher {
   /**
    * Return some details
    *
-   * @param {Error|string} error — catched error
+   * @param {Error|string} error — caught error
    */
-  private getAddons(error: Error|string): object {
+  private getAddons(error: Error|string): JavaScriptAddons {
     const { innerWidth, innerHeight } = window;
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
+    const getParams = this.getGetParams();
 
-    const addons = {
+    const addons: JavaScriptAddons = {
       window: {
         innerWidth,
         innerHeight,
@@ -415,8 +421,12 @@ export default class Catcher {
       url: location,
     };
 
+    if (getParams) {
+      addons.get = getParams;
+    }
+
     if (this.debug) {
-      addons[RAW_EVENT_DATA_KEY] = this.getRawData(error);
+      addons.RAW_EVENT_DATA = this.getRawData(error);
     }
 
     return addons;
@@ -425,9 +435,9 @@ export default class Catcher {
   /**
    * Compose raw data object
    *
-   * @param {Error|string} error — catched error
+   * @param {Error|string} error — caught error
    */
-  private getRawData(error: Error|string): object {
+  private getRawData(error: Error|string): Json {
     let errorData = null;
 
     if (error instanceof Error) {
@@ -442,14 +452,13 @@ export default class Catcher {
   }
 
   /**
-   * Extend addons object with addons spoiled by integreation
+   * Extend addons object with addons spoiled by integration
    * This method mutates original event
    *
    * @param errorFormatted - Hawk event prepared for sending
    * @param integrationAddons - extra addons
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private appendIntegrationAddons(errorFormatted: HawkEvent, integrationAddons: { [key: string]: any }): void {
+  private appendIntegrationAddons(errorFormatted: CatcherMessage, integrationAddons: JavaScriptCatcherIntegrations): void {
     Object.assign(errorFormatted.payload.addons, integrationAddons);
   }
 }

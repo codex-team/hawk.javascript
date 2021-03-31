@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import Sanitizer from './../modules/sanitizer';
+import { VueIntegrationAddons } from 'hawk.types';
 
 /**
  * Errors fired inside Vue components are not dispatched by global handlers.
@@ -19,7 +18,7 @@ export class VueIntegration {
   private readonly existedHandler: () => {};
 
   /**
-   * Callback that should be triggered with catched error.
+   * Callback that should be triggered with caught error.
    * This callback is used by parent class to format and send an event.
    */
   private readonly callback: (error: Error, addons: {[key: string]: any}) => {};
@@ -129,32 +128,3 @@ export class VueIntegration {
   }
 }
 
-/**
- * Additional data spoiled from Vue app
- */
-export interface VueIntegrationAddons {
-  /**
-   * A Vue-specific error info, e.g. which lifecycle hook the error was found in.
-   */
-  lifecycle: string;
-
-  /**
-   * Component name where error occurred
-   */
-  component: string;
-
-  /**
-   * Component props
-   */
-  props?: {[key: string]: any};
-
-  /**
-   * Component local variables
-   */
-  data?: {[key: string]: any};
-
-  /**
-   * Component computed variables
-   */
-  computed?: {[key: string]: any};
-}

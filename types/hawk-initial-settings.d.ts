@@ -1,9 +1,7 @@
 /**
  * JS Catcher initial settings
- *
- * @copyright CodeX
  */
-import { HawkEventContext, HawkUser } from './hawk-event';
+import { EventContext, AffectedUser } from 'hawk.types';
 
 export interface HawkInitialSettings {
   /**
@@ -25,12 +23,12 @@ export interface HawkInitialSettings {
   /**
    * Current user information
    */
-  user?: HawkUser;
+  user?: AffectedUser;
 
   /**
    * Any additional data you want to send with every event
    */
-  context?: HawkEventContext;
+  context?: EventContext;
 
   /**
    * How many time we should try to reconnect when connection lost.
@@ -64,5 +62,5 @@ export interface HawkInitialSettings {
 }
 
 export {
-  HawkUser
+  AffectedUser
 };

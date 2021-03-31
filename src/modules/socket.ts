@@ -1,5 +1,5 @@
 import log from './logger';
-import { HawkEvent } from '../../types/hawk-event';
+import CatcherMessage from '../../types/catcher-message';
 
 /**
  * Custom WebSocket wrapper class
@@ -31,7 +31,7 @@ export default class Socket {
    * Queue of events collected while socket is not connected
    * They will be sent when connection will be established
    */
-  private eventsQueue: HawkEvent[];
+  private eventsQueue: CatcherMessage[];
 
   /**
    * Websocket instance
@@ -92,27 +92,27 @@ export default class Socket {
   /**
    * Send an event to the Collector
    *
-   * @param {HawkEvent} event - event data in Hawk Format
+   * @param message - event data in Hawk Format
    */
-  public async send(event: HawkEvent): Promise<void> {
+  public async send(message: CatcherMessage): Promise<void> {
     if (this.ws === null) {
-      this.eventsQueue.push(event);
+      this.eventsQueue.push(message);
 
       return this.init();
     }
 
     switch (this.ws.readyState) {
       case WebSocket.OPEN:
-        return this.ws.send(JSON.stringify(event));
+        return this.ws.send(JSON.stringify(message));
 
       case WebSocket.CLOSED:
-        this.eventsQueue.push(event);
+        this.eventsQueue.push(message);
 
         return this.reconnect();
 
       case WebSocket.CONNECTING:
       case WebSocket.CLOSING:
-        this.eventsQueue.push(event);
+        this.eventsQueue.push(message);
     }
   }
 

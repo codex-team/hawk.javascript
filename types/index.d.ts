@@ -1,7 +1,7 @@
-import HawkEvent from './hawk-event';
+import CatcherMessage from './catcher-message';
 import HawkInitialSettings from './hawk-initial-settings';
 
 export {
-  HawkEvent,
-  HawkInitialSettings,
+  CatcherMessage,
+  HawkInitialSettings
 };
