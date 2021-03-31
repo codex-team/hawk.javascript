@@ -13,7 +13,7 @@ import {
   JavaScriptAddons,
   VueIntegrationAddons,
   Json
-} from '../../../types';
+} from 'hawk.types';
 import { JavaScriptCatcherIntegrations } from '../types/integrations';
 
 /**

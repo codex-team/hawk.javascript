@@ -1,5 +1,5 @@
 import Sanitizer from './../modules/sanitizer';
-import { VueIntegrationAddons } from '../../../../types';
+import { VueIntegrationAddons } from 'hawk.types';
 
 /**
  * Errors fired inside Vue components are not dispatched by global handlers.

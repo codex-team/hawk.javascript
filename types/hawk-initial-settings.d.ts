@@ -1,7 +1,7 @@
 /**
  * JS Catcher initial settings
  */
-import { EventContext, AffectedUser } from '../../../types';
+import { EventContext, AffectedUser } from 'hawk.types';
 
 export interface HawkInitialSettings {
   /**

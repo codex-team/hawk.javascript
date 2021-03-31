@@ -1,4 +1,4 @@
-import { VueIntegrationAddons } from '../../../types';
+import { VueIntegrationAddons } from 'hawk.types';
 
 /**
  * The Vue integration will append this data to the addons
