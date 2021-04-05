@@ -119,7 +119,7 @@ You can filter any data that you don't want to send to Hawk. Use the `beforeSend
 
 ```js
 window.hawk = new HawkCatcher({
-  token: 'INTEGRATIOM TOKEN',
+  token: 'INTEGRATION TOKEN',
   beforeSend(event){
     if (event.user && event.user.name){
       delete event.user.name;
