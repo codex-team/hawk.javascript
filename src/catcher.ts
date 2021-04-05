@@ -12,7 +12,7 @@ import {
   EventContext,
   JavaScriptAddons,
   VueIntegrationAddons,
-  Json
+  Json, EventData
 } from 'hawk.types';
 import { JavaScriptCatcherIntegrations } from '../types/integrations';
 
@@ -64,6 +64,11 @@ export default class Catcher {
   private readonly context: EventContext;
 
   /**
+   * This Method allows developer to filter any data you don't want sending to Hawk
+   */
+  private readonly beforeSend: (event: EventData<JavaScriptAddons>) => EventData<JavaScriptAddons>;
+
+  /**
    * Transport for dialog between Catcher and Collector
    * (WebSocket decorator)
    */
@@ -91,6 +96,7 @@ export default class Catcher {
     this.release = settings.release;
     this.user = settings.user || Catcher.getGeneratedUser();
     this.context = settings.context || undefined;
+    this.beforeSend = settings.beforeSend;
 
     if (!this.token) {
       log(
@@ -266,18 +272,27 @@ export default class Catcher {
    * @param context - any additional data passed by user
    */
   private async prepareErrorFormatted(error: Error | string, context?: EventContext): Promise<CatcherMessage> {
+    let payload: EventData<JavaScriptAddons> = {
+      title: this.getTitle(error),
+      type: this.getType(error),
+      release: this.getRelease(),
+      context: this.getContext(context),
+      user: this.getUser(),
+      addons: this.getAddons(error),
+      backtrace: await this.getBacktrace(error),
+    };
+
+    /**
+     * Filter sensitive data
+     */
+    if (typeof this.beforeSend === 'function') {
+      payload = this.beforeSend(payload);
+    }
+
     return {
       token: this.token,
       catcherType: this.type,
-      payload: {
-        title: this.getTitle(error),
-        type: this.getType(error),
-        release: this.getRelease(),
-        context: this.getContext(context),
-        user: this.getUser(),
-        addons: this.getAddons(error),
-        backtrace: await this.getBacktrace(error),
-      },
+      payload,
     };
   }
 

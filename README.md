@@ -6,7 +6,7 @@ You can find web interface and documentation on [hawk.so/docs](https://hawk.so/d
 
 ## Installation
 
-We recommend to add Hawk script to page above others to prevent missing any errors.
+We recommend adding Hawk script to page above others to prevent missing any errors.
 
 ### Install via NPM or Yarn
 
@@ -28,7 +28,7 @@ import HawkCatcher from '@hawk.so/javascript';
 
 ### Load from CDN
 
-Get newest bundle path from [RawGit](https://rawgit.com) — open site and paste link to JS bundle in repository.
+Get the newest bundle path from [RawGit](https://rawgit.com) — open site and paste link to JS bundle in repository.
 
 `https://github.com/codex-team/hawk.javascript/master/dist/hawk.js`
 
@@ -77,6 +77,7 @@ Initialization settings:
 | `context` | object | optional | Any data you want to pass with every message. |
 | `vue` | Vue constructor | optional | Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application) |
 | `disableGlobalErrorsHandling` | boolean | optional | Do not initialize global errors handling |
+| `beforeSend` | function(event) => event | optional | This Method allows you to filter any data you don't want sending to Hawk |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -111,6 +112,23 @@ To enable source map consuming you should do two things:
 
 To make sure that Hawk is working right, call `test()` method from `HawkCatcher` class instance in browser's console.
 `test()` method sends fake error to server. Then, open Hawk and find a test event at the Project's page.
+
+## Sensitive data filtering
+
+You can filter any data that you don't want to send to Hawk. Use the `beforeSend()` hook for that reason.
+
+```js
+window.hawk = new HawkCatcher({
+  token: 'INTEGRATIOM TOKEN',
+  beforeSend(event){
+    if (event.user && event.user.name){
+      delete event.user.name;
+    }
+
+    return event;
+  }
+})
+```
 
 ## Integrate to Vue application
 
