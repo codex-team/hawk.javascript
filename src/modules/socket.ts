@@ -56,7 +56,7 @@ export default class Socket {
   /**
    * Creates new Socket instance. Setup initial socket params.
    *
-   * @param root0
+   * @param options — constructor options for catcher initialization
    */
   constructor({
     collectorEndpoint,
