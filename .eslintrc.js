@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  extends: [ 'codex' ],
+  extends: [ 'codex/ts' ],
   env: {
     browser: true,
   },

@@ -6,6 +6,7 @@ import { HawkInitialSettings } from '../types/hawk-initial-settings';
 import CatcherMessage from '../types/catcher-message';
 import { VueIntegration } from './integrations/vue';
 import { generateRandomId } from './utils';
+import jwtDecode from 'jwt-decode';
 import {
   AffectedUser,
   BacktraceFrame,
@@ -15,6 +16,7 @@ import {
   Json, EventData
 } from 'hawk.types';
 import { JavaScriptCatcherIntegrations } from '../types/integrations';
+import DecodedIntegrationToken from '../types/decodedIntegrationToken';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -111,7 +113,7 @@ export default class Catcher {
      * Init transport
      */
     this.transport = new Socket({
-      collectorEndpoint: settings.collectorEndpoint || 'wss://k1.hawk.so:443/ws',
+      collectorEndpoint: settings.collectorEndpoint || `wss://${this.getProjectId()}.k1.hawk.so:443/ws`,
       reconnectionAttempts: settings.reconnectionAttempts,
       reconnectionTimeout: settings.reconnectionTimeout,
       onClose(): void {
@@ -339,6 +341,19 @@ export default class Catcher {
    */
   private getRelease(): string | null {
     return this.release || null;
+  }
+
+  /**
+   * Returns project id from integration token
+   */
+  private getProjectId(): string {
+    const decodedToken = jwtDecode<DecodedIntegrationToken>(this.token);
+
+    if (!decodedToken.projectId) {
+      throw new Error('Invalid JWT token. There is no project ID.');
+    }
+
+    return decodedToken.projectId;
   }
 
   /**

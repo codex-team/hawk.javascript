@@ -45,4 +45,4 @@ Object.keys(window.console).forEach(key => {
  */
 export default function (event, data): void {
   data.payload.consoleOutput = consoleOutput;
-};
+}

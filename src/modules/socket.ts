@@ -55,17 +55,19 @@ export default class Socket {
 
   /**
    * Creates new Socket instance. Setup initial socket params.
+   *
+   * @param root0
    */
   constructor({
     collectorEndpoint,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars, @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars, @typescript-eslint/no-unused-vars-experimental,no-unused-vars
     onMessage = (message: MessageEvent): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     onClose = (): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     onOpen = (): void => {},
     reconnectionAttempts = 5,
-    reconnectionTimeout = 10 * 1000, // 10 sec
+    reconnectionTimeout = 10000, // 10 * 1000 ms = 10 sec
   }) {
     this.url = collectorEndpoint;
     this.onMessage = onMessage;
