@@ -28,11 +28,7 @@ import HawkCatcher from '@hawk.so/javascript';
 
 ### Load from CDN
 
-Get the newest bundle path from [RawGit](https://rawgit.com) — open site and paste link to JS bundle in repository.
-
-`https://github.com/codex-team/hawk.javascript/master/dist/hawk.js`
-
-> Note: use `production` link with commit hash to avoid issues with caching.
+Get the newest bundle path from [@hawk.so/javascript](https://www.jsdelivr.com/package/npm/@hawk.so/javascript) — open site and get the link to latest distributed JS bundle.
 
 Then require this script on your site.
 
