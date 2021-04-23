@@ -15,13 +15,13 @@ export class VueIntegration {
    * User can set up own vue error handler,
    * we should save and call it at the end
    */
-  private readonly existedHandler: () => {};
+  private readonly existedHandler: () => void;
 
   /**
    * Callback that should be triggered with caught error.
    * This callback is used by parent class to format and send an event.
    */
-  private readonly callback: (error: Error, addons: {[key: string]: any}) => {};
+  private readonly callback: (error: Error, addons: {[key: string]: any}) => void;
 
   /**
    * Set up a new vue app
