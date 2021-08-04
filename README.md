@@ -92,7 +92,7 @@ const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'});
 // somewhere in try-catch block or other custom place
 hawk.send(new Error('Something went wrong'), {
   myOwnDebugInfo: '1234'
-}))
+});
 ```
 
 ## Source maps consuming
