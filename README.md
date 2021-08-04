@@ -77,6 +77,10 @@ Initialization settings:
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
+### Usage in React project
+
+You can use the JavaScript catcher in your React project. Create the Hawk Catcher instance in a `index.js` file of your project.
+
 ## Manual sending
 
 You can send errors or other messages to the Hawk manually, for example at your `catch` blocks or any debug conditions.
