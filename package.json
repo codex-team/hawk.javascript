@@ -44,7 +44,6 @@
   },
   "dependencies": {
     "error-stack-parser": "^2.0.6",
-    "hawk.types": "https://github.com/codex-team/hawk.types",
-    "jwt-decode": "^3.1.2"
+    "hawk.types": "codex-team/hawk.types"
   }
 }

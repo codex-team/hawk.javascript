@@ -1,11 +1,15 @@
-import { JwtPayload } from 'jwt-decode';
 
 /**
  * Fields in decoded integration JWT token
  */
-export default interface DecodedIntegrationToken extends JwtPayload {
+export default interface DecodedIntegrationToken {
   /**
-   * Id of catcher's project
+   * Integration id of project
    */
-  projectId: string;
+  integrationId: string;
+
+  /**
+   * Secret hash
+   */
+  secret: string;
 }

@@ -6,7 +6,6 @@ import { HawkInitialSettings } from '../types/hawk-initial-settings';
 import CatcherMessage from '../types/catcher-message';
 import { VueIntegration } from './integrations/vue';
 import { generateRandomId } from './utils';
-import jwtDecode from 'jwt-decode';
 import {
   AffectedUser,
   BacktraceFrame,
@@ -113,7 +112,7 @@ export default class Catcher {
      * Init transport
      */
     this.transport = new Socket({
-      collectorEndpoint: settings.collectorEndpoint || `wss://${this.getProjectId()}.k1.hawk.so:443/ws`,
+      collectorEndpoint: settings.collectorEndpoint || `wss://${this.getIntegrationId()}.k1.hawk.so:443/ws`,
       reconnectionAttempts: settings.reconnectionAttempts,
       reconnectionTimeout: settings.reconnectionTimeout,
       onClose(): void {
@@ -344,16 +343,17 @@ export default class Catcher {
   }
 
   /**
-   * Returns project id from integration token
+   * Returns integration id from integration token
    */
-  private getProjectId(): string {
-    const decodedToken = jwtDecode<DecodedIntegrationToken>(this.token);
+  private getIntegrationId(): string {
+    const decodedIntegrationToken: DecodedIntegrationToken = JSON.parse(atob(this.token));
+    const integrationId = decodedIntegrationToken.integrationId;
 
-    if (!decodedToken.projectId) {
-      throw new Error('Invalid JWT token. There is no project ID.');
+    if (!integrationId || integrationId === '') {
+      throw new Error('Invalid integration token. There is no integration ID.');
     }
 
-    return decodedToken.projectId;
+    return integrationId;
   }
 
   /**
@@ -436,7 +436,7 @@ export default class Catcher {
    *
    * @param {Error|string} error — caught error
    */
-  private getAddons(error: Error|string): JavaScriptAddons {
+  private getAddons(error: Error | string): JavaScriptAddons {
     const { innerWidth, innerHeight } = window;
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
@@ -467,7 +467,7 @@ export default class Catcher {
    *
    * @param {Error|string} error — caught error
    */
-  private getRawData(error: Error|string): Json {
+  private getRawData(error: Error | string): Json {
     let errorData = null;
 
     if (error instanceof Error) {
