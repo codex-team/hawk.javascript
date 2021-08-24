@@ -12,10 +12,9 @@ import {
   EventContext,
   JavaScriptAddons,
   VueIntegrationAddons,
-  Json, EventData
+  Json, EventData, EncodedIntegrationToken, DecodedIntegrationToken
 } from 'hawk.types';
 import { JavaScriptCatcherIntegrations } from '../types/integrations';
-import DecodedIntegrationToken from '../types/decodedIntegrationToken';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -42,7 +41,7 @@ export default class Catcher {
   /**
    * User project's Integration Token
    */
-  private readonly token: string;
+  private readonly token: EncodedIntegrationToken;
 
   /**
    * Enable debug mode
