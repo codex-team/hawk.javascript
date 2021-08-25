@@ -13,7 +13,7 @@ import {
   JavaScriptAddons,
   VueIntegrationAddons,
   Json, EventData, EncodedIntegrationToken, DecodedIntegrationToken
-} from 'hawk.types';
+} from '@hawk.so/types';
 import { JavaScriptCatcherIntegrations } from '../types/integrations';
 
 /**

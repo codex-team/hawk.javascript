@@ -43,7 +43,7 @@
     "webpack-merge": "^4.2.1"
   },
   "dependencies": {
-    "error-stack-parser": "^2.0.6",
-    "hawk.types": "codex-team/hawk.types"
+    "@hawk.so/types": "^0.1.13",
+    "error-stack-parser": "^2.0.6"
   }
 }

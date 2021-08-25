@@ -696,6 +696,13 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@hawk.so/types@^0.1.13":
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/@hawk.so/types/-/types-0.1.13.tgz#5a6a52a78c79e2ab99d8d5d339cb937b4442166d"
+  integrity sha512-vu0mWNWTr/WSQQqwmPbSQqrJmiXHiw90m8zkWjYLYYvaUgMahNsooG6FlonkmuYRR15kvMViuSTY55P4YEnNQg==
+  dependencies:
+    "@types/mongodb" "^3.5.34"
+
 "@nodelib/fs.scandir@2.1.3":
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.3.tgz#3a582bdb53804c6ba6d146579c46e52130cf4a3b"
@@ -3195,12 +3202,6 @@ hash.js@^1.0.0, hash.js@^1.0.3:
   dependencies:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.1"
-
-hawk.types@codex-team/hawk.types:
-  version "0.1.11"
-  resolved "https://codeload.github.com/codex-team/hawk.types/tar.gz/628d494a4d0ba2ccc16380582c20224b0ad6904d"
-  dependencies:
-    "@types/mongodb" "^3.5.34"
 
 hex-color-regex@^1.1.0:
   version "1.1.0"
