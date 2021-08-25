@@ -1,8 +1,8 @@
 # Hawk JavaScript Catcher
 
-[Hawk](https://github.com/codex-team/hawk) is a platform for errors and logs monitoring.
+[Hawk](https://github.com/codex-team/hawk) allows to track JavaScript and TypeScript errors in your applications.
 
-You can find web interface and documentation on [hawk.so/docs](https://hawk.so/docs).
+Here is the [Hawk Web](//garage.hawk.so) client and here is the [Documentation](//docs.hawk.so).
 
 ## Installation
 
@@ -38,12 +38,11 @@ Then require this script on your site.
 
 ## Usage
 
-### Get token
+### Get an Integration Token
 
-First of all, you should register an account on [hawk.so](https://hawk.so/join).
+First of all, you should register an account on [hawk.so](https://garage.hawk.so/sign-up).
 
-Then [create a new Project](https://hawk.so/websites/create).
-You'll get an Integration Token.
+Then create a Workspace and a Project in there. You'll get an Integration Token.
 
 ### Initialize Catcher
 
