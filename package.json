@@ -1,6 +1,6 @@
 {
   "name": "@hawk.so/javascript",
-  "version": "2.10.0",
+  "version": "3.0.0",
   "description": "JavaScript errors tracking for Hawk.so",
   "main": "./dist/hawk.js",
   "types": "./dist/index.d.ts",
@@ -43,8 +43,7 @@
     "webpack-merge": "^4.2.1"
   },
   "dependencies": {
-    "error-stack-parser": "^2.0.6",
-    "hawk.types": "https://github.com/codex-team/hawk.types",
-    "jwt-decode": "^3.1.2"
+    "@hawk.so/types": "^0.1.13",
+    "error-stack-parser": "^2.0.6"
   }
 }
