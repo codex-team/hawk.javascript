@@ -1,8 +1,8 @@
+import {EventContext, AffectedUser, EventData, JavaScriptAddons} from '@hawk.so/types';
+
 /**
  * JS Catcher initial settings
  */
-import {EventContext, AffectedUser, EventData, JavaScriptAddons} from 'hawk.types';
-
 export interface HawkInitialSettings {
   /**
    * User project's Integration Token

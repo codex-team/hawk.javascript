@@ -1,4 +1,4 @@
-import { EventData, JavaScriptAddons } from 'hawk.types';
+import { EventData, JavaScriptAddons } from '@hawk.so/types';
 
 /**
  * Structure describing a message sending by Catcher

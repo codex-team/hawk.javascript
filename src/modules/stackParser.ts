@@ -1,5 +1,5 @@
 import ErrorStackParser, { StackFrame } from 'error-stack-parser';
-import { BacktraceFrame, SourceCodeLine } from 'hawk.types';
+import { BacktraceFrame, SourceCodeLine } from '@hawk.so/types';
 import log from './logger';
 import fetchTimer from './fetchTimer';
 
