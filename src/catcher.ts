@@ -345,14 +345,18 @@ export default class Catcher {
    * Returns integration id from integration token
    */
   private getIntegrationId(): string {
-    const decodedIntegrationToken: DecodedIntegrationToken = JSON.parse(atob(this.token));
-    const integrationId = decodedIntegrationToken.integrationId;
+    try {
+      const decodedIntegrationToken: DecodedIntegrationToken = JSON.parse(atob(this.token));
+      const { integrationId } = decodedIntegrationToken;
 
-    if (!integrationId || integrationId === '') {
+      if (!integrationId || integrationId === '') {
+        throw new Error();
+      }
+
+      return integrationId;
+    } catch {
       throw new Error('Invalid integration token. There is no integration ID.');
     }
-
-    return integrationId;
   }
 
   /**
