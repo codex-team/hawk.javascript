@@ -355,7 +355,7 @@ export default class Catcher {
 
       return integrationId;
     } catch {
-      throw new Error('Invalid integration token. There is no integration ID.');
+      throw new Error('Invalid integration token.');
     }
   }
 
