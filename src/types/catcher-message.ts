@@ -18,4 +18,4 @@ export default interface CatcherMessage {
    * All information about the event
    */
   payload: EventData<JavaScriptAddons>;
-};
+}
