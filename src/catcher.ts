@@ -2,8 +2,8 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './modules/logger';
 import StackParser from './modules/stackParser';
-import { HawkInitialSettings } from '../types/hawk-initial-settings';
-import CatcherMessage from '../types/catcher-message';
+import { HawkInitialSettings } from './types/hawk-initial-settings';
+import CatcherMessage from './types/catcher-message';
 import { VueIntegration } from './integrations/vue';
 import { generateRandomId } from './utils';
 import {
@@ -14,7 +14,7 @@ import {
   VueIntegrationAddons,
   Json, EventData, EncodedIntegrationToken, DecodedIntegrationToken
 } from '@hawk.so/types';
-import { JavaScriptCatcherIntegrations } from '../types/integrations';
+import { JavaScriptCatcherIntegrations } from './types/integrations';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
