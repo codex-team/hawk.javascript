@@ -1,5 +1,5 @@
 import log from './logger';
-import CatcherMessage from '../../types/catcher-message';
+import CatcherMessage from '../types/catcher-message';
 
 /**
  * Custom WebSocket wrapper class
