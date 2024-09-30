@@ -15,6 +15,7 @@ import {
   Json, EventData, EncodedIntegrationToken, DecodedIntegrationToken
 } from '@hawk.so/types';
 import { JavaScriptCatcherIntegrations } from './types/integrations';
+import { EventRejectedError } from './errors';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -65,8 +66,9 @@ export default class Catcher {
 
   /**
    * This Method allows developer to filter any data you don't want sending to Hawk
+   * If method returns false, event will not be sent
    */
-  private readonly beforeSend: (event: EventData<JavaScriptAddons>) => EventData<JavaScriptAddons>;
+  private readonly beforeSend: (event: EventData<JavaScriptAddons>) => EventData<JavaScriptAddons> | false;
 
   /**
    * Transport for dialog between Catcher and Collector
@@ -246,8 +248,15 @@ export default class Catcher {
       }
 
       this.sendErrorFormatted(errorFormatted);
-    } catch (formattingError) {
-      log('Internal error ლ(´ڡ`ლ)', 'error', formattingError);
+    } catch (e) {
+      if (e instanceof EventRejectedError) {
+        /**
+         * Event was rejected by user using the beforeSend method
+         */
+        return;
+      }
+
+      log('Internal error ლ(´ڡ`ლ)', 'error', e);
     }
   }
 
@@ -286,7 +295,15 @@ export default class Catcher {
      * Filter sensitive data
      */
     if (typeof this.beforeSend === 'function') {
-      payload = this.beforeSend(payload);
+      const beforeSendResult = this.beforeSend(payload);
+
+      if (beforeSendResult === false) {
+        throw new EventRejectedError('Event rejected by beforeSend method.');
+
+        return;
+      } else {
+        payload = beforeSendResult;
+      }
     }
 
     return {
