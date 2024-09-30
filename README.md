@@ -129,6 +129,10 @@ window.hawk = new HawkCatcher({
 })
 ```
 
+## Dismiss error
+
+You can use the `beforeSend()` hook to prevent sending a particular event. Return `false` for that.
+
 ## Integrate to Vue application
 
 Vue apps have their own error handler, so if you want to catcher errors thrown inside Vue components, you should set up a Vue integration.
