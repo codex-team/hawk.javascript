@@ -66,6 +66,7 @@ export default class Catcher {
 
   /**
    * This Method allows developer to filter any data you don't want sending to Hawk
+   * If method returns false, event will not be sent
    */
   private readonly beforeSend: (event: EventData<JavaScriptAddons>) => EventData<JavaScriptAddons> | false;
 
