@@ -16,6 +16,7 @@ import {
 } from '@hawk.so/types';
 import { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
+import type { HawkJavaScriptEvent } from './types';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -68,7 +69,7 @@ export default class Catcher {
    * This Method allows developer to filter any data you don't want sending to Hawk
    * If method returns false, event will not be sent
    */
-  private readonly beforeSend: (event: EventData<JavaScriptAddons>) => EventData<JavaScriptAddons> | false;
+  private readonly beforeSend: (event: HawkJavaScriptEvent) => HawkJavaScriptEvent | false;
 
   /**
    * Transport for dialog between Catcher and Collector
@@ -281,7 +282,7 @@ export default class Catcher {
    * @param context - any additional data passed by user
    */
   private async prepareErrorFormatted(error: Error | string, context?: EventContext): Promise<CatcherMessage> {
-    let payload: EventData<JavaScriptAddons> = {
+    let payload: HawkJavaScriptEvent = {
       title: this.getTitle(error),
       type: this.getType(error),
       release: this.getRelease(),
