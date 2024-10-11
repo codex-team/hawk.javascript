@@ -12,7 +12,7 @@ import {
   EventContext,
   JavaScriptAddons,
   VueIntegrationAddons,
-  Json, EventData, EncodedIntegrationToken, DecodedIntegrationToken
+  Json, EncodedIntegrationToken, DecodedIntegrationToken
 } from '@hawk.so/types';
 import { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
