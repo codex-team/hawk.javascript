@@ -14,7 +14,7 @@ export interface HawkInitialSettings {
    * Enable debug mode
    * Send raw event's data additionally in addons field by key 'RAW_EVENT_DATA'
    */
-  debug: boolean;
+  debug?: boolean;
 
   /**
    * Current release and bundle version
@@ -66,7 +66,3 @@ export interface HawkInitialSettings {
    */
   beforeSend?(event: HawkJavaScriptEvent): HawkJavaScriptEvent;
 }
-
-export {
-  AffectedUser
-};
