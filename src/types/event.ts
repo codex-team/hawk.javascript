@@ -1,45 +1,50 @@
-import type { AffectedUser, BacktraceFrame, EventContext, EventData, JavaScriptAddons } from '@hawk.so/types';
+import type { EventData, JavaScriptAddons } from '@hawk.so/types';
+
+/**
+ * Event data with JS specific addons
+ */
+type JSEventData = EventData<JavaScriptAddons>;
 
 /**
  * Event will be sent to Hawk by Hawk JavaScript SDK
  *
  * The listed EventData properties will always be sent, so we define them as required in the type
  */
-export type HawkJavaScriptEvent = Omit<EventData<JavaScriptAddons>, 'type' | 'release' | 'user' | 'context' | 'addons' | 'backtrace' | 'catcherVersion'> & {
+export type HawkJavaScriptEvent = Omit<JSEventData, 'type' | 'release' | 'user' | 'context' | 'addons' | 'backtrace' | 'catcherVersion'> & {
   /**
    * Event type: TypeError, ReferenceError etc
    */
-  type: string;
+  type: JSEventData['type'];
 
   /**
    * Current release (aka version, revision) of an application
    */
-  release: string | null;
+  release: JSEventData['release'] | null;
 
   /**
    * Current authenticated user
    */
-  user: AffectedUser | null;
+  user: JSEventData['user'] | null;
 
   /**
    * Any other information collected and passed by user
    */
-  context: EventContext;
+  context: JSEventData['context'];
 
   /**
    *
    * Catcher-specific information
    */
-  addons: JavaScriptAddons;
+  addons: JSEventData['addons'];
 
   /**
    * Stack
    * From the latest call to the earliest
    */
-  backtrace: BacktraceFrame[] | null;
+  backtrace: JSEventData['backtrace'] | null;
 
   /**
    * Catcher version
    */
-  catcherVersion: string;
+  catcherVersion: JSEventData['catcherVersion'];
 };
