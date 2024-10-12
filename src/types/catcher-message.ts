@@ -1,4 +1,4 @@
-import { EventData, JavaScriptAddons } from '@hawk.so/types';
+import type { HawkJavaScriptEvent } from './event';
 
 /**
  * Structure describing a message sending by Catcher
@@ -17,5 +17,5 @@ export default interface CatcherMessage {
   /**
    * All information about the event
    */
-  payload: EventData<JavaScriptAddons>;
+  payload: HawkJavaScriptEvent;
 }

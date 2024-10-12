@@ -1,4 +1,5 @@
-import {EventContext, AffectedUser, EventData, JavaScriptAddons} from '@hawk.so/types';
+import type { EventContext, AffectedUser } from '@hawk.so/types';
+import type { HawkJavaScriptEvent } from './event';
 
 /**
  * JS Catcher initial settings
@@ -63,7 +64,7 @@ export interface HawkInitialSettings {
   /**
    * This Method allows you to filter any data you don't want sending to Hawk
    */
-  beforeSend?(event: EventData<JavaScriptAddons>): EventData<JavaScriptAddons>;
+  beforeSend?(event: HawkJavaScriptEvent): HawkJavaScriptEvent;
 }
 
 export {
