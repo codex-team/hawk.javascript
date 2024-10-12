@@ -15,6 +15,8 @@ export default class Sanitizer {
   /**
    * If object in stringified JSON will reach this length,
    * it will be represented as "<big object>"
+   *
+   * @todo export this value to the settings
    */
   private static readonly maxObjectLen: number = 500;
 
@@ -266,6 +268,9 @@ export default class Sanitizer {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-unused-vars-experimental,no-unused-vars
   private static formatBigObject(target: any): string {
+    /**
+     * @todo save big object structure, but not the content
+     */
     return '<big object>';
   }
 }

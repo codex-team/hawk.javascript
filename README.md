@@ -69,7 +69,7 @@ Initialization settings:
 | `token` | string | **required** | Your project's Integration Token |
 | `release` | string/number | optional | Unique identifier of the release. Used for source map consuming (see below) |
 | `user` | {id: string, name?: string, image?: string, url?: string} | optional | Current authenticated user |
-| `context` | object | optional | Any data you want to pass with every message. |
+| `context` | object | optional | Any data you want to pass with every message. Has limitation of length. |
 | `vue` | Vue constructor | optional | Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application) |
 | `disableGlobalErrorsHandling` | boolean | optional | Do not initialize global errors handling |
 | `beforeSend` | function(event) => event | optional | This Method allows you to filter any data you don't want sending to Hawk |
