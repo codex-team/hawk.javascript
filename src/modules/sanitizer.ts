@@ -89,7 +89,7 @@ export default class Sanitizer {
    */
   private static sanitizeArray(arr: any[], depth: number): any[] {
     /**
-     * If the maximum depth is reached, slice array to max length and add a placeholder
+     * If the maximum length is reached, slice array to max length and add a placeholder
      */
     const length = arr.length;
 
