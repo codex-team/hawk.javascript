@@ -13,24 +13,33 @@ export default class Sanitizer {
   private static readonly maxStringLen: number = 200;
 
   /**
-   * If object in stringified JSON will reach this length,
+   * If object in stringified JSON has more keys than this value,
    * it will be represented as "<big object>"
-   *
-   * @todo export this value to the settings
    */
-  private static readonly maxObjectLen: number = 500;
+  private static readonly maxObjectKeysCount: number = 20;
+
+  /**
+   * Maximum depth of context object
+   */
+  private static readonly maxDepth: number = 5;
+
+  /**
+   * Maximum length of context arrays
+   */
+  private static readonly maxArrayLength: number = 10;
 
   /**
    * Apply sanitizing for array/object/primitives
    *
    * @param data - any object to sanitize
+   * @param depth - current depth of recursion
    */
-  public static sanitize(data: any): any {
+  public static sanitize(data: any, depth = 0): any {
     /**
      * If value is an Array, apply sanitizing for each element
      */
     if (Sanitizer.isArray(data)) {
-      return this.sanitizeArray(data);
+      return this.sanitizeArray(data, depth + 1);
 
       /**
        * If value is an Element, format it as string with outer HTML
@@ -57,14 +66,7 @@ export default class Sanitizer {
        * If values is an object, do recursive call
        */
     } else if (Sanitizer.isObject(data)) {
-      /**
-       * If object is too big, represent is as a "<big object>"
-       */
-      if (Sanitizer.isBigObject(data)) {
-        return Sanitizer.formatBigObject(data);
-      } else {
-        return Sanitizer.sanitizeObject(data);
-      }
+      return Sanitizer.sanitizeObject(data, depth + 1);
 
       /**
        * If values is a string, trim it for max-length
@@ -83,10 +85,21 @@ export default class Sanitizer {
    * Apply sanitizing for each element of the array
    *
    * @param arr - array to sanitize
+   * @param depth - current depth of recursion
    */
-  private static sanitizeArray(arr: any[]): any[] {
+  private static sanitizeArray(arr: any[], depth: number): any[] {
+    /**
+     * If the maximum depth is reached, slice array to max length and add a placeholder
+     */
+    const length = arr.length;
+
+    if (length > Sanitizer.maxArrayLength) {
+      arr = arr.slice(0, Sanitizer.maxArrayLength);
+      arr.push(`<${length - Sanitizer.maxArrayLength} more items...>`);
+    }
+
     return arr.map((item: any) => {
-      return Sanitizer.sanitize(item);
+      return Sanitizer.sanitize(item, depth);
     });
   }
 
@@ -94,15 +107,32 @@ export default class Sanitizer {
    * Process object values recursive
    *
    * @param data - object to beautify
+   * @param depth - current depth of recursion
    */
-  private static sanitizeObject(data: { [key: string]: any }): Record<string, any> {
+  private static sanitizeObject(data: { [key: string]: any }, depth: number): Record<string, any> | '<deep object>' | '<big object>' {
+    /**
+     * If the maximum depth is reached, return a placeholder
+     */
+    if (depth > Sanitizer.maxDepth) {
+      return '<deep object>';
+    }
+
+    /**
+     * If the object has more keys than the limit, return a placeholder
+     */
+    if (Object.keys(data).length > Sanitizer.maxObjectKeysCount) {
+      return '<big object>';
+    }
+
+    const result: any = {};
+
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {
-        data[key] = Sanitizer.sanitize(data[key]);
+        result[key] = Sanitizer.sanitize(data[key], depth);
       }
     }
 
-    return data;
+    return result;
   }
 
   /**
@@ -181,15 +211,6 @@ export default class Sanitizer {
   }
 
   /**
-   * Check if passed object is too bif for sending
-   *
-   * @param target - object to check
-   */
-  private static isBigObject(target: any): boolean {
-    return JSON.stringify(target).length > this.maxObjectLen;
-  }
-
-  /**
    * Return name of a passed class
    *
    * @param target - not-constructed class
@@ -259,18 +280,5 @@ export default class Sanitizer {
     const className = Sanitizer.getClassNameByInstance(target);
 
     return `<class ${className}>`;
-  }
-
-  /**
-   * Represent big object as a "<big object>"
-   *
-   * @param target - object ot format
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-unused-vars-experimental,no-unused-vars
-  private static formatBigObject(target: any): string {
-    /**
-     * @todo save big object structure, but not the content
-     */
-    return '<big object>';
   }
 }

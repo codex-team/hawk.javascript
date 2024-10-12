@@ -298,8 +298,6 @@ export default class Catcher {
 
       if (beforeSendResult === false) {
         throw new EventRejectedError('Event rejected by beforeSend method.');
-
-        return;
       } else {
         payload = beforeSendResult;
       }
