@@ -1,4 +1,4 @@
-import type { EventData, JavaScriptAddons } from '@hawk.so/types';
+import type { AffectedUser, BacktraceFrame, EventContext, EventData, JavaScriptAddons } from '@hawk.so/types';
 
 /**
  * Event data with JS specific addons
@@ -14,37 +14,36 @@ export type HawkJavaScriptEvent = Omit<JSEventData, 'type' | 'release' | 'user' 
   /**
    * Event type: TypeError, ReferenceError etc
    */
-  type: JSEventData['type'];
+  type: 'errors/javascript';
 
   /**
    * Current release (aka version, revision) of an application
    */
-  release: JSEventData['release'] | null;
+  release: string | null;
 
   /**
    * Current authenticated user
    */
-  user: JSEventData['user'] | null;
+  user: AffectedUser | null;
 
   /**
    * Any other information collected and passed by user
    */
-  context: JSEventData['context'];
+  context: EventContext;
 
   /**
-   *
    * Catcher-specific information
    */
-  addons: JSEventData['addons'];
+  addons: JavaScriptAddons;
 
   /**
    * Stack
    * From the latest call to the earliest
    */
-  backtrace: JSEventData['backtrace'] | null;
+  backtrace: BacktraceFrame[] | null;
 
   /**
    * Catcher version
    */
-  catcherVersion: JSEventData['catcherVersion'];
+  catcherVersion: string;
 };
