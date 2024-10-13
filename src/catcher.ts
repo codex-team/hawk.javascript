@@ -8,7 +8,6 @@ import { VueIntegration } from './integrations/vue';
 import { generateRandomId } from './utils';
 import {
   AffectedUser,
-  BacktraceFrame,
   EventContext,
   JavaScriptAddons,
   VueIntegrationAddons,
@@ -267,8 +266,6 @@ export default class Catcher {
    * @param errorFormatted - formatted error to send
    */
   private sendErrorFormatted(errorFormatted: CatcherMessage): void {
-    console.log('send', errorFormatted);
-
     this.transport.send(errorFormatted)
       .catch((sendingError) => {
         log('WebSocket sending error', 'error', sendingError);
@@ -290,6 +287,7 @@ export default class Catcher {
       user: this.getUser(),
       addons: this.getAddons(error),
       backtrace: await this.getBacktrace(error),
+      catcherVersion: this.version,
     };
 
     /**
@@ -338,7 +336,7 @@ export default class Catcher {
    *
    * @param error - caught error
    */
-  private getType(error: Error | string): string {
+  private getType(error: Error | string): HawkJavaScriptEvent['type'] {
     const notAnError = !(error instanceof Error);
 
     /**
@@ -355,7 +353,7 @@ export default class Catcher {
   /**
    * Release version
    */
-  private getRelease(): string | null {
+  private getRelease(): HawkJavaScriptEvent['release'] {
     return this.release || null;
   }
 
@@ -382,7 +380,7 @@ export default class Catcher {
    *
    * @param context - any additional data passed by user
    */
-  private getContext(context?: EventContext): EventContext {
+  private getContext(context?: EventContext): HawkJavaScriptEvent['context'] {
     const contextMerged = {};
 
     if (this.context !== undefined) {
@@ -399,7 +397,7 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private getUser(): AffectedUser | null {
+  private getUser(): HawkJavaScriptEvent['user'] {
     return this.user || null;
   }
 
@@ -432,7 +430,7 @@ export default class Catcher {
    *
    * @param error - event from which to get backtrace
    */
-  private async getBacktrace(error: Error | string): Promise<BacktraceFrame[] | null> {
+  private async getBacktrace(error: Error | string): Promise<HawkJavaScriptEvent['backtrace']> {
     const notAnError = !(error instanceof Error);
 
     /**
@@ -457,7 +455,7 @@ export default class Catcher {
    *
    * @param {Error|string} error — caught error
    */
-  private getAddons(error: Error | string): JavaScriptAddons {
+  private getAddons(error: Error | string): HawkJavaScriptEvent['addons'] {
     const { innerWidth, innerHeight } = window;
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
