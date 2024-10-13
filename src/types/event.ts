@@ -13,8 +13,9 @@ type JSEventData = EventData<JavaScriptAddons>;
 export type HawkJavaScriptEvent = Omit<JSEventData, 'type' | 'release' | 'user' | 'context' | 'addons' | 'backtrace' | 'catcherVersion'> & {
   /**
    * Event type: TypeError, ReferenceError etc
+   * null for non-error events
    */
-  type: 'errors/javascript';
+  type: string | null;
 
   /**
    * Current release (aka version, revision) of an application
