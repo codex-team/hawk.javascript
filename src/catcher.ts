@@ -82,6 +82,11 @@ export default class Catcher {
   private readonly stackParser: StackParser = new StackParser();
 
   /**
+   * Disable Vue.js error handler
+   */
+  private readonly disableVueErrorHandler: boolean = false;
+
+  /**
    * Catcher constructor
    *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
@@ -99,6 +104,7 @@ export default class Catcher {
     this.user = settings.user || Catcher.getGeneratedUser();
     this.context = settings.context || undefined;
     this.beforeSend = settings.beforeSend;
+    this.disableVueErrorHandler = settings.disableVueErrorHandler ?? false;
 
     if (!this.token) {
       log(
@@ -188,6 +194,8 @@ export default class Catcher {
       this.formatAndSend(error, {
         vue: addons,
       });
+    }, {
+      disableVueErrorHandler: this.disableVueErrorHandler,
     });
   }
 
