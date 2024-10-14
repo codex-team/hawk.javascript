@@ -233,13 +233,6 @@
     context: {
       rootContextSample: '12345'
     },
-    beforeSend(event) {
-      console.log('pefore send event', event);
-
-      if (event.title.includes('Attempt')) {
-        return false;
-      }
-    }
   })
 </script>
 </body>
