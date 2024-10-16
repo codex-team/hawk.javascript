@@ -1,6 +1,16 @@
 import Sanitizer from './../modules/sanitizer';
 import { VueIntegrationAddons } from '@hawk.so/types';
 
+interface VueIntegrationOptions {
+  /**
+   * Disable Vue.js error handler
+   *
+   * Used by @hawk.so/nuxt since Nuxt has own error hook.
+   * Otherwise, Nuxt will show 500 error
+   */
+  disableVueErrorHandler?: boolean;
+}
+
 /**
  * Errors fired inside Vue components are not dispatched by global handlers.
  * This integration allow us to set up own error handler
@@ -28,13 +38,16 @@ export class VueIntegration {
    *
    * @param vue - Vue app to handle
    * @param callback - callback that accepts new error
+   * @param options - additional options
    */
-  constructor(vue, callback) {
+  constructor(vue, callback, options: VueIntegrationOptions) {
     this.vue = vue;
     this.existedHandler = vue.config.errorHandler;
     this.callback = callback;
 
-    this.setupHandler();
+    if (options.disableVueErrorHandler !== true) {
+      this.setupHandler();
+    }
   }
 
   /**
