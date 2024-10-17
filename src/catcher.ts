@@ -2,18 +2,17 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './modules/logger';
 import StackParser from './modules/stackParser';
-import { HawkInitialSettings } from './types/hawk-initial-settings';
-import CatcherMessage from './types/catcher-message';
+import type { CatcherMessage, HawkInitialSettings } from '@/types';
 import { VueIntegration } from './integrations/vue';
 import { generateRandomId } from './utils';
-import {
+import type {
   AffectedUser,
   EventContext,
   JavaScriptAddons,
   VueIntegrationAddons,
   Json, EncodedIntegrationToken, DecodedIntegrationToken
 } from '@hawk.so/types';
-import { JavaScriptCatcherIntegrations } from './types/integrations';
+import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 
@@ -52,7 +51,7 @@ export default class Catcher {
   /**
    * Current bundle version
    */
-  private readonly release: string;
+  private readonly release: string | undefined;
 
   /**
    * Current authenticated user
@@ -62,13 +61,13 @@ export default class Catcher {
   /**
    * Any additional data passed by user for sending with all messages
    */
-  private readonly context: EventContext;
+  private readonly context: EventContext | undefined;
 
   /**
    * This Method allows developer to filter any data you don't want sending to Hawk
    * If method returns false, event will not be sent
    */
-  private readonly beforeSend: (event: HawkJavaScriptEvent) => HawkJavaScriptEvent | false;
+  private readonly beforeSend: undefined | ((event: HawkJavaScriptEvent) => HawkJavaScriptEvent | false);
 
   /**
    * Transport for dialog between Catcher and Collector
@@ -492,18 +491,16 @@ export default class Catcher {
    *
    * @param {Error|string} error — caught error
    */
-  private getRawData(error: Error | string): Json {
-    let errorData = null;
-
-    if (error instanceof Error) {
-      errorData = {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      };
+  private getRawData(error: Error | string): Json | undefined {
+    if (!(error instanceof Error)) {
+      return;
     }
 
-    return errorData;
+    return {
+      name: error.name,
+      message: error.message,
+      stack: error.stack ?? '',
+    };
   }
 
   /**
