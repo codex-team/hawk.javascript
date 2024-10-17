@@ -1,12 +1,21 @@
 {
   "compilerOptions" : {
+    "strict": false,
+    "strictNullChecks": true,
     "sourceMap": true,
     "target": "es2015",
     "declaration": true,
     "outDir": "dist",
     "rootDir": "src",
-    "moduleResolution": "node", // This resolution strategy attempts to mimic the Node.js module resolution mechanism at runtime
+    "moduleResolution": "Bundler",
     "lib": ["dom", "es2017", "es2018"],
-    "allowSyntheticDefaultImports": true
-  }
+    "baseUrl": ".",
+    "paths": {
+      "@/types": ["src/types"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "src/types/*"
+  ],
 }

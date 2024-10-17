@@ -3,7 +3,7 @@ import type { HawkJavaScriptEvent } from './event';
 /**
  * Structure describing a message sending by Catcher
  */
-export default interface CatcherMessage {
+export interface CatcherMessage {
   /**
    * User project's Integration Token
    */

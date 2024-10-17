@@ -1,5 +1,5 @@
 import Sanitizer from './../modules/sanitizer';
-import { VueIntegrationAddons } from '@hawk.so/types';
+import type { VueIntegrationAddons } from '@hawk.so/types';
 
 interface VueIntegrationOptions {
   /**
