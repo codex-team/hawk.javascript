@@ -1,7 +1,7 @@
 /**
  * Returns random string
  */
-export function generateRandomId(): string {
+export function id(): string {
   const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
   let array = new Uint8Array(40);
