@@ -5,6 +5,7 @@ module.exports = {
     browser: true,
   },
   rules: {
-    "@typescript-eslint/no-magic-numbers": "off"
-  }
+    '@typescript-eslint/no-magic-numbers': 'off',
+    '@typescript-eslint/strict-boolean-expressions': 'off',
+  },
 };

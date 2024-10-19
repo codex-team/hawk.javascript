@@ -1,5 +1,5 @@
 import log from './logger';
-import CatcherMessage from '../types/catcher-message';
+import type { CatcherMessage } from '@/types';
 
 /**
  * Custom WebSocket wrapper class
@@ -36,7 +36,7 @@ export default class Socket {
   /**
    * Websocket instance
    */
-  private ws: WebSocket;
+  private ws: WebSocket | null;
 
   /**
    * Reconnection tryings Timeout
@@ -60,7 +60,7 @@ export default class Socket {
    */
   constructor({
     collectorEndpoint,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars, @typescript-eslint/no-unused-vars-experimental,no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     onMessage = (message: MessageEvent): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     onClose = (): void => {},
@@ -187,7 +187,7 @@ export default class Socket {
       }
 
       this.reconnectionTimer = setTimeout(() => {
-        this.reconnect(true);
+        void this.reconnect(true);
       }, this.reconnectionTimeout);
     }
   }
@@ -197,7 +197,13 @@ export default class Socket {
    */
   private sendQueue(): void {
     while (this.eventsQueue.length) {
-      this.send(this.eventsQueue.shift())
+      const event = this.eventsQueue.shift();
+
+      if (!event) {
+        continue;
+      }
+
+      this.send(event)
         .catch((sendingError) => {
           log('WebSocket sending error', 'error', sendingError);
         });

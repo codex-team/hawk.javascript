@@ -1,12 +1,11 @@
-import ErrorStackParser, { StackFrame } from 'error-stack-parser';
-import { BacktraceFrame, SourceCodeLine } from '@hawk.so/types';
+import type { StackFrame } from 'error-stack-parser';
+import ErrorStackParser from 'error-stack-parser';
+import type { BacktraceFrame, SourceCodeLine } from '@hawk.so/types';
 import log from './logger';
 import fetchTimer from './fetchTimer';
 
 /**
  * This module prepares parsed backtrace
- *
- * @requires https://github.com/stacktracejs/error-stack-parser
  */
 export default class StackParser {
   /**
@@ -24,11 +23,13 @@ export default class StackParser {
     const stackParsed = ErrorStackParser.parse(error) as StackFrame[];
 
     return Promise.all(stackParsed.map(async (frame) => {
+      const sourceCode = await this.extractSourceCode(frame);
+
       return {
-        file: frame.fileName,
-        line: frame.lineNumber,
+        file: frame.fileName ?? '',
+        line: frame.lineNumber ?? 0,
         column: frame.columnNumber,
-        sourceCode: await this.extractSourceCode(frame),
+        sourceCode: sourceCode !== null ? sourceCode : undefined,
         function: frame.functionName,
         arguments: frame.args,
       };
@@ -40,8 +41,12 @@ export default class StackParser {
    *
    * @param {StackFrame} frame — information about backtrace item
    */
-  private async extractSourceCode(frame: StackFrame): Promise<SourceCodeLine[]> {
+  private async extractSourceCode(frame: StackFrame): Promise<SourceCodeLine[] | null> {
     try {
+      if (!frame.fileName) {
+        return null;
+      };
+
       if (!this.isValidUrl(frame.fileName)) {
         return null;
       }
@@ -50,7 +55,7 @@ export default class StackParser {
        * If error occurred in large column number, the script probably minified
        * Skip minified bundles — they will be processed if user enabled source-maps tracking
        */
-      if (frame.columnNumber > 200) {
+      if (frame.columnNumber && frame.columnNumber > 200) {
         return null;
       }
 
@@ -61,7 +66,7 @@ export default class StackParser {
       }
 
       const lines = file.split('\n');
-      const actualLineNumber = frame.lineNumber - 1; // starts from 0;
+      const actualLineNumber = frame.lineNumber ? frame.lineNumber - 1 : 0;
       const linesCollectCount = 5;
       const lineFrom = Math.max(0, actualLineNumber - linesCollectCount);
       const lineTo = Math.min(lines.length - 1, actualLineNumber + linesCollectCount + 1);
@@ -74,6 +79,8 @@ export default class StackParser {
         };
       });
     } catch (e) {
+      console.warn('Hawk JS SDK: Can not extract source code. Please, report this issue: https://github.com/codex-team/hawk.javascript/issues/new', e);
+
       return null;
     }
   }
@@ -96,8 +103,8 @@ export default class StackParser {
    *
    * @param {string} fileName - name of file to download
    */
-  private async loadSourceFile(fileName): Promise<string> {
-    if (this.sourceFilesCache[fileName]) {
+  private async loadSourceFile(fileName): Promise<string | null> {
+    if (this.sourceFilesCache[fileName] !== undefined) {
       return this.sourceFilesCache[fileName];
     }
 

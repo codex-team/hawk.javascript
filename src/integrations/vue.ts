@@ -1,5 +1,5 @@
 import Sanitizer from './../modules/sanitizer';
-import { VueIntegrationAddons } from '@hawk.so/types';
+import type { VueIntegrationAddons } from '@hawk.so/types';
 
 interface VueIntegrationOptions {
   /**
@@ -31,7 +31,7 @@ export class VueIntegration {
    * Callback that should be triggered with caught error.
    * This callback is used by parent class to format and send an event.
    */
-  private readonly callback: (error: Error, addons: {[key: string]: any}) => void;
+  private readonly callback: (error: Error, addons: VueIntegrationAddons) => void;
 
   /**
    * Set up a new vue app
@@ -63,7 +63,7 @@ export class VueIntegration {
        * @param vm - vue VM
        * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
        */
-      (err: Error, vm: { [key: string]: any }, info: string): void => {
+      (err: Error, vm:  {[key: string]: unknown}, info: string): void => {
         if (typeof this.existedHandler === 'function') {
           this.existedHandler.call(this.vue, err, vm, info);
         }
@@ -82,7 +82,8 @@ export class VueIntegration {
    * @param vm - vue VM
    * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
    */
-  private spoilAddons(vm: {[key: string]: any}, info: string): VueIntegrationAddons {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private spoilAddons(vm: { [key: string]: any }, info: string): VueIntegrationAddons {
     const addons: VueIntegrationAddons = {
       lifecycle: info,
       component: null,
@@ -111,7 +112,7 @@ export class VueIntegration {
       addons.data = {};
 
       Object.entries(vm._data).forEach(([key, value]) => {
-        addons.data[key] = Sanitizer.sanitize(value);
+        addons.data![key] = Sanitizer.sanitize(value);
       });
     }
 
@@ -122,7 +123,8 @@ export class VueIntegration {
       addons.computed = {};
 
       Object.entries(vm._computedWatchers).forEach(([key, watcher]) => {
-        addons.computed[key] = Sanitizer.sanitize((watcher as {[key: string]: any}).value);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        addons.computed![key] = Sanitizer.sanitize((watcher as {[key: string]: any}).value);
       });
     }
 
@@ -136,7 +138,13 @@ export class VueIntegration {
    * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
    * @param component - where error was occurred
    */
-  private printError(err: Error, info: string, component: string): void {
+  private printError(err: Error, info: string, component: string | null): void {
+    if (component === null) {
+      console.error(`${info}`, err);
+
+      return;
+    }
+
     console.error(`${component} @ ${info}`, err);
   }
 }
