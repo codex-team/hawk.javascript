@@ -6,8 +6,6 @@ import fetchTimer from './fetchTimer';
 
 /**
  * This module prepares parsed backtrace
- *
- * @requires https://github.com/stacktracejs/error-stack-parser
  */
 export default class StackParser {
   /**
@@ -25,11 +23,13 @@ export default class StackParser {
     const stackParsed = ErrorStackParser.parse(error) as StackFrame[];
 
     return Promise.all(stackParsed.map(async (frame) => {
+      const sourceCode = await this.extractSourceCode(frame);
+
       return {
         file: frame.fileName ?? '',
         line: frame.lineNumber ?? 0,
         column: frame.columnNumber,
-        sourceCode: await this.extractSourceCode(frame),
+        sourceCode: sourceCode !== null ? sourceCode : undefined,
         function: frame.functionName,
         arguments: frame.args,
       };

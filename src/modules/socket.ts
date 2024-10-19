@@ -60,7 +60,7 @@ export default class Socket {
    */
   constructor({
     collectorEndpoint,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars, @typescript-eslint/no-unused-vars-experimental,no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
     onMessage = (message: MessageEvent): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     onClose = (): void => {},
@@ -187,7 +187,7 @@ export default class Socket {
       }
 
       this.reconnectionTimer = setTimeout(() => {
-        this.reconnect(true);
+        void this.reconnect(true);
       }, this.reconnectionTimeout);
     }
   }

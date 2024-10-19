@@ -53,6 +53,7 @@ export interface HawkInitialSettings {
    * Instance of a vue application
    * to handle its errors
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   vue?: any;
 
   /**

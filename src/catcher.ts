@@ -179,7 +179,7 @@ export default class Catcher {
    * @param [context] - any additional data to send
    */
   public send(message: Error | string, context?: EventContext): void {
-    this.formatAndSend(message, undefined, context);
+    void this.formatAndSend(message, undefined, context);
   }
 
   /**
@@ -190,7 +190,7 @@ export default class Catcher {
   public connectVue(vue): void {
     // eslint-disable-next-line no-new
     new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
-      this.formatAndSend(error, {
+      void this.formatAndSend(error, {
         vue: addons,
       });
     }, {
@@ -228,7 +228,7 @@ export default class Catcher {
       error = (event as ErrorEvent).message;
     }
 
-    this.formatAndSend(error);
+    void this.formatAndSend(error);
   }
 
   /**
