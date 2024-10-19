@@ -1,9 +1,6 @@
 module.exports = {
   root: true,
   extends: [ 'codex/ts' ],
-  exclude: [
-    'packaje.json'
-  ],
   env: {
     browser: true,
   },
