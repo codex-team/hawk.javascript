@@ -261,8 +261,9 @@ export default class Catcher {
       const isAlreadySentError = isErrorProcessed(error);
 
       if (isAlreadySentError) {
-        log('Error already sent', 'warn');
-
+        /**
+         * @todo add debug build and log this case
+         */
         return;
       } else {
         markErrorAsProcessed(error);
@@ -274,7 +275,7 @@ export default class Catcher {
        * If this event caught by integration (Vue or other), it can pass extra addons
        */
       if (integrationAddons) {
-        this.appendIntegrationAddons(errorFormatted, integrationAddons);
+        this.appendIntegrationAddons(errorFormatted, Sanitizer.sanitize(integrationAddons));
       }
 
       this.sendErrorFormatted(errorFormatted);
@@ -286,7 +287,7 @@ export default class Catcher {
         return;
       }
 
-      log('Internal error ლ(´ڡ`ლ)', 'error', e);
+      log('Unable to send error. Seems like it is Hawk internal bug. Please, report it here: https://github.com/codex-team/hawk.javascript/issues/new', 'warn', e);
     }
   }
 
