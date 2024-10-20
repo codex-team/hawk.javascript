@@ -1,5 +1,4 @@
-import Sanitizer from './../modules/sanitizer';
-import type { VueIntegrationAddons } from '@hawk.so/types';
+import type { JsonNode, VueIntegrationAddons } from '@hawk.so/types';
 
 interface VueIntegrationOptions {
   /**
@@ -102,7 +101,7 @@ export class VueIntegration {
      * Fill props
      */
     if (vm.$options && vm.$options.propsData) {
-      addons.props = Sanitizer.sanitize(vm.$options.propsData);
+      addons.props = vm.$options.propsData;
     }
 
     /**
@@ -112,7 +111,7 @@ export class VueIntegration {
       addons.data = {};
 
       Object.entries(vm._data).forEach(([key, value]) => {
-        addons.data![key] = Sanitizer.sanitize(value);
+        addons.data![key] = value as JsonNode;
       });
     }
 
@@ -124,7 +123,7 @@ export class VueIntegration {
 
       Object.entries(vm._computedWatchers).forEach(([key, watcher]) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        addons.computed![key] = Sanitizer.sanitize((watcher as {[key: string]: any}).value);
+        addons.computed![key] = (watcher as {[key: string]: any}).value;
       });
     }
 

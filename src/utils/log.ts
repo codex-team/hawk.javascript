@@ -24,17 +24,15 @@ export default function log(msg: string, type = 'log', args?: any, style = 'colo
     return;
   }
 
-  const editorLabelText = `Hawk JavaScript.js ${VERSION}`;
+  const editorLabelText = `Hawk (${VERSION})`;
   const editorLabelStyle = `line-height: 1em;
-            color: #006FEA;
+            color: #fff;
             display: inline-block;
-            font-size: 11px;
             line-height: 1em;
-            background-color: #fff;
-            padding: 4px 9px;
-            border-radius: 30px;
-            border: 1px solid rgba(56, 138, 229, 0.16);
-            margin: 4px 5px 4px 0;`;
+            background-color: rgba(0,0,0,.7);
+            padding: 3px 5px;
+            border-radius: 3px;
+            margin-right: 2px`;
 
   try {
     if (['time', 'timeEnd'].includes(type)) {

@@ -1,4 +1,4 @@
-import log from './logger';
+import log from '../utils/log';
 import type { CatcherMessage } from '@/types';
 
 /**

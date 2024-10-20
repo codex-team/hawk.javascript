@@ -1,7 +1,7 @@
 import type { StackFrame } from 'error-stack-parser';
 import ErrorStackParser from 'error-stack-parser';
 import type { BacktraceFrame, SourceCodeLine } from '@hawk.so/types';
-import log from './logger';
+import log from '../utils/log';
 import fetchTimer from './fetchTimer';
 
 /**
