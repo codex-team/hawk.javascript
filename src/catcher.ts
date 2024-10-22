@@ -1,10 +1,10 @@
 import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
-import log from './modules/logger';
+import log from './utils/log';
 import StackParser from './modules/stackParser';
 import type { CatcherMessage, HawkInitialSettings } from '@/types';
 import { VueIntegration } from './integrations/vue';
-import { generateRandomId } from './utils';
+import { id } from './utils/id';
 import type {
   AffectedUser,
   EventContext,
@@ -15,6 +15,7 @@ import type {
 import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
+import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -153,7 +154,7 @@ export default class Catcher {
     if (storedId) {
       userId = storedId;
     } else {
-      userId = generateRandomId();
+      userId = id();
       localStorage.setItem(LOCAL_STORAGE_KEY, userId);
     }
 
@@ -180,6 +181,18 @@ export default class Catcher {
    */
   public send(message: Error | string, context?: EventContext): void {
     void this.formatAndSend(message, undefined, context);
+  }
+
+  /**
+   * Method for Frameworks SDK using own error handlers.
+   * Allows to send errors to Hawk with additional Frameworks data (addons)
+   *
+   * @param error - error to send
+   * @param [addons] - framework-specific data, can be undefined
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public captureError(error: Error | string, addons?: JavaScriptCatcherIntegrations): void {
+    void this.formatAndSend(error, addons);
   }
 
   /**
@@ -245,13 +258,24 @@ export default class Catcher {
     context?: EventContext
   ): Promise<void> {
     try {
+      const isAlreadySentError = isErrorProcessed(error);
+
+      if (isAlreadySentError) {
+        /**
+         * @todo add debug build and log this case
+         */
+        return;
+      } else {
+        markErrorAsProcessed(error);
+      }
+
       const errorFormatted = await this.prepareErrorFormatted(error, context);
 
       /**
        * If this event caught by integration (Vue or other), it can pass extra addons
        */
       if (integrationAddons) {
-        this.appendIntegrationAddons(errorFormatted, integrationAddons);
+        this.appendIntegrationAddons(errorFormatted, Sanitizer.sanitize(integrationAddons));
       }
 
       this.sendErrorFormatted(errorFormatted);
@@ -263,7 +287,7 @@ export default class Catcher {
         return;
       }
 
-      log('Internal error ლ(´ڡ`ლ)', 'error', e);
+      log('Unable to send error. Seems like it is Hawk internal bug. Please, report it here: https://github.com/codex-team/hawk.javascript/issues/new', 'warn', e);
     }
   }
 

@@ -1,4 +1,4 @@
-import log from './logger';
+import log from '../utils/log';
 
 /**
  * Sends AJAX request and wait for some time.
