@@ -2,7 +2,7 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './utils/log';
 import StackParser from './modules/stackParser';
-import type { CatcherMessage, HawkInitialSettings } from '@/types';
+import type { CatcherMessage, HawkInitialSettings } from './types';
 import { VueIntegration } from './integrations/vue';
 import { id } from './utils/id';
 import type {
@@ -33,6 +33,11 @@ export default class Catcher {
    * JS Catcher version
    */
   public readonly version: string = VERSION;
+
+  /**
+   * Vue.js integration instance
+   */
+  public vue: VueIntegration | null = null;
 
   /**
    * Catcher Type
@@ -202,7 +207,7 @@ export default class Catcher {
    */
   public connectVue(vue): void {
     // eslint-disable-next-line no-new
-    new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
+    this.vue = new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
       void this.formatAndSend(error, {
         vue: addons,
       });
