@@ -2,7 +2,7 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './utils/log';
 import StackParser from './modules/stackParser';
-import type { CatcherMessage, HawkInitialSettings } from '@/types';
+import type { CatcherMessage, HawkInitialSettings } from './types';
 import { VueIntegration } from './integrations/vue';
 import { id } from './utils/id';
 import type {

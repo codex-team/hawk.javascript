@@ -7,12 +7,14 @@
     "declaration": true,
     "outDir": "dist",
     "rootDir": "src",
-    "moduleResolution": "Bundler",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
     "lib": ["dom", "es2017", "es2018"],
     "baseUrl": ".",
     "paths": {
       "@/types": ["src/types"]
-    }
+    },
+    "allowSyntheticDefaultImports": true
   },
   "include": [
     "src/**/*",

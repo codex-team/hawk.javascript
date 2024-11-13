@@ -239,13 +239,15 @@ export class VueIntegration {
    * @param component - where error was occurred
    */
   private printError(err: Error, info: string, component: string | null): void {
+    const source = this.getRuntimeErrorSourceByCode(info);
+
     if (component === null) {
-      console.error(`${info}`, err);
+      console.error(`${source}`, err);
 
       return;
     }
 
-    console.error(`${component} @ ${info}`, err);
+    console.error(`${component} @ ${source}`, err);
   }
 }
 

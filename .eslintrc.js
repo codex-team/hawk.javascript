@@ -1,6 +1,12 @@
 module.exports = {
   root: true,
   extends: [ 'codex/ts' ],
+  ignorePatterns: [
+    'dist/',
+    'node_modules/',
+    'package.json',
+    'tsconfig.json',
+  ],
   env: {
     browser: true,
   },
