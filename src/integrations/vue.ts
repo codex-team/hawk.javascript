@@ -78,11 +78,27 @@ export class VueIntegration {
   /**
    * Extract additional useful information from the Vue app
    *
-   * @param vm - vue VM
+   * @param vm - component instance
    * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
    */
+  private spoilAddons(vm: { [key: string]: unknown }, info: string): VueIntegrationAddons {
+    const isVue3 = vm.$ !== undefined;
+
+    if (isVue3) {
+      return this.spoilAddonsFromVue3(vm, info);
+    } else {
+      return this.spoilAddonsFromVue2(vm, info);
+    }
+  }
+
+  /**
+   * Extract additional useful information from the Vue 2 app
+   *
+   * @param vm - component instance
+   * @param info - which lifecycle hook the error was found in.
+   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private spoilAddons(vm: { [key: string]: any }, info: string): VueIntegrationAddons {
+  private spoilAddonsFromVue2(vm: { [key: string]: any }, info: string): VueIntegrationAddons {
     const addons: VueIntegrationAddons = {
       lifecycle: info,
       component: null,
@@ -125,6 +141,36 @@ export class VueIntegration {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         addons.computed![key] = (watcher as {[key: string]: any}).value;
       });
+    }
+
+    return addons;
+  }
+
+  /**
+   * Extract additional useful information from the Vue 3 app
+   *
+   * @param vm - component instance
+   * @param info - which lifecycle hook the error was found in.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private spoilAddonsFromVue3(vm: { [key: string]: any }, info: string): VueIntegrationAddons {
+    const addons: VueIntegrationAddons = {
+      lifecycle: info,
+      component: null,
+    };
+
+    /**
+     * Extract the component name
+     */
+    if (vm.$options !== undefined) {
+      addons['component'] = `<${vm.$options.__name || vm.$options.name || vm.$options._componentTag || 'Anonymous'}>`;
+    }
+
+    /**
+     * Fill props
+     */
+    if (Object.keys(vm.$props).length) {
+      addons['props'] = vm.$props;
     }
 
     return addons;
