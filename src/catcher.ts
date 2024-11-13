@@ -35,6 +35,11 @@ export default class Catcher {
   public readonly version: string = VERSION;
 
   /**
+   * Vue.js integration instance
+   */
+  public vue: VueIntegration | null = null;
+
+  /**
    * Catcher Type
    */
   private readonly type: string = 'errors/javascript';
@@ -202,7 +207,7 @@ export default class Catcher {
    */
   public connectVue(vue): void {
     // eslint-disable-next-line no-new
-    new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
+    this.vue = new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
       void this.formatAndSend(error, {
         vue: addons,
       });

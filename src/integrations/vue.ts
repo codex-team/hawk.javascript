@@ -50,6 +50,24 @@ export class VueIntegration {
   }
 
   /**
+   * Extract additional useful information from the Vue app
+   *
+   * Can be used outside of this class, for example, by Nuxt integration
+   *
+   * @param vm - component instance
+   * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
+   */
+  public spoilAddons(vm: { [key: string]: unknown }, info: string): VueIntegrationAddons {
+    const isVue3 = vm.$ !== undefined;
+
+    if (isVue3) {
+      return this.spoilAddonsFromVue3(vm, info);
+    } else {
+      return this.spoilAddonsFromVue2(vm, info);
+    }
+  }
+
+  /**
    * Setups event handlers for Vue.js instance
    */
   private setupHandler(): void {
@@ -73,22 +91,6 @@ export class VueIntegration {
 
         this.printError(err, info, addons.component);
       };
-  }
-
-  /**
-   * Extract additional useful information from the Vue app
-   *
-   * @param vm - component instance
-   * @param info - a Vue-specific error info, e.g. which lifecycle hook the error was found in.
-   */
-  private spoilAddons(vm: { [key: string]: unknown }, info: string): VueIntegrationAddons {
-    const isVue3 = vm.$ !== undefined;
-
-    if (isVue3) {
-      return this.spoilAddonsFromVue3(vm, info);
-    } else {
-      return this.spoilAddonsFromVue2(vm, info);
-    }
   }
 
   /**
@@ -155,7 +157,7 @@ export class VueIntegration {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private spoilAddonsFromVue3(vm: { [key: string]: any }, info: string): VueIntegrationAddons {
     const addons: VueIntegrationAddons = {
-      lifecycle: info,
+      lifecycle: this.getRuntimeErrorSourceByCode(info),
       component: null,
     };
 
@@ -175,6 +177,59 @@ export class VueIntegration {
 
     return addons;
   }
+
+  /**
+   * In production, the error code is a link with reference to doc.
+   * This method returns the error message by the code extracted from the link
+   *
+   * @param code - Error source info (3rd argument of the vue:error hook)
+   * https://vuejs.org/api/composition-api-lifecycle.html#onerrorcaptured
+   */
+  private getRuntimeErrorSourceByCode(code: string): string {
+    if (!code.includes('https://vuejs.org/error-reference/#runtime-')) {
+      return code;
+    }
+
+    const codeParts = code.split('https://vuejs.org/error-reference/#runtime-');
+    const errorCode = codeParts[codeParts.length - 1];
+
+    const errorCodeMap = new Map([
+      ['0', 'setup function'],
+      ['1', 'render function'],
+      ['2', 'watcher getter'],
+      ['3', 'watcher callback'],
+      ['4', 'watcher cleanup function'],
+      ['5', 'native event handler'],
+      ['6', 'component event handler'],
+      ['7', 'vnode hook'],
+      ['8', 'directive hook'],
+      ['9', 'transition hook'],
+      ['10', 'app errorHandler'],
+      ['11', 'app warnHandler'],
+      ['12', 'ref function'],
+      ['13', 'async component loader'],
+      ['14', 'scheduler flush'],
+      ['15', 'component update'],
+      ['16', 'app unmount cleanup function'],
+      ['sp', 'serverPrefetch hook'],
+      ['bc', 'beforeCreate hook'],
+      ['c', 'created hook'],
+      ['bm', 'beforeMount hook'],
+      ['m', 'mounted hook'],
+      ['bu', 'beforeUpdate hook'],
+      ['u', 'updated'],
+      ['bum', 'beforeUnmount hook'],
+      ['um', 'unmounted hook'],
+      ['a', 'activated hook'],
+      ['da', 'deactivated hook'],
+      ['ec', 'errorCaptured hook'],
+      ['rtc', 'renderTracked hook'],
+      ['rtg', 'renderTriggered hook'],
+    ]);
+
+    return errorCodeMap.get(errorCode) || code;
+  }
+
 
   /**
    * Write error to the console
