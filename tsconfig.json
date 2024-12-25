@@ -18,6 +18,7 @@
   },
   "include": [
     "src/**/*",
-    "src/types/*"
+    "src/types/*",
+    "src/modules/*",
   ],
 }

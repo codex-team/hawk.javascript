@@ -16,6 +16,7 @@ import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
+import { catcherStorage } from './modules/storage';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -154,13 +155,13 @@ export default class Catcher {
   private static getGeneratedUser(): AffectedUser {
     let userId: string;
     const LOCAL_STORAGE_KEY = 'hawk-user-id';
-    const storedId = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const storedId = catcherStorage.getItem(LOCAL_STORAGE_KEY);
 
     if (storedId) {
       userId = storedId;
     } else {
       userId = id();
-      localStorage.setItem(LOCAL_STORAGE_KEY, userId);
+      catcherStorage.setItem(LOCAL_STORAGE_KEY, userId);
     }
 
     return {
