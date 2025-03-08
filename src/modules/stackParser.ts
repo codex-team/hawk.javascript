@@ -42,6 +42,8 @@ export default class StackParser {
    * @param {StackFrame} frame — information about backtrace item
    */
   private async extractSourceCode(frame: StackFrame): Promise<SourceCodeLine[] | null> {
+    const minifiedSourceCodeThreshold = 200;
+
     try {
       if (!frame.fileName) {
         return null;
@@ -55,7 +57,7 @@ export default class StackParser {
        * If error occurred in large column number, the script probably minified
        * Skip minified bundles — they will be processed if user enabled source-maps tracking
        */
-      if (frame.columnNumber && frame.columnNumber > 200) {
+      if (frame.columnNumber && frame.columnNumber > minifiedSourceCodeThreshold) {
         return null;
       }
 
@@ -70,14 +72,28 @@ export default class StackParser {
       const linesCollectCount = 5;
       const lineFrom = Math.max(0, actualLineNumber - linesCollectCount);
       const lineTo = Math.min(lines.length - 1, actualLineNumber + linesCollectCount + 1);
-      const linesToCollect = lines.slice(lineFrom, lineTo);
 
-      return linesToCollect.map((content, index) => {
-        return {
-          line: lineFrom + index + 1,
-          content,
-        };
-      });
+      const sourceCodeLines: SourceCodeLine[] = [];
+      let extractedLineIndex = 1;
+
+      /**
+       * In some cases column number of the error stack trace frame would be less then 200, but source code is minified
+       * For this cases we need to check, that all of the lines to collect have length less than 200 too
+       */
+      for (const lineToCheck in lines.slice(lineFrom, lineTo)) {
+        if (lineToCheck.length > minifiedSourceCodeThreshold) {
+          return null;
+        } else {
+          sourceCodeLines.push({
+            line: lineFrom + extractedLineIndex,
+            content: lineToCheck,
+          });
+
+          extractedLineIndex += 1;
+        }
+      }
+
+      return sourceCodeLines;
     } catch (e) {
       console.warn('Hawk JS SDK: Can not extract source code. Please, report this issue: https://github.com/codex-team/hawk.javascript/issues/new', e);
 
