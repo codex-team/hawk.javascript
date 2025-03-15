@@ -512,7 +512,7 @@ export default class Catcher {
     }
 
     if (consoleLogs.length > 0) {
-        addons.consoleOutput = consoleLogs;
+      addons.consoleOutput = consoleLogs;
     }
 
     return addons;
