@@ -16,6 +16,7 @@ import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
+import { getConsoleLogStack, initConsoleCatcher } from './addons/consoleCatcher';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -129,6 +130,8 @@ export default class Catcher {
         );
       },
     });
+
+    initConsoleCatcher();
 
     /**
      * Set global handlers
@@ -489,6 +492,7 @@ export default class Catcher {
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
     const getParams = this.getGetParams();
+    const consoleLogs = getConsoleLogStack();
 
     const addons: JavaScriptAddons = {
       window: {
@@ -505,6 +509,10 @@ export default class Catcher {
 
     if (this.debug) {
       addons.RAW_EVENT_DATA = this.getRawData(error);
+    }
+
+    if (consoleLogs.length > 0) {
+        addons.consoleOutput = consoleLogs;
     }
 
     return addons;
