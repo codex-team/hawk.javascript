@@ -54,7 +54,7 @@ export class Transaction {
 
   /**
    * Constructor for Transaction
-   * 
+   *
    * @param data - Data to initialize the transaction with. Contains id, name, startTime, tags
    * @param performance - Reference to the PerformanceMonitoring instance that created this transaction
    */
@@ -151,7 +151,6 @@ class SampledOutTransaction extends Transaction {
  * Class for managing performance monitoring
  */
 export default class PerformanceMonitoring {
-
   /**
    * Timer for batch sending
    */
@@ -191,7 +190,7 @@ export default class PerformanceMonitoring {
     private readonly version: string,
     private readonly debug: boolean = false,
     sampleRate: number = 1.0,
-    private readonly batchInterval: number = DEFAULT_BATCH_INTERVAL,
+    private readonly batchInterval: number = DEFAULT_BATCH_INTERVAL
   ) {
     if (sampleRate < 0 || sampleRate > 1) {
       console.error('Performance monitoring sample rate must be between 0 and 1');
@@ -227,7 +226,7 @@ export default class PerformanceMonitoring {
    * @returns Transaction object
    */
   public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
-    debugger
+    debugger;
     // Sample transactions based on rate
     if (Math.random() > this.sampleRate) {
       if (this.debug) {
@@ -265,7 +264,7 @@ export default class PerformanceMonitoring {
     // Clear batch sending timer
     if (this.batchTimeout !== null) {
       const clear = isBrowser ? window.clearInterval : clearInterval;
-      
+
       clear(this.batchTimeout);
       this.batchTimeout = null;
     }
@@ -326,7 +325,8 @@ export default class PerformanceMonitoring {
     }
 
     // Get all transactions from queue
-    const transactions = [...this.sendQueue];
+    const transactions = [ ...this.sendQueue ];
+
     this.sendQueue = [];
 
     try {
@@ -334,7 +334,7 @@ export default class PerformanceMonitoring {
     } catch (error) {
       // Return failed transactions to queue
       this.sendQueue.push(...transactions);
-      
+
       if (this.debug) {
         log('Failed to send performance data', 'error', error);
       }

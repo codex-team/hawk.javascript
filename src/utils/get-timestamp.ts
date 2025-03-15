@@ -13,4 +13,4 @@ export const getTimestamp = (): number => {
    * Convert to milliseconds for consistency with browser
    */
   return Number(process.hrtime.bigint() / BigInt(1_000_000));
-}; 
+};
