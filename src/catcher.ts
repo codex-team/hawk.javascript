@@ -16,7 +16,7 @@ import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
-import { getConsoleLogStack, initConsoleCatcher } from './addons/consoleCatcher';
+import { addErrorEvent, getConsoleLogStack, initConsoleCatcher } from './addons/consoleCatcher';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -228,6 +228,12 @@ export default class Catcher {
    * @param {ErrorEvent|PromiseRejectionEvent} event — (!) both for Error and Promise Rejection
    */
   private async handleEvent(event: ErrorEvent | PromiseRejectionEvent): Promise<void> {
+    /**
+     * Add error to console logs
+     */
+
+    addErrorEvent(event);
+
     /**
      * Promise rejection reason is recommended to be an Error, but it can be a string:
      * - Promise.reject(new Error('Reason message')) ——— recommended
