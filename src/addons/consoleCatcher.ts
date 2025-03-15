@@ -15,7 +15,7 @@ let isInitialized = false;
  */
 export function initConsoleCatcher(): void {
   if (isInitialized) {
-    return
+    return;
   };
 
   isInitialized = true;
@@ -23,7 +23,7 @@ export function initConsoleCatcher(): void {
 
   consoleMethods.forEach((method) => {
     if (typeof window.console[method] !== 'function') {
-      return
+      return;
     };
 
     const oldFunction = window.console[method].bind(window.console);
@@ -40,8 +40,7 @@ export function initConsoleCatcher(): void {
         timestamp: new Date(),
         type: method,
         message: args
-          .map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
-          .join(' '),
+          .map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg))).join(' '),
         stack,
         fileLine: stack.split('\n')[0]?.trim(),
       };
