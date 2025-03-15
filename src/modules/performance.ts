@@ -2,26 +2,8 @@ import type { PerformanceMessage } from '../types/performance-message';
 import { id } from '../utils/id';
 import log from '../utils/log';
 import type Socket from './socket';
-
-/**
- * Check if code is running in browser environment
- */
-const isBrowser = typeof window !== 'undefined';
-
-/**
- * Get high-resolution timestamp in milliseconds
- */
-const getTimestamp = (): number => {
-  if (isBrowser) {
-    return performance.now();
-  }
-
-  /**
-   * process.hrtime.bigint() returns nanoseconds
-   * Convert to milliseconds for consistency with browser
-   */
-  return Number(process.hrtime.bigint() / BigInt(1_000_000));
-};
+import { isBrowser } from '../utils/is-browser';
+import { getTimestamp } from '../utils/get-timestamp';
 
 /**
  * Class representing a span of work within a transaction
@@ -164,7 +146,11 @@ class SampledOutTransaction extends Transaction {
  */
 export default class PerformanceMonitoring {
   /**
-   * Active transactions map
+   * Map of active transactions by their ID
+   * Used to:
+   * - Track transactions that haven't been finished yet
+   * - Finish all active transactions on page unload/process exit
+   * - Prevent memory leaks by removing finished transactions
    */
   private activeTransactions: Map<string, Transaction> = new Map();
 
@@ -173,6 +159,10 @@ export default class PerformanceMonitoring {
    */
   private sendQueue: Transaction[] = [];
 
+  /**
+   * Sample rate for performance data
+   * Used to determine if a transaction should be sampled out
+   */
   private readonly sampleRate: number;
 
   /**
@@ -286,7 +276,8 @@ export default class PerformanceMonitoring {
 
     ['SIGINT', 'SIGTERM'].forEach(signal => {
       process.on(signal, () => {
-        this.activeTransactions.forEach(transaction => transaction.finish());
+        // Prevent immediate exit
+        this.destroy();
         process.exit(0);
       });
     });
