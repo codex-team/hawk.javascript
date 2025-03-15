@@ -1,4 +1,4 @@
-import { PerformanceMessage } from 'src/types/performance-message';
+import type { PerformanceMessage } from 'src/types/performance-message';
 import log from '../utils/log';
 import type { CatcherMessage } from '@/types';
 

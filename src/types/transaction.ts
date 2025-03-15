@@ -1,4 +1,4 @@
-import { Span } from './span';
+import type { Span } from './span';
 
 /**
  * Interface for Transaction data
