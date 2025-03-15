@@ -138,16 +138,6 @@ export default class PerformanceMonitoring {
    */
   private sendQueue: Transaction[] = [];
 
-  /**
-   * Timestamp of last send operation
-   */
-  private lastSendTime = 0;
-
-  /**
-   * Scheduled send timeout ID
-   */
-  private sendTimeout: number | NodeJS.Timeout | null = null;
-
   private readonly sampleRate: number;
 
   /**
@@ -205,22 +195,12 @@ export default class PerformanceMonitoring {
   }
 
   /**
-   * Schedule sending of performance data with throttling
+   * Queue transaction for sending
    */
-  private scheduleSend(): void {
-    if (this.sendTimeout !== null) {
-      return;
-    }
-
-    const now = Date.now();
-    const timeSinceLastSend = now - this.lastSendTime;
-    const delay = Math.max(0, THROTTLE_INTERVAL - timeSinceLastSend);
-
-    const timer = isBrowser ? window.setTimeout : setTimeout;
-
-    this.sendTimeout = timer(() => {
-      void this.processSendQueue();
-    }, delay);
+  public queueTransaction(transaction: Transaction): void {
+    this.activeTransactions.delete(transaction.id);
+    this.sendQueue.push(transaction);
+    void this.processSendQueue();
   }
 
   /**
@@ -228,35 +208,21 @@ export default class PerformanceMonitoring {
    */
   private async processSendQueue(): Promise<void> {
     if (this.sendQueue.length === 0) {
-      this.sendTimeout = null;
-
       return;
     }
 
     try {
       const transaction = this.sendQueue.shift()!;
-
       await this.sendPerformanceData(transaction);
-      this.lastSendTime = Date.now();
     } catch (error) {
       if (this.debug) {
         log('Failed to send performance data', 'error', error);
       }
-    } finally {
-      this.sendTimeout = null;
-      if (this.sendQueue.length > 0) {
-        this.scheduleSend();
-      }
     }
-  }
 
-  /**
-   * Queue transaction for sending
-   */
-  public queueTransaction(transaction: Transaction): void {
-    this.activeTransactions.delete(transaction.id);
-    this.sendQueue.push(transaction);
-    this.scheduleSend();
+    if (this.sendQueue.length > 0) {
+      void this.processSendQueue();
+    }
   }
 
   /**
@@ -321,16 +287,6 @@ export default class PerformanceMonitoring {
   public destroy(): void {
     // Finish any remaining transactions
     this.activeTransactions.forEach(transaction => transaction.finish());
-
-    // Clear any pending send timeout
-    if (this.sendTimeout !== null) {
-      if (isBrowser) {
-        window.clearTimeout(this.sendTimeout as number);
-      } else {
-        clearTimeout(this.sendTimeout as NodeJS.Timeout);
-      }
-      this.sendTimeout = null;
-    }
 
     // Force send any remaining queued data
     if (this.sendQueue.length > 0) {
