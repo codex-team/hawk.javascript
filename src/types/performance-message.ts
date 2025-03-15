@@ -1,13 +1,18 @@
-import type { Transaction } from './transaction';
+import type { Transaction } from '../modules/performance';
 import type { EncodedIntegrationToken } from '@hawk.so/types';
+import type { Span } from '../modules/performance';
 
 /**
  * Interface for performance monitoring message payload
  */
-export interface PerformancePayload extends Transaction {
-  /**
-   * Version of the catcher that sent this message
-   */
+export interface PerformancePayload {
+  id: string;
+  name: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  tags: Record<string, string>;
+  spans: Span[];
   catcherVersion: string;
 }
 
