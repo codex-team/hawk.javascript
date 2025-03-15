@@ -163,41 +163,34 @@ hawk.connectVue(Vue)
 
 ## Performance Monitoring
 
-Hawk JavaScript Catcher also provides performance monitoring capabilities. You can track transactions and spans to measure the performance of your application.
+Hawk JavaScript Catcher includes a Performance Monitoring API to track application performance metrics:
 
-### Basic Usage
-
-```javascript
-const hawk = new Catcher('your-integration-token');
-
+```typescript
 // Start a transaction
 const transaction = hawk.startTransaction('page-load', {
-  route: '/dashboard',
-  method: 'GET'
+  page: '/home',
+  type: 'navigation'
 });
 
-// Create a span for measuring API call
-const apiSpan = hawk.startSpan(transaction.id, 'api-request', {
-  url: '/api/users',
-  method: 'GET'
+// Create spans within transaction
+const span = transaction.startSpan('api-call', {
+  url: '/api/users'
 });
 
-// Do some API work...
+// Finish span when operation completes
+span.finish();
 
-// Finish the span when API call is done
-hawk.finishSpan(apiSpan.id);
-
-// Create another span for data processing
-const processSpan = hawk.startSpan(transaction.id, 'process-data');
-
-// Do processing work...
-
-// Finish the processing span
-hawk.finishSpan(processSpan.id);
-
-// Finish the transaction
-hawk.finishTransaction(transaction.id);
+// Finish transaction
+transaction.finish();
 ```
+
+Features:
+- Track transactions and spans with timing data
+- Automatic span completion when transaction ends
+- Support for both browser and Node.js environments
+- Debug mode for development
+- Throttled data sending to prevent server overload
+- Graceful cleanup on page unload/process exit
 
 ### API Reference
 
@@ -241,6 +234,8 @@ interface Transaction {
   duration?: number;
   tags: Record<string, string>;
   spans: Span[];
+  startSpan(name: string, metadata?: Record<string, any>): Span;
+  finish(): void;
 }
 ```
 
@@ -254,6 +249,7 @@ interface Span {
   endTime?: number;
   duration?: number;
   metadata?: Record<string, any>;
+  finish(): void;
 }
 ```
 
@@ -277,7 +273,7 @@ router.beforeEach((to, from, next) => {
   
   // After route change is complete
   Vue.nextTick(() => {
-    hawk.finishTransaction(transaction.id);
+    transaction.finish();
   });
 });
 ```
@@ -287,7 +283,7 @@ router.beforeEach((to, from, next) => {
 async function fetchUsers() {
   const transaction = hawk.startTransaction('fetch-users');
   
-  const apiSpan = hawk.startSpan(transaction.id, 'api-call', {
+  const apiSpan = transaction.startSpan('api-call', {
     url: '/api/users',
     method: 'GET'
   });
@@ -296,15 +292,15 @@ async function fetchUsers() {
     const response = await fetch('/api/users');
     const data = await response.json();
     
-    hawk.finishSpan(apiSpan.id);
+    apiSpan.finish();
     
-    const processSpan = hawk.startSpan(transaction.id, 'process-data');
+    const processSpan = transaction.startSpan('process-data');
     // Process data...
-    hawk.finishSpan(processSpan.id);
+    processSpan.finish();
     
     return data;
   } finally {
-    hawk.finishTransaction(transaction.id);
+    transaction.finish();
   }
 }
 ```

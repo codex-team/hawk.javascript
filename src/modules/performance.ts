@@ -1,6 +1,4 @@
 import type { PerformanceMessage } from '../types/performance-message';
-import type { Transaction } from '../types/transaction';
-import type { Span } from '../types/span';
 import { id } from '../utils/id';
 import log from '../utils/log';
 import type Socket from './socket';
@@ -38,11 +36,6 @@ export default class PerformanceMonitoring {
    * Active transactions map
    */
   private activeTransactions: Map<string, Transaction> = new Map();
-
-  /**
-   * Active spans map
-   */
-  private activeSpans: Map<string, Span> = new Map();
 
   /**
    * Queue for transactions waiting to be sent
@@ -84,7 +77,7 @@ export default class PerformanceMonitoring {
   private initBeforeUnloadHandler(): void {
     window.addEventListener('beforeunload', () => {
       // Finish any active transactions before unload
-      this.activeTransactions.forEach((_, id) => this.finishTransaction(id));
+      this.activeTransactions.forEach(transaction => transaction.finish());
     });
   }
 
@@ -94,12 +87,12 @@ export default class PerformanceMonitoring {
   private initProcessExitHandler(): void {
     process.on('beforeExit', () => {
       // Finish any active transactions before exit
-      this.activeTransactions.forEach((_, id) => this.finishTransaction(id));
+      this.activeTransactions.forEach(transaction => transaction.finish());
     });
 
     ['SIGINT', 'SIGTERM'].forEach(signal => {
       process.on(signal, () => {
-        this.activeTransactions.forEach((_, id) => this.finishTransaction(id));
+        this.activeTransactions.forEach(transaction => transaction.finish());
         process.exit(0);
       });
     });
@@ -153,10 +146,9 @@ export default class PerformanceMonitoring {
 
   /**
    * Queue transaction for sending
-   *
-   * @param transaction
    */
-  private queueTransaction(transaction: Transaction): void {
+  public queueTransaction(transaction: Transaction): void {
+    this.activeTransactions.delete(transaction.id);
     this.sendQueue.push(transaction);
     this.scheduleSend();
   }
@@ -169,7 +161,7 @@ export default class PerformanceMonitoring {
    * @returns Transaction object
    */
   public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
-    const transaction: Transaction = {
+    const data = {
       id: id(),
       traceId: id(),
       name,
@@ -178,88 +170,9 @@ export default class PerformanceMonitoring {
       spans: [],
     };
 
+    const transaction = new Transaction(data, this);
     this.activeTransactions.set(transaction.id, transaction);
-
     return transaction;
-  }
-
-  /**
-   * Starts a new span within a transaction
-   *
-   * @param transactionId - Parent transaction ID
-   * @param name - Span name
-   * @param metadata - Optional metadata for the span
-   * @returns Span object
-   */
-  public startSpan(transactionId: string, name: string, metadata?: Record<string, any>): Span {
-    const span: Span = {
-      id: id(),
-      transactionId,
-      name,
-      startTime: getTimestamp(),
-      metadata,
-    };
-
-    this.activeSpans.set(span.id, span);
-    const transaction = this.activeTransactions.get(transactionId);
-
-    if (transaction) {
-      transaction.spans.push(span);
-    }
-
-    return span;
-  }
-
-  /**
-   * Finishes a span and calculates its duration
-   *
-   * @param spanId - ID of the span to finish
-   */
-  public finishSpan(spanId: string): void {
-    const span = this.activeSpans.get(spanId);
-
-    if (span) {
-      span.endTime = getTimestamp();
-      span.duration = span.endTime - span.startTime;
-      this.activeSpans.delete(spanId);
-    }
-  }
-
-  /**
-   * Finishes a transaction, calculates its duration and sends it
-   *
-   * @param transactionId - ID of the transaction to finish
-   */
-  public finishTransaction(transactionId: string): void {
-    const transaction = this.activeTransactions.get(transactionId);
-
-    if (transaction) {
-      // Finish all active spans belonging to this transaction
-      transaction.spans.forEach(span => {
-        if (!span.endTime) {
-          if (this.debug) {
-            log(`Automatically finishing uncompleted span "${span.name}" in transaction "${transaction.name}"`, 'warn');
-          }
-
-          const activeSpan = this.activeSpans.get(span.id);
-
-          if (activeSpan) {
-            activeSpan.endTime = getTimestamp();
-            activeSpan.duration = activeSpan.endTime - activeSpan.startTime;
-            this.activeSpans.delete(span.id);
-
-            // Update span in transaction with final data
-            Object.assign(span, activeSpan);
-          }
-        }
-      });
-
-      transaction.endTime = getTimestamp();
-      transaction.duration = transaction.endTime - transaction.startTime;
-      this.activeTransactions.delete(transactionId);
-
-      this.queueTransaction(transaction);
-    }
   }
 
   /**
@@ -285,7 +198,7 @@ export default class PerformanceMonitoring {
    */
   public destroy(): void {
     // Finish any remaining transactions
-    this.activeTransactions.forEach((_, id) => this.finishTransaction(id));
+    this.activeTransactions.forEach(transaction => transaction.finish());
 
     // Clear any pending send timeout
     if (this.sendTimeout !== null) {
@@ -301,5 +214,75 @@ export default class PerformanceMonitoring {
     if (this.sendQueue.length > 0) {
       void this.processSendQueue();
     }
+  }
+}
+
+/**
+ * Class representing a span of work within a transaction
+ */
+export class Span {
+  public readonly id: string;
+  public readonly transactionId: string;
+  public readonly name: string;
+  public readonly startTime: number;
+  public endTime?: number;
+  public duration?: number;
+  public readonly metadata?: Record<string, any>;
+
+  constructor(data: Omit<Span, 'finish'>) {
+    Object.assign(this, data);
+  }
+
+  public finish(): void {
+    this.endTime = getTimestamp();
+    this.duration = this.endTime - this.startTime;
+  }
+}
+
+/**
+ * Class representing a transaction that can contain multiple spans
+ */
+export class Transaction {
+  public readonly id: string;
+  public readonly traceId: string;
+  public readonly name: string;
+  public readonly startTime: number;
+  public endTime?: number;
+  public duration?: number;
+  public readonly tags: Record<string, string>;
+  public readonly spans: Span[] = [];
+
+  constructor(
+    data: Omit<Transaction, 'startSpan' | 'finish'>,
+    private readonly performance: PerformanceMonitoring
+  ) {
+    Object.assign(this, data);
+  }
+
+  public startSpan(name: string, metadata?: Record<string, any>): Span {
+    const data = {
+      id: id(),
+      transactionId: this.id,
+      name,
+      startTime: getTimestamp(),
+      metadata,
+    };
+
+    const span = new Span(data);
+    this.spans.push(span);
+    return span;
+  }
+
+  public finish(): void {
+    // Finish all unfinished spans
+    this.spans.forEach(span => {
+      if (!span.endTime) {
+        span.finish();
+      }
+    });
+
+    this.endTime = getTimestamp();
+    this.duration = this.endTime - this.startTime;
+    this.performance.queueTransaction(this);
   }
 }
