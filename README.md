@@ -163,6 +163,15 @@ hawk.connectVue(Vue)
 
 ## Performance Monitoring
 
+To enable performance monitoring, set `performance: true` in the HawkCatcher constructor:
+
+```typescript
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  performance: true
+});
+```
+
 Hawk JavaScript Catcher includes a Performance Monitoring API to track application performance metrics:
 
 ```typescript
@@ -192,11 +201,13 @@ Features:
 - Throttled data sending to prevent server overload
 - Graceful cleanup on page unload/process exit
 
+> Note: If performance monitoring is not enabled, `startTransaction()` will return undefined and log an error to the console.
+
 ### API Reference
 
 #### startTransaction(name: string, tags?: Record<string, string>): Transaction
 
-Starts a new transaction. A transaction represents a high-level operation like a page load or an API request.
+Starts a new transaction. A transaction represents a high-level operation like a page load or an API call.
 
 - `name`: Name of the transaction
 - `tags`: Optional key-value pairs for additional transaction data
@@ -282,7 +293,7 @@ router.beforeEach((to, from, next) => {
 async function fetchUsers() {
   const transaction = hawk.startTransaction('fetch-users');
   
-  const apiSpan = transaction.startSpan('api-call', {
+  const apiSpan = transaction.startSpan('GET /api/user', {
     url: '/api/users',
     method: 'GET'
   });

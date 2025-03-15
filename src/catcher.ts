@@ -16,9 +16,7 @@ import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
-import PerformanceMonitoring from './modules/performance';
-import type { Transaction } from './types/transaction';
-import type { Span } from './types/span';
+import PerformanceMonitoring, { Transaction } from './modules/performance';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -99,7 +97,7 @@ export default class Catcher {
   /**
    * Performance monitoring instance
    */
-  private readonly performance: PerformanceMonitoring;
+  private readonly performance: PerformanceMonitoring | null = null;
 
   /**
    * Catcher constructor
@@ -156,15 +154,18 @@ export default class Catcher {
       this.connectVue(settings.vue);
     }
 
-    /**
-     * Init performance monitoring
-     */
-    this.performance = new PerformanceMonitoring(
-      this.transport,
-      this.token,
-      this.version,
-      this.debug
-    );
+    if (settings.performance) {
+      /**
+       * Init performance monitoring
+       */
+      this.performance = new PerformanceMonitoring(
+        this.transport,
+        this.token,
+        this.version,
+        this.debug
+      );
+    }
+
   }
 
   /**
@@ -569,43 +570,18 @@ export default class Catcher {
    * @param name - Name of the transaction (e.g., 'page-load', 'api-request')
    * @param tags - Key-value pairs for additional transaction data
    */
-  public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
-    return this.performance.startTransaction(name, tags);
-  }
+  public startTransaction(name: string, tags: Record<string, string> = {}): Transaction | undefined {
+    if (this.performance === null) {
+      console.error('Performance monitoring is not enabled. Please enable it by setting performance: true in the HawkCatcher constructor.');
+    }
 
-  /**
-   * Starts a new span within a transaction
-   *
-   * @param transactionId - ID of the parent transaction this span belongs to
-   * @param name - Name of the span (e.g., 'db-query', 'http-request')
-   * @param metadata - Additional context data for the span
-   */
-  public startSpan(transactionId: string, name: string, metadata?: Record<string, any>): Span {
-    return this.performance.startSpan(transactionId, name, metadata);
-  }
-
-  /**
-   * Finishes a span
-   *
-   * @param spanId - ID of the span to finish
-   */
-  public finishSpan(spanId: string): void {
-    this.performance.finishSpan(spanId);
-  }
-
-  /**
-   * Finishes a transaction
-   *
-   * @param transactionId - ID of the transaction to finish
-   */
-  public finishTransaction(transactionId: string): void {
-    this.performance.finishTransaction(transactionId);
+    return this.performance?.startTransaction(name, tags);
   }
 
   /**
    * Clean up resources
    */
   public destroy(): void {
-    this.performance.destroy();
+    this.performance?.destroy();
   }
 }
