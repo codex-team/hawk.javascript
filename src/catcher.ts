@@ -159,7 +159,12 @@ export default class Catcher {
     /**
      * Init performance monitoring
      */
-    this.performance = new PerformanceMonitoring(this.transport, this.token, this.version);
+    this.performance = new PerformanceMonitoring(
+      this.transport, 
+      this.token, 
+      this.version,
+      this.debug
+    );
   }
 
   /**
@@ -584,5 +589,12 @@ export default class Catcher {
    */
   public finishTransaction(transactionId: string): void {
     this.performance.finishTransaction(transactionId);
+  }
+
+  /**
+   * Clean up resources
+   */
+  public destroy(): void {
+    this.performance.destroy();
   }
 }

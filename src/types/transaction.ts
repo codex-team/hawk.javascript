@@ -1,3 +1,5 @@
+import { Span } from "./span";
+
 /**
  * Interface for Transaction data
  */
