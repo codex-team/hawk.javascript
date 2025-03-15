@@ -83,6 +83,7 @@ export interface HawkInitialSettings {
   performance?: boolean | {
     /**
      * Sample rate for performance data (0.0 to 1.0)
+     *
      * @default 1.0
      */
     sampleRate: number;

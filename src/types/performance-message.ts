@@ -1,4 +1,3 @@
-import type { Transaction } from '../modules/performance';
 import type { EncodedIntegrationToken } from '@hawk.so/types';
 import type { Span } from '../modules/performance';
 

@@ -24,11 +24,6 @@ const getTimestamp = (): number => {
 };
 
 /**
- * Minimum interval between performance data sends (in milliseconds)
- */
-const THROTTLE_INTERVAL = 1000;
-
-/**
  * Class representing a span of work within a transaction
  */
 export class Span {
@@ -38,12 +33,20 @@ export class Span {
   public readonly startTime: number;
   public endTime?: number;
   public duration?: number;
-  public readonly metadata?: Record<string, any>;
+  public readonly metadata?: Record<string, unknown>;
 
+  /**
+   * Constructor for Span
+   *
+   * @param data - Data to initialize the span with. Contains id, transactionId, name, startTime, metadata
+   */
   constructor(data: Omit<Span, 'finish'>) {
     Object.assign(this, data);
   }
 
+  /**
+   *
+   */
   public finish(): void {
     this.endTime = getTimestamp();
     this.duration = this.endTime - this.startTime;
@@ -62,6 +65,11 @@ export class Transaction {
   public readonly tags: Record<string, string>;
   public readonly spans: Span[] = [];
 
+  /**
+   *
+   * @param data
+   * @param performance
+   */
   constructor(
     data: Omit<Transaction, 'startSpan' | 'finish'>,
     private readonly performance: PerformanceMonitoring
@@ -69,7 +77,12 @@ export class Transaction {
     Object.assign(this, data);
   }
 
-  public startSpan(name: string, metadata?: Record<string, any>): Span {
+  /**
+   *
+   * @param name
+   * @param metadata
+   */
+  public startSpan(name: string, metadata?: Record<string, unknown>): Span {
     const data = {
       id: id(),
       transactionId: this.id,
@@ -79,10 +92,15 @@ export class Transaction {
     };
 
     const span = new Span(data);
+
     this.spans.push(span);
+
     return span;
   }
 
+  /**
+   *
+   */
   public finish(): void {
     // Finish all unfinished spans
     this.spans.forEach(span => {
@@ -101,11 +119,23 @@ export class Transaction {
  * Class representing a sampled out transaction that won't be sent to server
  */
 class SampledOutTransaction extends Transaction {
+  /**
+   * Constructor for SampledOutTransaction
+   *
+   * @param data - Data to initialize the transaction with. Contains id, name, startTime, tags and spans
+   */
   constructor(data: Omit<Transaction, 'startSpan' | 'finish'>) {
-    super(data, null as any); // performance не используется
+    super(data, null as unknown as PerformanceMonitoring); // performance не используется
   }
 
-  public startSpan(name: string, metadata?: Record<string, any>): Span {
+  /**
+   * Start a new span within this sampled out transaction
+   *
+   * @param name - Name of the span
+   * @param metadata - Optional metadata to attach to the span
+   * @returns A new Span instance that won't be sent to server
+   */
+  public startSpan(name: string, metadata?: Record<string, unknown>): Span {
     const data = {
       id: id(),
       transactionId: this.id,
@@ -115,10 +145,15 @@ class SampledOutTransaction extends Transaction {
     };
 
     const span = new Span(data);
+
     this.spans.push(span);
+
     return span;
   }
 
+  /**
+   *
+   */
   public finish(): void {
     // Do nothing - don't send to server
   }
@@ -159,11 +194,74 @@ export default class PerformanceMonitoring {
       sampleRate = 1;
     }
     this.sampleRate = Math.max(0, Math.min(1, sampleRate));
-    
+
     if (isBrowser) {
       this.initBeforeUnloadHandler();
     } else {
       this.initProcessExitHandler();
+    }
+  }
+
+  /**
+   * Queue transaction for sending
+   *
+   * @param transaction
+   */
+  public queueTransaction(transaction: Transaction): void {
+    this.activeTransactions.delete(transaction.id);
+    this.sendQueue.push(transaction);
+    void this.processSendQueue();
+  }
+
+
+  /**
+   * Starts a new transaction
+   *
+   * @param name - Transaction name
+   * @param tags - Optional tags for the transaction
+   * @returns Transaction object
+   */
+  public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
+    // Sample transactions based on rate
+    if (Math.random() > this.sampleRate) {
+      if (this.debug) {
+        log(`Transaction "${name}" was sampled out`, 'info');
+      }
+
+      return new SampledOutTransaction({
+        id: id(),
+        name,
+        startTime: getTimestamp(),
+        tags,
+        spans: [],
+      });
+    }
+
+    const data = {
+      id: id(),
+      name,
+      startTime: getTimestamp(),
+      tags,
+      spans: [],
+    };
+
+    const transaction = new Transaction(data, this);
+
+    this.activeTransactions.set(transaction.id, transaction);
+
+    return transaction;
+  }
+
+  /**
+   * Clean up resources and ensure all data is sent
+   */
+  public destroy(): void {
+    // Finish any remaining transactions
+    this.activeTransactions.forEach(transaction => transaction.finish());
+
+    // Force send any remaining queued data
+    if (this.sendQueue.length > 0) {
+      void this.processSendQueue();
     }
   }
 
@@ -195,15 +293,6 @@ export default class PerformanceMonitoring {
   }
 
   /**
-   * Queue transaction for sending
-   */
-  public queueTransaction(transaction: Transaction): void {
-    this.activeTransactions.delete(transaction.id);
-    this.sendQueue.push(transaction);
-    void this.processSendQueue();
-  }
-
-  /**
    * Process queued transactions
    */
   private async processSendQueue(): Promise<void> {
@@ -213,6 +302,7 @@ export default class PerformanceMonitoring {
 
     try {
       const transaction = this.sendQueue.shift()!;
+
       await this.sendPerformanceData(transaction);
     } catch (error) {
       if (this.debug) {
@@ -223,44 +313,6 @@ export default class PerformanceMonitoring {
     if (this.sendQueue.length > 0) {
       void this.processSendQueue();
     }
-  }
-
-  /**
-   * Starts a new transaction
-   *
-   * @param name - Transaction name
-   * @param tags - Optional tags for the transaction
-   * @returns Transaction object
-   */
-  public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
-    // Sample transactions based on rate
-    if (Math.random() > this.sampleRate) {
-      if (this.debug) {
-        log(`Transaction "${name}" was sampled out`, 'info');
-      }
-
-      return new SampledOutTransaction({ 
-        id: id(), 
-        name, 
-        startTime: getTimestamp(), 
-        tags, 
-        spans: [] 
-      });
-    }
-
-    const data = {
-      id: id(),
-      name,
-      startTime: getTimestamp(),
-      tags,
-      spans: [],
-    };
-
-    const transaction = new Transaction(data, this);
-
-    this.activeTransactions.set(transaction.id, transaction);
-
-    return transaction;
   }
 
   /**
@@ -279,18 +331,5 @@ export default class PerformanceMonitoring {
     };
 
     await this.transport.send(performanceMessage);
-  }
-
-  /**
-   * Clean up resources and ensure all data is sent
-   */
-  public destroy(): void {
-    // Finish any remaining transactions
-    this.activeTransactions.forEach(transaction => transaction.finish());
-
-    // Force send any remaining queued data
-    if (this.sendQueue.length > 0) {
-      void this.processSendQueue();
-    }
   }
 }

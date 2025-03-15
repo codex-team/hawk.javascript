@@ -16,7 +16,8 @@ import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
-import PerformanceMonitoring, { Transaction } from './modules/performance';
+import type { Transaction } from './modules/performance';
+import PerformanceMonitoring from './modules/performance';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -155,8 +156,8 @@ export default class Catcher {
     }
 
     if (settings.performance) {
-      const sampleRate = typeof settings.performance === 'object' ? 
-        settings.performance.sampleRate : 
+      const sampleRate = typeof settings.performance === 'object' ?
+        settings.performance.sampleRate :
         1.0;
 
       this.performance = new PerformanceMonitoring(
@@ -167,7 +168,6 @@ export default class Catcher {
         sampleRate
       );
     }
-
   }
 
   /**
@@ -237,6 +237,28 @@ export default class Catcher {
     }, {
       disableVueErrorHandler: this.disableVueErrorHandler,
     });
+  }
+
+
+  /**
+   * Starts a new transaction
+   *
+   * @param name - Name of the transaction (e.g., 'page-load', 'api-request')
+   * @param tags - Key-value pairs for additional transaction data
+   */
+  public startTransaction(name: string, tags: Record<string, string> = {}): Transaction | undefined {
+    if (this.performance === null) {
+      console.error('Performance monitoring is not enabled. Please enable it by setting performance: true in the HawkCatcher constructor.');
+    }
+
+    return this.performance?.startTransaction(name, tags);
+  }
+
+  /**
+   * Clean up resources
+   */
+  public destroy(): void {
+    this.performance?.destroy();
   }
 
   /**
@@ -564,26 +586,5 @@ export default class Catcher {
    */
   private appendIntegrationAddons(errorFormatted: CatcherMessage, integrationAddons: JavaScriptCatcherIntegrations): void {
     Object.assign(errorFormatted.payload.addons, integrationAddons);
-  }
-
-  /**
-   * Starts a new transaction
-   *
-   * @param name - Name of the transaction (e.g., 'page-load', 'api-request')
-   * @param tags - Key-value pairs for additional transaction data
-   */
-  public startTransaction(name: string, tags: Record<string, string> = {}): Transaction | undefined {
-    if (this.performance === null) {
-      console.error('Performance monitoring is not enabled. Please enable it by setting performance: true in the HawkCatcher constructor.');
-    }
-
-    return this.performance?.startTransaction(name, tags);
-  }
-
-  /**
-   * Clean up resources
-   */
-  public destroy(): void {
-    this.performance?.destroy();
   }
 }
