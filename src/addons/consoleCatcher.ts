@@ -4,18 +4,35 @@
 
 import type { ConsoleLogEvent } from '@hawk.so/types';
 
-const createConsoleCatcher = () => {
+/**
+ * Factory function to create a console log catcher
+ * @returns Object with methods for initializing, retrieving, and adding console logs
+ */
+const createConsoleCatcher = (): {
+  initConsoleCatcher: () => void;
+  addErrorEvent: (event: ErrorEvent | PromiseRejectionEvent) => void;
+  getConsoleLogStack: () => ConsoleLogEvent[];
+} => {
   const MAX_LOGS = 20;
   const consoleOutput: ConsoleLogEvent[] = [];
   let isInitialized = false;
 
-  const addToConsoleOutput = (logEvent: ConsoleLogEvent) => {
+  /**
+   * Adds a log event to the console output buffer
+   * @param logEvent - The log event to store
+   */
+  const addToConsoleOutput = (logEvent: ConsoleLogEvent): void => {
     if (consoleOutput.length >= MAX_LOGS) {
       consoleOutput.shift();
     }
     consoleOutput.push(logEvent);
   };
 
+  /**
+   * Creates a ConsoleLogEvent from an ErrorEvent or PromiseRejectionEvent
+   * @param event - The event to process
+   * @returns The formatted log event
+   */
   const createConsoleEventFromError = (
     event: ErrorEvent | PromiseRejectionEvent
   ): ConsoleLogEvent => {
@@ -43,13 +60,16 @@ const createConsoleCatcher = () => {
   };
 
   return {
+    /**
+     * Initializes the console catcher by overriding console methods
+     */
     initConsoleCatcher(): void {
       if (isInitialized) {
         return;
       }
 
       isInitialized = true;
-      const consoleMethods = ['log', 'warn', 'error', 'info', 'debug'];
+      const consoleMethods: string[] = ['log', 'warn', 'error', 'info', 'debug'];
 
       consoleMethods.forEach((method) => {
         if (typeof window.console[method] !== 'function') {
@@ -58,7 +78,7 @@ const createConsoleCatcher = () => {
 
         const oldFunction = window.console[method].bind(window.console);
 
-        window.console[method] = function (...args): void {
+        window.console[method] = function (...args: unknown[]): void {
           const stack =
             new Error().stack?.split('\n').slice(2).join('\n') || '';
 
@@ -67,10 +87,7 @@ const createConsoleCatcher = () => {
             timestamp: new Date(),
             type: method,
             message: args
-              .map((arg) =>
-                typeof arg === 'string' ? arg : JSON.stringify(arg)
-              )
-              .join(' '),
+              .map((arg) => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' '),
             stack,
             fileLine: stack.split('\n')[0]?.trim(),
           };
@@ -81,13 +98,21 @@ const createConsoleCatcher = () => {
       });
     },
 
+    /**
+     * Adds an error event (either an ErrorEvent or a PromiseRejectionEvent) to the log stack
+     * @param event - The error event to log
+     */
     addErrorEvent(event: ErrorEvent | PromiseRejectionEvent): void {
       const logEvent = createConsoleEventFromError(event);
       addToConsoleOutput(logEvent);
     },
 
+    /**
+     * Retrieves the current console log stack
+     * @returns A copy of the console log stack
+     */
     getConsoleLogStack(): ConsoleLogEvent[] {
-      return [...consoleOutput];
+      return [ ...consoleOutput ];
     },
   };
 };
