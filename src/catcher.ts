@@ -160,8 +160,8 @@ export default class Catcher {
      * Init performance monitoring
      */
     this.performance = new PerformanceMonitoring(
-      this.transport, 
-      this.token, 
+      this.transport,
+      this.token,
       this.version,
       this.debug
     );
@@ -565,6 +565,9 @@ export default class Catcher {
 
   /**
    * Starts a new transaction
+   *
+   * @param name
+   * @param tags
    */
   public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
     return this.performance.startTransaction(name, tags);
@@ -572,6 +575,10 @@ export default class Catcher {
 
   /**
    * Starts a new span within a transaction
+   *
+   * @param transactionId
+   * @param name
+   * @param metadata
    */
   public startSpan(transactionId: string, name: string, metadata?: Record<string, any>): Span {
     return this.performance.startSpan(transactionId, name, metadata);
@@ -579,6 +586,8 @@ export default class Catcher {
 
   /**
    * Finishes a span
+   *
+   * @param spanId
    */
   public finishSpan(spanId: string): void {
     this.performance.finishSpan(spanId);
@@ -586,6 +595,8 @@ export default class Catcher {
 
   /**
    * Finishes a transaction
+   *
+   * @param transactionId
    */
   public finishTransaction(transactionId: string): void {
     this.performance.finishTransaction(transactionId);

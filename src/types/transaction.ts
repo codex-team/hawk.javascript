@@ -1,4 +1,4 @@
-import { Span } from "./span";
+import { Span } from './span';
 
 /**
  * Interface for Transaction data
@@ -43,4 +43,4 @@ export interface Transaction {
    * List of spans associated with this transaction
    */
   spans: Span[];
-} 
+}

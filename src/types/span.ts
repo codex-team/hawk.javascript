@@ -36,4 +36,4 @@ export interface Span {
    * Additional context data for the span
    */
   metadata?: Record<string, any>;
-} 
+}

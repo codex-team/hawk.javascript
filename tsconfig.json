@@ -1,5 +1,6 @@
 {
   "compilerOptions" : {
+    "module": "es2015",
     "strict": false,
     "strictNullChecks": true,
     "sourceMap": true,
@@ -7,8 +8,7 @@
     "declaration": true,
     "outDir": "dist",
     "rootDir": "src",
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "classic",
     "lib": ["dom", "es2017", "es2018"],
     "baseUrl": ".",
     "paths": {

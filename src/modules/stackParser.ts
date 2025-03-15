@@ -47,7 +47,7 @@ export default class StackParser {
     try {
       if (!frame.fileName) {
         return null;
-      };
+      }
 
       if (!this.isValidUrl(frame.fileName)) {
         return null;

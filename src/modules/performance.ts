@@ -76,7 +76,7 @@ export default class PerformanceMonitoring {
     } else {
       this.initProcessExitHandler();
     }
-    
+
     this.startBatchSending();
   }
 
@@ -115,6 +115,7 @@ export default class PerformanceMonitoring {
     }
 
     const timer = isBrowser ? window.setInterval : setInterval;
+
     this.batchTimeout = timer(() => {
       void this.sendBatch();
     }, BATCH_INTERVAL);
@@ -145,7 +146,7 @@ export default class PerformanceMonitoring {
     this.isSending = true;
 
     const batch = this.queue;
-    
+
     try {
       this.queue = [];
 
@@ -171,7 +172,7 @@ export default class PerformanceMonitoring {
 
   /**
    * Starts a new transaction
-   * 
+   *
    * @param name - Transaction name
    * @param tags - Optional tags for the transaction
    * @returns Transaction object
@@ -183,16 +184,17 @@ export default class PerformanceMonitoring {
       name,
       startTime: getTimestamp(),
       tags,
-      spans: []
+      spans: [],
     };
 
     this.activeTransactions.set(transaction.id, transaction);
+
     return transaction;
   }
 
   /**
    * Starts a new span within a transaction
-   * 
+   *
    * @param transactionId - Parent transaction ID
    * @param name - Span name
    * @param metadata - Optional metadata for the span
@@ -204,7 +206,7 @@ export default class PerformanceMonitoring {
       transactionId,
       name,
       startTime: getTimestamp(),
-      metadata
+      metadata,
     };
 
     this.activeSpans.set(span.id, span);
@@ -219,11 +221,12 @@ export default class PerformanceMonitoring {
 
   /**
    * Finishes a span and calculates its duration
-   * 
+   *
    * @param spanId - ID of the span to finish
    */
   public finishSpan(spanId: string): void {
     const span = this.activeSpans.get(spanId);
+
     if (span) {
       span.endTime = getTimestamp();
       span.duration = span.endTime - span.startTime;
@@ -233,11 +236,12 @@ export default class PerformanceMonitoring {
 
   /**
    * Finishes a transaction, calculates its duration and queues it for sending
-   * 
+   *
    * @param transactionId - ID of the transaction to finish
    */
   public finishTransaction(transactionId: string): void {
     const transaction = this.activeTransactions.get(transactionId);
+
     if (transaction) {
       // Finish all active spans belonging to this transaction
       transaction.spans.forEach(span => {
@@ -247,6 +251,7 @@ export default class PerformanceMonitoring {
           }
 
           const activeSpan = this.activeSpans.get(span.id);
+
           if (activeSpan) {
             activeSpan.endTime = getTimestamp();
             activeSpan.duration = activeSpan.endTime - activeSpan.startTime;
@@ -261,14 +266,14 @@ export default class PerformanceMonitoring {
       transaction.endTime = getTimestamp();
       transaction.duration = transaction.endTime - transaction.startTime;
       this.activeTransactions.delete(transactionId);
-      
+
       this.queue.push(transaction);
     }
   }
 
   /**
    * Sends performance data to Hawk collector
-   * 
+   *
    * @param transaction - Transaction data to send
    */
   private async sendPerformanceData(transaction: Transaction): Promise<void> {
@@ -277,8 +282,8 @@ export default class PerformanceMonitoring {
       catcherType: 'performance',
       payload: {
         ...transaction,
-        catcherVersion: this.version
-      }
+        catcherVersion: this.version,
+      },
     };
 
     await this.transport.send(performanceMessage);
@@ -290,4 +295,4 @@ export default class PerformanceMonitoring {
   public destroy(): void {
     this.stopBatchSending();
   }
-} 
+}
