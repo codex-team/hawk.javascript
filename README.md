@@ -74,6 +74,7 @@ Initialization settings:
 | `disableGlobalErrorsHandling` | boolean | optional | Do not initialize global errors handling |
 | `disableVueErrorHandler` | boolean | optional | Do not initialize Vue errors handling |
 | `beforeSend` | function(event) => event | optional | This Method allows you to filter any data you don't want sending to Hawk |
+| `performance` | boolean\|object | optional | Performance monitoring settings. When object, accepts: <br> - `sampleRate`: Sample rate (0.0 to 1.0, default: 1.0) <br> - `batchInterval`: Batch send interval in ms (default: 3000) |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -163,44 +164,38 @@ hawk.connectVue(Vue)
 
 ## Performance Monitoring
 
-To enable performance monitoring, configure it in the HawkCatcher constructor:
+The SDK can monitor performance of your application by tracking transactions and spans.
 
-```typescript
-const hawk = new HawkCatcher({
-  token: 'INTEGRATION_TOKEN',
-  // Enable with default settings (100% sampling)
-  performance: true
-});
+### Transaction Batching
 
-// Or enable with custom sample rate
+By default, transactions are collected and sent in batches every 3 seconds to reduce network overhead.
+You can configure the batch interval using the `batchInterval` option:
+
+```js
 const hawk = new HawkCatcher({
   token: 'INTEGRATION_TOKEN',
   performance: {
-    // Sample 20% of transactions
-    sampleRate: 0.2
+    batchInterval: 5000 // Send batches every 5 seconds
   }
 });
 ```
 
-Hawk JavaScript Catcher includes a Performance Monitoring API to track application performance metrics:
+Transactions are automatically batched and sent:
+- Every `batchInterval` milliseconds
+- When the page is unloaded (in browser)
+- When the process exits (in Node.js)
+
+### Sampling
+
+You can configure what percentage of transactions should be sent to Hawk using the `sampleRate` option:
 
 ```typescript
-// Start a transaction
-const transaction = hawk.startTransaction('page-load', {
-  page: '/home',
-  type: 'navigation'
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  performance: {
+    sampleRate: 0.2
+  }
 });
-
-// Create spans within transaction
-const span = transaction.startSpan('api-call', {
-  url: '/api/users'
-});
-
-// Finish span when operation completes
-span.finish();
-
-// Finish transaction
-transaction.finish();
 ```
 
 Features:

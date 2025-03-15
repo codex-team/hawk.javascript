@@ -87,5 +87,12 @@ export interface HawkInitialSettings {
      * @default 1.0
      */
     sampleRate: number;
+
+    /**
+     * Interval between batch sends in milliseconds
+     *
+     * @default 3000
+     */
+    batchInterval?: number;
   };
 }

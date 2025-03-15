@@ -6,6 +6,11 @@ import { isBrowser } from '../utils/is-browser';
 import { getTimestamp } from '../utils/get-timestamp';
 
 /**
+ * Default interval between batch sends in milliseconds
+ */
+const DEFAULT_BATCH_INTERVAL = 3000;
+
+/**
  * Class representing a span of work within a transaction
  */
 export class Span {
@@ -141,10 +146,18 @@ class SampledOutTransaction extends Transaction {
   }
 }
 
+
+
 /**
  * Class for managing performance monitoring
  */
 export default class PerformanceMonitoring {
+
+  /**
+   * Timer for batch sending
+   */
+  private batchTimeout: ReturnType<typeof setTimeout> | null = null;
+
   /**
    * Map of active transactions by their ID
    * Used to:
@@ -171,13 +184,15 @@ export default class PerformanceMonitoring {
    * @param version - Catcher version
    * @param debug - Debug mode flag
    * @param sampleRate - Sample rate for performance data (0.0 to 1.0)
+   * @param batchInterval - Interval between batch sends in milliseconds
    */
   constructor(
     private readonly transport: Socket,
     private readonly token: string,
     private readonly version: string,
     private readonly debug: boolean = false,
-    sampleRate: number = 1.0
+    sampleRate: number = 1.0,
+    private readonly batchInterval: number = DEFAULT_BATCH_INTERVAL,
   ) {
     if (sampleRate < 0 || sampleRate > 1) {
       console.error('Performance monitoring sample rate must be between 0 and 1');
@@ -190,6 +205,9 @@ export default class PerformanceMonitoring {
     } else {
       this.initProcessExitHandler();
     }
+
+    // Start batch sending timer
+    this.scheduleBatchSend();
   }
 
   /**
@@ -246,6 +264,14 @@ export default class PerformanceMonitoring {
    * Clean up resources and ensure all data is sent
    */
   public destroy(): void {
+    // Clear batch sending timer
+    if (this.batchTimeout !== null) {
+      const clear = isBrowser ? window.clearInterval : clearInterval;
+      
+      clear(this.batchTimeout);
+      this.batchTimeout = null;
+    }
+
     // Finish any remaining transactions
     this.activeTransactions.forEach(transaction => transaction.finish());
 
@@ -260,7 +286,7 @@ export default class PerformanceMonitoring {
    */
   private initBeforeUnloadHandler(): void {
     window.addEventListener('beforeunload', () => {
-      // Finish any active transactions before unload
+      // Finish any active transactions
       this.activeTransactions.forEach(transaction => transaction.finish());
     });
   }
@@ -284,41 +310,49 @@ export default class PerformanceMonitoring {
   }
 
   /**
-   * Process queued transactions
+   * Schedule periodic batch sending of transactions
+   */
+  private scheduleBatchSend(): void {
+    const timer = isBrowser ? window.setInterval : setInterval;
+    this.batchTimeout = timer(() => void this.processSendQueue(), this.batchInterval);
+  }
+
+  /**
+   * Process queued transactions in batch
    */
   private async processSendQueue(): Promise<void> {
     if (this.sendQueue.length === 0) {
       return;
     }
 
-    try {
-      const transaction = this.sendQueue.shift()!;
+    // Get all transactions from queue
+    const transactions = [...this.sendQueue];
+    this.sendQueue = [];
 
-      await this.sendPerformanceData(transaction);
+    try {
+      await this.sendPerformanceData(transactions);
     } catch (error) {
       if (this.debug) {
         log('Failed to send performance data', 'error', error);
+        // Return failed transactions to queue
+        this.sendQueue.push(...transactions);
       }
-    }
-
-    if (this.sendQueue.length > 0) {
-      void this.processSendQueue();
     }
   }
 
   /**
    * Sends performance data to Hawk collector
    *
-   * @param transaction - Transaction data to send
+   * @param transactions - Array of transactions to send
    */
-  private async sendPerformanceData(transaction: Transaction): Promise<void> {
+  private async sendPerformanceData(transactions: Transaction[]): Promise<void> {
     const performanceMessage: PerformanceMessage = {
       token: this.token,
       catcherType: 'performance',
-      payload: {
+      payload: transactions.map(transaction => ({
         ...transaction,
         catcherVersion: this.version,
-      },
+      })),
     };
 
     await this.transport.send(performanceMessage);

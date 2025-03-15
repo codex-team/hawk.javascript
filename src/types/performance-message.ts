@@ -32,5 +32,5 @@ export interface PerformanceMessage {
   /**
    * Performance monitoring data
    */
-  payload: PerformancePayload;
+  payload: PerformancePayload[];
 }
