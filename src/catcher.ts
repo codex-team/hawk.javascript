@@ -566,8 +566,8 @@ export default class Catcher {
   /**
    * Starts a new transaction
    *
-   * @param name
-   * @param tags
+   * @param name - Name of the transaction (e.g., 'page-load', 'api-request')
+   * @param tags - Key-value pairs for additional transaction data
    */
   public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
     return this.performance.startTransaction(name, tags);
@@ -576,9 +576,9 @@ export default class Catcher {
   /**
    * Starts a new span within a transaction
    *
-   * @param transactionId
-   * @param name
-   * @param metadata
+   * @param transactionId - ID of the parent transaction this span belongs to
+   * @param name - Name of the span (e.g., 'db-query', 'http-request')
+   * @param metadata - Additional context data for the span
    */
   public startSpan(transactionId: string, name: string, metadata?: Record<string, any>): Span {
     return this.performance.startSpan(transactionId, name, metadata);
@@ -587,7 +587,7 @@ export default class Catcher {
   /**
    * Finishes a span
    *
-   * @param spanId
+   * @param spanId - ID of the span to finish
    */
   public finishSpan(spanId: string): void {
     this.performance.finishSpan(spanId);
@@ -596,7 +596,7 @@ export default class Catcher {
   /**
    * Finishes a transaction
    *
-   * @param transactionId
+   * @param transactionId - ID of the transaction to finish
    */
   public finishTransaction(transactionId: string): void {
     this.performance.finishTransaction(transactionId);

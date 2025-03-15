@@ -6,11 +6,6 @@ import log from '../utils/log';
 import type Socket from './socket';
 
 /**
- * Default batch sending interval in milliseconds
- */
-const BATCH_INTERVAL = 5000;
-
-/**
  * Check if code is running in browser environment
  */
 const isBrowser = typeof window !== 'undefined';
@@ -45,21 +40,6 @@ export default class PerformanceMonitoring {
   private activeSpans: Map<string, Span> = new Map();
 
   /**
-   * Queue of completed transactions waiting to be sent
-   */
-  private queue: Transaction[] = [];
-
-  /**
-   * Timer for batch sending
-   */
-  private batchTimeout: number | NodeJS.Timeout | null = null;
-
-  /**
-   * Flag indicating if we're in the process of sending data
-   */
-  private isSending = false;
-
-  /**
    * @param transport - Transport instance for sending data
    * @param token - Integration token
    * @param version - Catcher version
@@ -76,8 +56,6 @@ export default class PerformanceMonitoring {
     } else {
       this.initProcessExitHandler();
     }
-
-    this.startBatchSending();
   }
 
   /**
@@ -85,7 +63,8 @@ export default class PerformanceMonitoring {
    */
   private initBeforeUnloadHandler(): void {
     window.addEventListener('beforeunload', () => {
-      this.flushQueue();
+      // Finish any active transactions before unload
+      this.activeTransactions.forEach((_, id) => this.finishTransaction(id));
     });
   }
 
@@ -93,81 +72,17 @@ export default class PerformanceMonitoring {
    * Initialize handler for Node.js process exit
    */
   private initProcessExitHandler(): void {
-    process.on('beforeExit', async () => {
-      await this.flushQueue();
+    process.on('beforeExit', () => {
+      // Finish any active transactions before exit
+      this.activeTransactions.forEach((_, id) => this.finishTransaction(id));
     });
 
-    // Handle SIGINT and SIGTERM
     ['SIGINT', 'SIGTERM'].forEach(signal => {
-      process.on(signal, async () => {
-        await this.flushQueue();
+      process.on(signal, () => {
+        this.activeTransactions.forEach((_, id) => this.finishTransaction(id));
         process.exit(0);
       });
     });
-  }
-
-  /**
-   * Start batch sending timer
-   */
-  private startBatchSending(): void {
-    if (this.batchTimeout !== null) {
-      return;
-    }
-
-    const timer = isBrowser ? window.setInterval : setInterval;
-
-    this.batchTimeout = timer(() => {
-      void this.sendBatch();
-    }, BATCH_INTERVAL);
-  }
-
-  /**
-   * Stop batch sending timer
-   */
-  private stopBatchSending(): void {
-    if (this.batchTimeout !== null) {
-      if (isBrowser) {
-        window.clearInterval(this.batchTimeout as number);
-      } else {
-        clearInterval(this.batchTimeout as NodeJS.Timeout);
-      }
-      this.batchTimeout = null;
-    }
-  }
-
-  /**
-   * Send batch of transactions
-   */
-  private async sendBatch(): Promise<void> {
-    if (this.isSending || this.queue.length === 0) {
-      return;
-    }
-
-    this.isSending = true;
-
-    const batch = this.queue;
-
-    try {
-      this.queue = [];
-
-      await Promise.all(
-        batch.map(transaction => this.sendPerformanceData(transaction))
-      );
-    } catch (error) {
-      log('Failed to send performance data batch', 'error', error);
-      // Return failed transactions to the queue
-      this.queue.unshift(...batch);
-    } finally {
-      this.isSending = false;
-    }
-  }
-
-  /**
-   * Immediately send all queued transactions
-   */
-  private async flushQueue(): Promise<void> {
-    this.stopBatchSending();
-    await this.sendBatch();
   }
 
   /**
@@ -235,7 +150,7 @@ export default class PerformanceMonitoring {
   }
 
   /**
-   * Finishes a transaction, calculates its duration and queues it for sending
+   * Finishes a transaction, calculates its duration and sends it
    *
    * @param transactionId - ID of the transaction to finish
    */
@@ -267,7 +182,7 @@ export default class PerformanceMonitoring {
       transaction.duration = transaction.endTime - transaction.startTime;
       this.activeTransactions.delete(transactionId);
 
-      this.queue.push(transaction);
+      void this.sendPerformanceData(transaction);
     }
   }
 
@@ -293,6 +208,7 @@ export default class PerformanceMonitoring {
    * Clean up resources
    */
   public destroy(): void {
-    this.stopBatchSending();
+    // Finish any remaining transactions
+    this.activeTransactions.forEach((_, id) => this.finishTransaction(id));
   }
 }

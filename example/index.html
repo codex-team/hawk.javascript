@@ -84,6 +84,60 @@
             font-size: 15px;
             color:inherit;
         }
+
+        .performance-demo {
+            border-radius: 4px;
+        }
+
+        .performance-demo button {
+            padding: 8px 16px;
+            padding-right: 32px;
+            background: #4979E4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            min-width: 200px;
+            text-align: left;
+        }
+
+        .performance-demo button:hover {
+            background: #4869d2;
+        }
+
+        .performance-demo button[disabled] {
+            background: #4979E4;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .performance-demo button .spinner {
+            display: none;
+            width: 10px;
+            height: 10px;
+            border: 2px solid #fff;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            margin-top: -5px;
+        }
+
+        .performance-demo button[disabled] .spinner {
+            display: block;
+        }
+
+        @keyframes rotation {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 <body>
@@ -152,7 +206,17 @@
     <br><br>
     <button id="btn-console-test">Make</button>
 </section>
-<script src="https://unpkg.com/vue@2"></script>
+<section>
+    <h2>Performance Monitoring Demo</h2>
+    <div class="performance-demo">
+        <button id="simulateComplexOperation">
+            Simulate Complex Operation
+            <span class="spinner"></span>
+        </button>
+    </div>
+</section>
+<!-- <script src="https://unpkg.com/vue@2"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
 <section>
     <h2>Test Vue integration: $root</h2>
     <div id="vue-app-1">
@@ -196,7 +260,7 @@
             el: tag,
             instance: new Editor(),
             classProto: Editor,
-            longText: 'Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.',
+            longText: 'Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.',
           }
         },
         props: {
@@ -235,6 +299,32 @@
       rootContextSample: '12345'
     },
   })
+</script>
+<script>
+  // Simulate complex operation with nested spans
+  document.getElementById('simulateComplexOperation').addEventListener('click', () => {
+    const button = document.getElementById('simulateComplexOperation');
+    button.disabled = true;
+
+    const transaction = window.hawk.startTransaction('complex-operation', {
+      type: 'background'
+    });
+
+    const step1 = window.hawk.startSpan(transaction.id, 'step-1');
+    setTimeout(() => {
+      window.hawk.finishSpan(step1.id);
+
+      const step2 = window.hawk.startSpan(transaction.id, 'step-2');
+      // Simulate unfinished span
+      
+      const step3 = window.hawk.startSpan(transaction.id, 'step-3');
+      setTimeout(() => {
+        window.hawk.finishSpan(step3.id);
+        window.hawk.finishTransaction(transaction.id);
+        button.disabled = false;
+      }, 300);
+    }, 400);
+  });
 </script>
 </body>
 </html>
