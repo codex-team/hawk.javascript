@@ -226,7 +226,6 @@ export default class PerformanceMonitoring {
    * @returns Transaction object
    */
   public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
-    debugger;
     // Sample transactions based on rate
     if (Math.random() > this.sampleRate) {
       if (this.debug) {
