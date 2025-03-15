@@ -227,7 +227,6 @@ Finishes a transaction, calculates its duration, and sends the performance data 
 ```typescript
 interface Transaction {
   id: string;
-  traceId: string;
   name: string;
   startTime: number;
   endTime?: number;

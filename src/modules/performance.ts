@@ -163,7 +163,6 @@ export default class PerformanceMonitoring {
   public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
     const data = {
       id: id(),
-      traceId: id(),
       name,
       startTime: getTimestamp(),
       tags,
@@ -244,7 +243,6 @@ export class Span {
  */
 export class Transaction {
   public readonly id: string;
-  public readonly traceId: string;
   public readonly name: string;
   public readonly startTime: number;
   public endTime?: number;
