@@ -32,7 +32,7 @@ export class Span {
   }
 
   /**
-   *
+   * Finishes the span by setting the end time and calculating duration
    */
   public finish(): void {
     this.endTime = getTimestamp();
@@ -53,9 +53,10 @@ export class Transaction {
   public readonly spans: Span[] = [];
 
   /**
-   *
-   * @param data
-   * @param performance
+   * Constructor for Transaction
+   * 
+   * @param data - Data to initialize the transaction with. Contains id, name, startTime, tags
+   * @param performance - Reference to the PerformanceMonitoring instance that created this transaction
    */
   constructor(
     data: Omit<Transaction, 'startSpan' | 'finish'>,
@@ -146,8 +147,6 @@ class SampledOutTransaction extends Transaction {
   }
 }
 
-
-
 /**
  * Class for managing performance monitoring
  */
@@ -218,9 +217,7 @@ export default class PerformanceMonitoring {
   public queueTransaction(transaction: Transaction): void {
     this.activeTransactions.delete(transaction.id);
     this.sendQueue.push(transaction);
-    void this.processSendQueue();
   }
-
 
   /**
    * Starts a new transaction
@@ -230,6 +227,7 @@ export default class PerformanceMonitoring {
    * @returns Transaction object
    */
   public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
+    debugger
     // Sample transactions based on rate
     if (Math.random() > this.sampleRate) {
       if (this.debug) {
@@ -314,6 +312,8 @@ export default class PerformanceMonitoring {
    */
   private scheduleBatchSend(): void {
     const timer = isBrowser ? window.setInterval : setInterval;
+
+    // Устанавливаем интервал для последующих отправок
     this.batchTimeout = timer(() => void this.processSendQueue(), this.batchInterval);
   }
 
@@ -332,10 +332,11 @@ export default class PerformanceMonitoring {
     try {
       await this.sendPerformanceData(transactions);
     } catch (error) {
+      // Return failed transactions to queue
+      this.sendQueue.push(...transactions);
+      
       if (this.debug) {
         log('Failed to send performance data', 'error', error);
-        // Return failed transactions to queue
-        this.sendQueue.push(...transactions);
       }
     }
   }
