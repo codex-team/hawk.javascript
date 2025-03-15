@@ -29,6 +29,102 @@ const getTimestamp = (): number => {
 const THROTTLE_INTERVAL = 1000;
 
 /**
+ * Class representing a span of work within a transaction
+ */
+export class Span {
+  public readonly id: string;
+  public readonly transactionId: string;
+  public readonly name: string;
+  public readonly startTime: number;
+  public endTime?: number;
+  public duration?: number;
+  public readonly metadata?: Record<string, any>;
+
+  constructor(data: Omit<Span, 'finish'>) {
+    Object.assign(this, data);
+  }
+
+  public finish(): void {
+    this.endTime = getTimestamp();
+    this.duration = this.endTime - this.startTime;
+  }
+}
+
+/**
+ * Class representing a transaction that can contain multiple spans
+ */
+export class Transaction {
+  public readonly id: string;
+  public readonly name: string;
+  public readonly startTime: number;
+  public endTime?: number;
+  public duration?: number;
+  public readonly tags: Record<string, string>;
+  public readonly spans: Span[] = [];
+
+  constructor(
+    data: Omit<Transaction, 'startSpan' | 'finish'>,
+    private readonly performance: PerformanceMonitoring
+  ) {
+    Object.assign(this, data);
+  }
+
+  public startSpan(name: string, metadata?: Record<string, any>): Span {
+    const data = {
+      id: id(),
+      transactionId: this.id,
+      name,
+      startTime: getTimestamp(),
+      metadata,
+    };
+
+    const span = new Span(data);
+    this.spans.push(span);
+    return span;
+  }
+
+  public finish(): void {
+    // Finish all unfinished spans
+    this.spans.forEach(span => {
+      if (!span.endTime) {
+        span.finish();
+      }
+    });
+
+    this.endTime = getTimestamp();
+    this.duration = this.endTime - this.startTime;
+    this.performance.queueTransaction(this);
+  }
+}
+
+/**
+ * Class representing a sampled out transaction that won't be sent to server
+ */
+class SampledOutTransaction extends Transaction {
+  constructor(data: Omit<Transaction, 'startSpan' | 'finish'>) {
+    super(data, null as any); // performance не используется
+  }
+
+  public startSpan(name: string, metadata?: Record<string, any>): Span {
+    const data = {
+      id: id(),
+      transactionId: this.id,
+      name,
+      startTime: getTimestamp(),
+      metadata,
+    };
+
+    const span = new Span(data);
+    this.spans.push(span);
+    return span;
+  }
+
+  public finish(): void {
+    // Do nothing - don't send to server
+  }
+}
+
+/**
  * Class for managing performance monitoring
  */
 export default class PerformanceMonitoring {
@@ -52,18 +148,28 @@ export default class PerformanceMonitoring {
    */
   private sendTimeout: number | NodeJS.Timeout | null = null;
 
+  private readonly sampleRate: number;
+
   /**
    * @param transport - Transport instance for sending data
    * @param token - Integration token
    * @param version - Catcher version
    * @param debug - Debug mode flag
+   * @param sampleRate - Sample rate for performance data (0.0 to 1.0)
    */
   constructor(
     private readonly transport: Socket,
     private readonly token: string,
     private readonly version: string,
-    private readonly debug: boolean = false
+    private readonly debug: boolean = false,
+    sampleRate: number = 1.0
   ) {
+    if (sampleRate < 0 || sampleRate > 1) {
+      console.error('Performance monitoring sample rate must be between 0 and 1');
+      sampleRate = 1;
+    }
+    this.sampleRate = Math.max(0, Math.min(1, sampleRate));
+    
     if (isBrowser) {
       this.initBeforeUnloadHandler();
     } else {
@@ -161,6 +267,21 @@ export default class PerformanceMonitoring {
    * @returns Transaction object
    */
   public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
+    // Sample transactions based on rate
+    if (Math.random() > this.sampleRate) {
+      if (this.debug) {
+        log(`Transaction "${name}" was sampled out`, 'info');
+      }
+
+      return new SampledOutTransaction({ 
+        id: id(), 
+        name, 
+        startTime: getTimestamp(), 
+        tags, 
+        spans: [] 
+      });
+    }
+
     const data = {
       id: id(),
       name,
@@ -170,7 +291,9 @@ export default class PerformanceMonitoring {
     };
 
     const transaction = new Transaction(data, this);
+
     this.activeTransactions.set(transaction.id, transaction);
+
     return transaction;
   }
 
@@ -213,74 +336,5 @@ export default class PerformanceMonitoring {
     if (this.sendQueue.length > 0) {
       void this.processSendQueue();
     }
-  }
-}
-
-/**
- * Class representing a span of work within a transaction
- */
-export class Span {
-  public readonly id: string;
-  public readonly transactionId: string;
-  public readonly name: string;
-  public readonly startTime: number;
-  public endTime?: number;
-  public duration?: number;
-  public readonly metadata?: Record<string, any>;
-
-  constructor(data: Omit<Span, 'finish'>) {
-    Object.assign(this, data);
-  }
-
-  public finish(): void {
-    this.endTime = getTimestamp();
-    this.duration = this.endTime - this.startTime;
-  }
-}
-
-/**
- * Class representing a transaction that can contain multiple spans
- */
-export class Transaction {
-  public readonly id: string;
-  public readonly name: string;
-  public readonly startTime: number;
-  public endTime?: number;
-  public duration?: number;
-  public readonly tags: Record<string, string>;
-  public readonly spans: Span[] = [];
-
-  constructor(
-    data: Omit<Transaction, 'startSpan' | 'finish'>,
-    private readonly performance: PerformanceMonitoring
-  ) {
-    Object.assign(this, data);
-  }
-
-  public startSpan(name: string, metadata?: Record<string, any>): Span {
-    const data = {
-      id: id(),
-      transactionId: this.id,
-      name,
-      startTime: getTimestamp(),
-      metadata,
-    };
-
-    const span = new Span(data);
-    this.spans.push(span);
-    return span;
-  }
-
-  public finish(): void {
-    // Finish all unfinished spans
-    this.spans.forEach(span => {
-      if (!span.endTime) {
-        span.finish();
-      }
-    });
-
-    this.endTime = getTimestamp();
-    this.duration = this.endTime - this.startTime;
-    this.performance.queueTransaction(this);
   }
 }

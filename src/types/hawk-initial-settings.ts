@@ -75,7 +75,16 @@ export interface HawkInitialSettings {
   disableVueErrorHandler?: boolean;
 
   /**
-   * Enable performance monitoring features
+   * Performance monitoring settings
+   * - true to enable with default settings
+   * - {sampleRate: number} to enable with custom sample rate
+   * - false or undefined to disable
    */
-  performance?: boolean;
+  performance?: boolean | {
+    /**
+     * Sample rate for performance data (0.0 to 1.0)
+     * @default 1.0
+     */
+    sampleRate: number;
+  };
 }

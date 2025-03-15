@@ -155,14 +155,16 @@ export default class Catcher {
     }
 
     if (settings.performance) {
-      /**
-       * Init performance monitoring
-       */
+      const sampleRate = typeof settings.performance === 'object' ? 
+        settings.performance.sampleRate : 
+        1.0;
+
       this.performance = new PerformanceMonitoring(
         this.transport,
         this.token,
         this.version,
-        this.debug
+        this.debug,
+        sampleRate
       );
     }
 
