@@ -31,9 +31,11 @@ export function initConsoleCatcher(): void {
         method,
         timestamp: new Date(),
         type: method,
-        message: args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' '),
+        message: args
+          .map((arg) => (typeof arg === "string" ? arg : JSON.stringify(arg)))
+          .join(" "),
         stack,
-        fileLine: stack.split('\n')[0]?.trim(),
+        fileLine: stack.split("\n")[0]?.trim(),
       };
 
       consoleOutput.push(logEvent);
@@ -41,18 +43,20 @@ export function initConsoleCatcher(): void {
     };
   });
 
-  window.addEventListener("error", function(event) {
+  window.addEventListener("error", function (event) {
     if (consoleOutput.length >= MAX_LOGS) {
       consoleOutput.shift();
     }
 
     const logEvent: ConsoleLogEvent = {
-      method: 'error',
+      method: "error",
       timestamp: new Date(),
-      type: event.error?.name || 'Error',
+      type: event.error?.name || "Error",
       message: event.error?.message || event.message,
-      stack: event.error?.stack || '',
-      fileLine: event.filename ? `${event.filename}:${event.lineno}:${event.colno}` : '',
+      stack: event.error?.stack || "",
+      fileLine: event.filename
+        ? `${event.filename}:${event.lineno}:${event.colno}`
+        : "",
     };
 
     consoleOutput.push(logEvent);
