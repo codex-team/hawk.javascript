@@ -1,5 +1,11 @@
+import { PerformanceMessage } from 'src/types/performance-message';
 import log from '../utils/log';
 import type { CatcherMessage } from '@/types';
+
+/**
+ * Supported message types
+ */
+export type MessageType = 'errors/javascript' | 'performance';
 
 /**
  * Custom WebSocket wrapper class
@@ -31,7 +37,7 @@ export default class Socket {
    * Queue of events collected while socket is not connected
    * They will be sent when connection will be established
    */
-  private eventsQueue: CatcherMessage[];
+  private eventsQueue: (CatcherMessage | PerformanceMessage)[];
 
   /**
    * Websocket instance
@@ -96,7 +102,7 @@ export default class Socket {
    *
    * @param message - event data in Hawk Format
    */
-  public async send(message: CatcherMessage): Promise<void> {
+  public async send(message: CatcherMessage | PerformanceMessage): Promise<void> {
     if (this.ws === null) {
       this.eventsQueue.push(message);
 

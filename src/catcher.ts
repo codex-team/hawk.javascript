@@ -16,11 +16,15 @@ import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
+import PerformanceMonitoring from './modules/performance';
+import type { Transaction } from './types/transaction';
+import type { Span } from './types/span';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
  */
 declare const VERSION: string;
+
 
 /**
  * Hawk JavaScript Catcher
@@ -91,6 +95,12 @@ export default class Catcher {
    */
   private readonly disableVueErrorHandler: boolean = false;
 
+
+  /**
+   * Performance monitoring instance
+   */
+  private readonly performance: PerformanceMonitoring;
+
   /**
    * Catcher constructor
    *
@@ -145,6 +155,11 @@ export default class Catcher {
     if (settings.vue) {
       this.connectVue(settings.vue);
     }
+
+    /**
+     * Init performance monitoring
+     */
+    this.performance = new PerformanceMonitoring(this.transport, this.token, this.version);
   }
 
   /**
@@ -541,5 +556,33 @@ export default class Catcher {
    */
   private appendIntegrationAddons(errorFormatted: CatcherMessage, integrationAddons: JavaScriptCatcherIntegrations): void {
     Object.assign(errorFormatted.payload.addons, integrationAddons);
+  }
+
+  /**
+   * Starts a new transaction
+   */
+  public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
+    return this.performance.startTransaction(name, tags);
+  }
+
+  /**
+   * Starts a new span within a transaction
+   */
+  public startSpan(transactionId: string, name: string, metadata?: Record<string, any>): Span {
+    return this.performance.startSpan(transactionId, name, metadata);
+  }
+
+  /**
+   * Finishes a span
+   */
+  public finishSpan(spanId: string): void {
+    this.performance.finishSpan(spanId);
+  }
+
+  /**
+   * Finishes a transaction
+   */
+  public finishTransaction(transactionId: string): void {
+    this.performance.finishTransaction(transactionId);
   }
 }

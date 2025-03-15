@@ -24,7 +24,7 @@ Then import `@hawk.so/javascript` module to your code.
 
 ```js
 import HawkCatcher from '@hawk.so/javascript';
-````
+```
 
 ### Load from CDN
 
@@ -151,7 +151,6 @@ const hawk = new HawkCatcher({
 
 or pass it any moment after Hawk Catcher was instantiated:
 
-
 ```js
 import Vue from 'vue';
 
@@ -160,4 +159,152 @@ const hawk = new HawkCatcher({
 });
 
 hawk.connectVue(Vue)
+```
+
+## Performance Monitoring
+
+Hawk JavaScript Catcher also provides performance monitoring capabilities. You can track transactions and spans to measure the performance of your application.
+
+### Basic Usage
+
+```javascript
+const hawk = new Catcher('your-integration-token');
+
+// Start a transaction
+const transaction = hawk.startTransaction('page-load', {
+  route: '/dashboard',
+  method: 'GET'
+});
+
+// Create a span for measuring API call
+const apiSpan = hawk.startSpan(transaction.id, 'api-request', {
+  url: '/api/users',
+  method: 'GET'
+});
+
+// Do some API work...
+
+// Finish the span when API call is done
+hawk.finishSpan(apiSpan.id);
+
+// Create another span for data processing
+const processSpan = hawk.startSpan(transaction.id, 'process-data');
+
+// Do processing work...
+
+// Finish the processing span
+hawk.finishSpan(processSpan.id);
+
+// Finish the transaction
+hawk.finishTransaction(transaction.id);
+```
+
+### API Reference
+
+#### startTransaction(name: string, tags?: Record<string, string>): Transaction
+
+Starts a new transaction. A transaction represents a high-level operation like a page load or an API request.
+
+- `name`: Name of the transaction
+- `tags`: Optional key-value pairs for additional transaction data
+
+#### startSpan(transactionId: string, name: string, metadata?: Record<string, any>): Span
+
+Creates a new span within a transaction. Spans represent smaller units of work within a transaction.
+
+- `transactionId`: ID of the parent transaction
+- `name`: Name of the span
+- `metadata`: Optional metadata for the span
+
+#### finishSpan(spanId: string): void
+
+Finishes a span and calculates its duration.
+
+- `spanId`: ID of the span to finish
+
+#### finishTransaction(transactionId: string): void
+
+Finishes a transaction, calculates its duration, and sends the performance data to Hawk.
+
+- `transactionId`: ID of the transaction to finish
+
+### Data Model
+
+#### Transaction
+```typescript
+interface Transaction {
+  id: string;
+  traceId: string;
+  name: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  tags: Record<string, string>;
+  spans: Span[];
+}
+```
+
+#### Span
+```typescript
+interface Span {
+  id: string;
+  transactionId: string;
+  name: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  metadata?: Record<string, any>;
+}
+```
+
+### Examples
+
+#### Measuring Route Changes in Vue.js
+```javascript
+import { Catcher } from '@hawk.so/javascript';
+import Vue from 'vue';
+import Router from 'vue-router';
+
+const hawk = new Catcher('your-integration-token');
+
+router.beforeEach((to, from, next) => {
+  const transaction = hawk.startTransaction('route-change', {
+    from: from.path,
+    to: to.path
+  });
+  
+  next();
+  
+  // After route change is complete
+  Vue.nextTick(() => {
+    hawk.finishTransaction(transaction.id);
+  });
+});
+```
+
+#### Measuring API Calls
+```javascript
+async function fetchUsers() {
+  const transaction = hawk.startTransaction('fetch-users');
+  
+  const apiSpan = hawk.startSpan(transaction.id, 'api-call', {
+    url: '/api/users',
+    method: 'GET'
+  });
+  
+  try {
+    const response = await fetch('/api/users');
+    const data = await response.json();
+    
+    hawk.finishSpan(apiSpan.id);
+    
+    const processSpan = hawk.startSpan(transaction.id, 'process-data');
+    // Process data...
+    hawk.finishSpan(processSpan.id);
+    
+    return data;
+  } finally {
+    hawk.finishTransaction(transaction.id);
+  }
+}
 ```
