@@ -9,14 +9,22 @@ const consoleOutput: ConsoleLogEvent[] = [];
 
 let isInitialized = false;
 
+/**
+ * Initializes the console catcher by overriding console methods
+ * to capture logs with stack traces.
+ */
 export function initConsoleCatcher(): void {
-  if (isInitialized) { return };
-  isInitialized = true;
+  if (isInitialized) {
+    return
+  };
 
+  isInitialized = true;
   const consoleMethods = ['log', 'warn', 'error', 'info', 'debug'];
 
   consoleMethods.forEach((method) => {
-    if (typeof window.console[method] !== 'function') { return };
+    if (typeof window.console[method] !== 'function') {
+      return
+    };
 
     const oldFunction = window.console[method].bind(window.console);
 
@@ -33,7 +41,7 @@ export function initConsoleCatcher(): void {
         type: method,
         message: args
           .map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg)))
-          .join(" "),
+          .join(' '),
         stack,
         fileLine: stack.split('\n')[0]?.trim(),
       };
@@ -63,6 +71,11 @@ export function initConsoleCatcher(): void {
   });
 }
 
+/**
+ * Returns the stack of captured console logs.
+ *
+ * @returns {ConsoleLogEvent[]} Array of logged console events.
+ */
 export function getConsoleLogStack(): ConsoleLogEvent[] {
-  return [...consoleOutput];
+  return [ ...consoleOutput ];
 }
