@@ -16,8 +16,8 @@ import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
-import type { Transaction } from './modules/performance';
 import PerformanceMonitoring from './modules/performance';
+import { Transaction } from './modules/performance/transaction';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack

@@ -1,151 +1,17 @@
-import type { PerformanceMessage } from '../types/performance-message';
-import { id } from '../utils/id';
-import log from '../utils/log';
-import type Socket from './socket';
-import { isBrowser } from '../utils/is-browser';
-import { getTimestamp } from '../utils/get-timestamp';
+import type { PerformanceMessage } from '../../types/performance-message';
+import { id } from '../../utils/id';
+import log from '../../utils/log';
+import type Socket from '../socket';
+import { isBrowser } from '../../utils/is-browser';
+import { getTimestamp } from '../../utils/get-timestamp';
+import { Transaction, SampledOutTransaction } from './transaction';
 
 /**
  * Default interval between batch sends in milliseconds
  */
 const DEFAULT_BATCH_INTERVAL = 3000;
 
-/**
- * Class representing a span of work within a transaction
- */
-export class Span {
-  public readonly id: string;
-  public readonly transactionId: string;
-  public readonly name: string;
-  public readonly startTime: number;
-  public endTime?: number;
-  public duration?: number;
-  public readonly metadata?: Record<string, unknown>;
 
-  /**
-   * Constructor for Span
-   *
-   * @param data - Data to initialize the span with. Contains id, transactionId, name, startTime, metadata
-   */
-  constructor(data: Omit<Span, 'finish'>) {
-    Object.assign(this, data);
-  }
-
-  /**
-   * Finishes the span by setting the end time and calculating duration
-   */
-  public finish(): void {
-    this.endTime = getTimestamp();
-    this.duration = this.endTime - this.startTime;
-  }
-}
-
-/**
- * Class representing a transaction that can contain multiple spans
- */
-export class Transaction {
-  public readonly id: string;
-  public readonly name: string;
-  public readonly startTime: number;
-  public endTime?: number;
-  public duration?: number;
-  public readonly tags: Record<string, string>;
-  public readonly spans: Span[] = [];
-
-  /**
-   * Constructor for Transaction
-   *
-   * @param data - Data to initialize the transaction with. Contains id, name, startTime, tags
-   * @param performance - Reference to the PerformanceMonitoring instance that created this transaction
-   */
-  constructor(
-    data: Omit<Transaction, 'startSpan' | 'finish'>,
-    private readonly performance: PerformanceMonitoring
-  ) {
-    Object.assign(this, data);
-  }
-
-  /**
-   *
-   * @param name
-   * @param metadata
-   */
-  public startSpan(name: string, metadata?: Record<string, unknown>): Span {
-    const data = {
-      id: id(),
-      transactionId: this.id,
-      name,
-      startTime: getTimestamp(),
-      metadata,
-    };
-
-    const span = new Span(data);
-
-    this.spans.push(span);
-
-    return span;
-  }
-
-  /**
-   *
-   */
-  public finish(): void {
-    // Finish all unfinished spans
-    this.spans.forEach(span => {
-      if (!span.endTime) {
-        span.finish();
-      }
-    });
-
-    this.endTime = getTimestamp();
-    this.duration = this.endTime - this.startTime;
-    this.performance.queueTransaction(this);
-  }
-}
-
-/**
- * Class representing a sampled out transaction that won't be sent to server
- */
-class SampledOutTransaction extends Transaction {
-  /**
-   * Constructor for SampledOutTransaction
-   *
-   * @param data - Data to initialize the transaction with. Contains id, name, startTime, tags and spans
-   */
-  constructor(data: Omit<Transaction, 'startSpan' | 'finish'>) {
-    super(data, null as unknown as PerformanceMonitoring); // performance не используется
-  }
-
-  /**
-   * Start a new span within this sampled out transaction
-   *
-   * @param name - Name of the span
-   * @param metadata - Optional metadata to attach to the span
-   * @returns A new Span instance that won't be sent to server
-   */
-  public startSpan(name: string, metadata?: Record<string, unknown>): Span {
-    const data = {
-      id: id(),
-      transactionId: this.id,
-      name,
-      startTime: getTimestamp(),
-      metadata,
-    };
-
-    const span = new Span(data);
-
-    this.spans.push(span);
-
-    return span;
-  }
-
-  /**
-   *
-   */
-  public finish(): void {
-    // Do nothing - don't send to server
-  }
-}
 
 /**
  * Class for managing performance monitoring
@@ -350,7 +216,7 @@ export default class PerformanceMonitoring {
       token: this.token,
       catcherType: 'performance',
       payload: transactions.map(transaction => ({
-        ...transaction,
+        ...transaction.getData(),
         catcherVersion: this.version,
       })),
     };
