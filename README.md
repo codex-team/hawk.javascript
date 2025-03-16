@@ -74,7 +74,7 @@ Initialization settings:
 | `disableGlobalErrorsHandling` | boolean | optional | Do not initialize global errors handling |
 | `disableVueErrorHandler` | boolean | optional | Do not initialize Vue errors handling |
 | `beforeSend` | function(event) => event | optional | This Method allows you to filter any data you don't want sending to Hawk |
-| `performance` | boolean\|object | optional | Performance monitoring settings. When object, accepts: <br> - `sampleRate`: Sample rate (0.0 to 1.0, default: 1.0) <br> - `batchInterval`: Batch send interval in ms (default: 3000) |
+| `performance` | boolean\|object | optional | Performance monitoring settings. When object, accepts: <br> - `sampleRate`: Sample rate (0.0 to 1.0, default: 1.0) <br> - `thresholdMs`: Minimum duration threshold in ms (default: 20) <br> - `batchInterval`: Batch send interval in ms (default: 3000) |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -166,9 +166,15 @@ hawk.connectVue(Vue)
 
 The SDK can monitor performance of your application by tracking transactions and spans.
 
-### Transaction Batching
+### Transaction Batching and Aggregation
 
-By default, transactions are collected and sent in batches every 3 seconds to reduce network overhead.
+Transactions are collected, aggregated, and sent in batches to reduce network overhead and provide statistical insights:
+
+- Transactions with the same name are grouped together
+- Statistical metrics are calculated (p50, p95, max durations)
+- Spans are aggregated across transactions
+- Failure rates are tracked for both transactions and spans
+
 You can configure the batch interval using the `batchInterval` option:
 
 ```js
@@ -180,12 +186,7 @@ const hawk = new HawkCatcher({
 });
 ```
 
-Transactions are automatically batched and sent:
-- Every `batchInterval` milliseconds
-- When the page is unloaded (in browser)
-- When the process exits (in Node.js)
-
-### Sampling
+### Sampling and Filtering
 
 You can configure what percentage of transactions should be sent to Hawk using the `sampleRate` option:
 
@@ -193,78 +194,45 @@ You can configure what percentage of transactions should be sent to Hawk using t
 const hawk = new HawkCatcher({
   token: 'INTEGRATION_TOKEN',
   performance: {
-    sampleRate: 0.2
+    sampleRate: 0.2, // Sample 20% of transactions
+    thresholdMs: 50  // Only send transactions longer than 50ms
   }
 });
 ```
 
-Features:
-- Track transactions and spans with timing data
-- Automatic span completion when transaction ends
-- Support for both browser and Node.js environments
-- Debug mode for development
-- Throttled data sending to prevent server overload
-- Graceful cleanup on page unload/process exit
-
-> Note: If performance monitoring is not enabled, `startTransaction()` will return undefined and log an error to the console.
+Transactions are automatically filtered based on:
+- Duration threshold (transactions shorter than `thresholdMs` are ignored)
+- Sample rate (random sampling based on `sampleRate`)
+- Severity (critical transactions are always sent regardless of sampling)
+- Status (failed transactions are always sent regardless of sampling)
 
 ### API Reference
 
-#### startTransaction(name: string, tags?: Record<string, string>): Transaction
+#### startTransaction(name: string, severity?: 'default' | 'critical'): Transaction
 
 Starts a new transaction. A transaction represents a high-level operation like a page load or an API call.
 
 - `name`: Name of the transaction
-- `tags`: Optional key-value pairs for additional transaction data
+- `severity`: Optional severity level. 'critical' transactions are always sent regardless of sampling.
 
-#### startSpan(transactionId: string, name: string, metadata?: Record<string, any>): Span
+#### Transaction Methods
 
-Creates a new span within a transaction. Spans represent smaller units of work within a transaction.
-
-- `transactionId`: ID of the parent transaction
-- `name`: Name of the span
-- `metadata`: Optional metadata for the span
-
-#### finishSpan(spanId: string): void
-
-Finishes a span and calculates its duration.
-
-- `spanId`: ID of the span to finish
-
-#### finishTransaction(transactionId: string): void
-
-Finishes a transaction, calculates its duration, and sends the performance data to Hawk.
-
-- `transactionId`: ID of the transaction to finish
-
-### Data Model
-
-#### Transaction
 ```typescript
 interface Transaction {
-  id: string;
-  name: string;
-  startTime: number;
-  endTime?: number;
-  duration?: number;
-  tags: Record<string, string>;
-  spans: Span[];
-  startSpan(name: string, metadata?: Record<string, any>): Span;
-  finish(): void;
+  // Start a new span within this transaction
+  startSpan(name: string): Span;
+  
+  // Finish the transaction with optional status
+  finish(status?: 'success' | 'failure'): void;
 }
 ```
 
-#### Span
+#### Span Methods
+
 ```typescript
 interface Span {
-  id: string;
-  transactionId: string;
-  name: string;
-  startTime: number;
-  endTime?: number;
-  duration?: number;
-  metadata?: Record<string, any>;
-  finish(): void;
+  // Finish the span with optional status
+  finish(status?: 'success' | 'failure'): void;
 }
 ```
 
@@ -282,10 +250,7 @@ const hawk = new HawkCatcher({
 });
 
 router.beforeEach((to, from, next) => {
-  const transaction = hawk.startTransaction('route-change', {
-    from: from.path,
-    to: to.path
-  });
+  const transaction = hawk.startTransaction('route-change');
   
   next();
   
@@ -296,29 +261,53 @@ router.beforeEach((to, from, next) => {
 });
 ```
 
-#### Measuring API Calls
+#### Measuring API Calls with Error Handling
 ```javascript
 async function fetchUsers() {
   const transaction = hawk.startTransaction('fetch-users');
   
-  const apiSpan = transaction.startSpan('GET /api/user', {
-    url: '/api/users',
-    method: 'GET'
-  });
+  const apiSpan = transaction.startSpan('api-call');
   
   try {
     const response = await fetch('/api/users');
-    const data = await response.json();
     
-    apiSpan.finish();
+    if (!response.ok) {
+      apiSpan.finish('failure');
+      transaction.finish('failure');
+      return null;
+    }
+    
+    const data = await response.json();
+    apiSpan.finish('success');
     
     const processSpan = transaction.startSpan('process-data');
     // Process data...
     processSpan.finish();
     
+    transaction.finish('success');
     return data;
-  } finally {
-    transaction.finish();
+  } catch (error) {
+    apiSpan.finish('failure');
+    transaction.finish('failure');
+    throw error;
+  }
+}
+```
+
+#### Critical Transactions
+```javascript
+function processPayment(paymentDetails) {
+  // Mark as critical to ensure it's always sent regardless of sampling
+  const transaction = hawk.startTransaction('payment-processing', 'critical');
+  
+  try {
+    // Payment processing logic...
+    
+    transaction.finish('success');
+    return true;
+  } catch (error) {
+    transaction.finish('failure');
+    throw error;
   }
 }
 ```
