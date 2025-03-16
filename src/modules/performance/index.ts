@@ -29,6 +29,11 @@ const DEFAULT_THRESHOLD_MS = 20;
 const DEFAULT_CRITICAL_DURATION_THRESHOLD_MS = 500;
 
 /**
+ * Maximum number of retries for sending performance data
+ */
+const MAX_SEND_RETRIES = 3;
+
+/**
  * Class for managing performance monitoring
  */
 export default class PerformanceMonitoring {
@@ -46,6 +51,11 @@ export default class PerformanceMonitoring {
    * Sample rate for performance monitoring
    */
   private readonly sampleRate: number;
+
+  /**
+   * Retry counter for failed send attempts
+   */
+  private sendRetries: Map<string, number> = new Map();
 
   /**
    * @param transport - Transport instance for sending data
@@ -147,9 +157,25 @@ export default class PerformanceMonitoring {
       const aggregatedTransactions = this.aggregateTransactions(transactions);
 
       await this.sendPerformanceData(aggregatedTransactions);
+      
+      // Clear retry counters for successful transactions
+      transactions.forEach(tx => this.sendRetries.delete(tx.id));
     } catch (error) {
-      // todo: add repeats limit
-      this.sendQueue.push(...transactions);
+      // Add transactions back to queue with retry limit
+      const retriedTransactions = transactions.filter(tx => {
+        const retryCount = (this.sendRetries.get(tx.id) || 0) + 1;
+        this.sendRetries.set(tx.id, retryCount);
+        
+        const shouldRetry = retryCount <= MAX_SEND_RETRIES;
+        
+        if (!shouldRetry && this.debug) {
+          log(`Performance Monitoring: Transaction ${tx.name} (${tx.id}) exceeded retry limit and will be dropped`, 'warn');
+        }
+        
+        return shouldRetry;
+      });
+      
+      this.sendQueue.push(...retriedTransactions);
 
       if (this.debug) {
         log('Failed to send performance data', 'error', error);
