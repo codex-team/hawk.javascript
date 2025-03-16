@@ -101,7 +101,7 @@ export class SampledOutTransaction extends Transaction {
    * @param data - Data to initialize the transaction with. Contains id, name, startTime, tags and spans
    */
   constructor(data: TransactionData) {
-    super(data, null as unknown as PerformanceMonitoring); // performance не используется
+    super(data, null as unknown as PerformanceMonitoring);
   }
 
   /**

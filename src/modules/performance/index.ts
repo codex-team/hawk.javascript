@@ -92,21 +92,6 @@ export default class PerformanceMonitoring {
    * @returns Transaction object
    */
   public startTransaction(name: string, tags: Record<string, string> = {}): Transaction {
-    // Sample transactions based on rate
-    if (Math.random() > this.sampleRate) {
-      if (this.debug) {
-        log(`Transaction "${name}" was sampled out`, 'info');
-      }
-
-      return new SampledOutTransaction({
-        id: id(),
-        name,
-        startTime: getTimestamp(),
-        tags,
-        spans: [],
-      });
-    }
-
     const data = {
       id: id(),
       name,
@@ -115,8 +100,18 @@ export default class PerformanceMonitoring {
       spans: [],
     };
 
-    const transaction = new Transaction(data, this);
 
+    // Sample transactions based on rate
+    if (Math.random() > this.sampleRate) {
+      if (this.debug) {
+        log(`Transaction "${name}" was sampled out`, 'info');
+      }
+
+      return new SampledOutTransaction(data);
+    }
+
+    const transaction = new Transaction(data, this);
+        
     this.activeTransactions.set(transaction.id, transaction);
 
     return transaction;

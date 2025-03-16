@@ -253,7 +253,7 @@ export default class Catcher {
    */
   public startTransaction(name: string, tags: Record<string, string> = {}): Transaction | undefined {
     if (this.performance === null) {
-      console.error('Performance monitoring is not enabled. Please enable it by setting performance: true in the HawkCatcher constructor.');
+      console.error('Hawk: can not start transaction. Performance monitoring is not enabled. Please enable it by setting performance: true in the HawkCatcher constructor.');
     }
 
     return this.performance?.startTransaction(name, tags);
