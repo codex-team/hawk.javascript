@@ -1,8 +1,17 @@
 import { id } from '../../utils/id';
 import { getTimestamp } from '../../utils/get-timestamp';
-
+/**
+ * Interface for data required to construct a Span
+ */
 interface SpanConstructionData {
+  /**
+   * ID of the transaction this span belongs to
+   */
   transactionId: string;
+
+  /**
+   * Name of the span
+   */
   name: string;
 }
 
@@ -10,13 +19,39 @@ interface SpanConstructionData {
  * Class representing a span of work within a transaction
  */
 export class Span {
+  /**
+   * Unique identifier for this span
+   */
   public readonly id: string = id();
+
+  /**
+   * ID of the transaction this span belongs to
+   */
   public readonly transactionId: string;
+
+  /**
+   * Name of the span
+   */
   public readonly name: string;
+
+  /**
+   * Timestamp when the span started
+   */
   public readonly startTime: number = getTimestamp();
+
+  /**
+   * Timestamp when the span ended
+   */
   public endTime?: number;
+
+  /**
+   * Duration of the span in milliseconds
+   */
   public duration?: number;
-  public readonly metadata?: Record<string, unknown>;
+
+  /**
+   * Status indicating whether the span completed successfully or failed
+   */
   public status: 'success' | 'failure' = 'success';
 
   /**

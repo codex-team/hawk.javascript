@@ -2,7 +2,7 @@ import { getTimestamp } from '../../utils/get-timestamp';
 import type PerformanceMonitoring from '.';
 import { Span } from './span';
 import { id } from '../../utils/id';
-import type { PerformanceMonitoringConfig } from './types';
+import { PerformanceMonitoringConfig } from 'src/types/hawk-initial-settings';
 
 /**
  * Interface representing data needed to construct a Transaction
@@ -24,14 +24,50 @@ export interface TransactionConstructionData {
 /**
  * Class representing a transaction that can contain multiple spans
  */
+/**
+ * Class representing a transaction that can contain multiple spans
+ */
 export class Transaction {
+  /**
+   * Unique identifier for this transaction
+   */
   public readonly id: string = id();
+
+  /**
+   * Name of the transaction
+   */
   public readonly name: string;
+
+  /**
+   * Timestamp when the transaction started
+   */
   public readonly startTime: number = getTimestamp();
+
+  /**
+   * Timestamp when the transaction ended
+   */
   public endTime?: number;
+
+  /**
+   * Duration of the transaction in milliseconds
+   */
   public duration?: number;
+
+  /**
+   * Array of spans contained within this transaction
+   */
   public readonly spans: Span[] = [];
+
+  /**
+   * Status indicating whether the transaction completed successfully or failed
+   */
   public finishStatus: 'success' | 'failure' = 'success';
+
+  /**
+   * Severity level of the transaction
+   * - 'default': Normal transaction that might be sampled out
+   * - 'critical': High priority transaction that will be sent regardless of sampling rate
+   */
   private severity: 'default' | 'critical' = 'default';
 
   /**
@@ -44,7 +80,7 @@ export class Transaction {
   constructor(
     data: TransactionConstructionData,
     private readonly performance: PerformanceMonitoring,
-    private readonly config: PerformanceMonitoringConfig
+    private readonly config: Omit<PerformanceMonitoringConfig, 'batchInterval'>
   ) {
     this.name = data.name;
     this.severity = data.severity;
