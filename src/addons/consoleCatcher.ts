@@ -63,7 +63,8 @@ const createConsoleCatcher = (): {
         const oldFunction = window.console[method].bind(window.console);
 
         window.console[method] = function (...args: unknown[]): void {
-          const stack = new Error().stack?.split('\n').slice(2).join('\n') || '';
+          const stack = new Error().stack?.split('\n').slice(2)
+            .join('\n') || '';
 
           const logEvent: ConsoleLogEvent = {
             method,
@@ -93,4 +94,5 @@ const createConsoleCatcher = (): {
 };
 
 const consoleCatcher = createConsoleCatcher();
+
 export const { initConsoleCatcher, getConsoleLogStack, addErrorEvent } = consoleCatcher;

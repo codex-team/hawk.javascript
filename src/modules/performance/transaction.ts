@@ -2,7 +2,7 @@ import { getTimestamp } from '../../utils/get-timestamp';
 import type PerformanceMonitoring from '.';
 import { Span } from './span';
 import { id } from '../../utils/id';
-import { PerformanceMonitoringConfig } from 'src/types/hawk-initial-settings';
+import type { PerformanceMonitoringConfig } from 'src/types/hawk-initial-settings';
 
 /**
  * Interface representing data needed to construct a Transaction

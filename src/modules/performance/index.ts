@@ -157,24 +157,25 @@ export default class PerformanceMonitoring {
       const aggregatedTransactions = this.aggregateTransactions(transactions);
 
       await this.sendPerformanceData(aggregatedTransactions);
-      
+
       // Clear retry counters for successful transactions
       transactions.forEach(tx => this.sendRetries.delete(tx.id));
     } catch (error) {
       // Add transactions back to queue with retry limit
       const retriedTransactions = transactions.filter(tx => {
         const retryCount = (this.sendRetries.get(tx.id) || 0) + 1;
+
         this.sendRetries.set(tx.id, retryCount);
-        
+
         const shouldRetry = retryCount <= MAX_SEND_RETRIES;
-        
+
         if (!shouldRetry && this.debug) {
           log(`Performance Monitoring: Transaction ${tx.name} (${tx.id}) exceeded retry limit and will be dropped`, 'warn');
         }
-        
+
         return shouldRetry;
       });
-      
+
       this.sendQueue.push(...retriedTransactions);
 
       if (this.debug) {
