@@ -18,6 +18,7 @@ import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import type { Transaction } from './modules/performance/transaction';
 import PerformanceMonitoring from './modules/performance/index';
+import { addErrorEvent, getConsoleLogStack, initConsoleCatcher } from './addons/consoleCatcher';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -143,6 +144,8 @@ export default class Catcher {
         );
       },
     });
+
+    initConsoleCatcher();
 
     /**
      * Set global handlers
@@ -283,6 +286,12 @@ export default class Catcher {
    * @param {ErrorEvent|PromiseRejectionEvent} event — (!) both for Error and Promise Rejection
    */
   private async handleEvent(event: ErrorEvent | PromiseRejectionEvent): Promise<void> {
+    /**
+     * Add error to console logs
+     */
+
+    addErrorEvent(event);
+
     /**
      * Promise rejection reason is recommended to be an Error, but it can be a string:
      * - Promise.reject(new Error('Reason message')) ——— recommended
@@ -547,6 +556,7 @@ export default class Catcher {
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
     const getParams = this.getGetParams();
+    const consoleLogs = getConsoleLogStack();
 
     const addons: JavaScriptAddons = {
       window: {
@@ -563,6 +573,10 @@ export default class Catcher {
 
     if (this.debug) {
       addons.RAW_EVENT_DATA = this.getRawData(error);
+    }
+
+    if (consoleLogs.length > 0) {
+      addons.consoleOutput = consoleLogs;
     }
 
     return addons;
