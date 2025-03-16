@@ -1,5 +1,59 @@
 # Performance Monitoring
 
+
+## Optimizations
+
+If we simply send all transactions without filtering and grouping, it will create a huge load on the service. We need to balance between data completeness and the efficiency of storage and processing.
+
+1. Which transactions need to be sent?
+
+   **Problem: Too Much Data in case of full sending**
+
+   If we send every transaction:
+
+   - The load on the server increases sharply (especially with high traffic).
+   - The huge amount of the data is duplicate information, which does not significantly affect the analysis.
+   - "Infinite loops" in client code may generate endless transactions.
+
+   **Solution: Smart Sampling and Grouping**
+
+   We do not need all transactions, but we need representative data.
+
+2. How to reduce data flow without losing quality?
+
+   **Optimization #1: Sampling (Sending Part of the Data Randomly)**
+
+   See [Sampling](#sampling)
+
+   How not to lose rare and slow requests?
+   - You can increase the sampling chance for slow transactions (P95 > 500ms is sent with a probability of 50-100%).
+   - Errors (finishStatus == 'Failure') are always sent.
+
+   **Optimization #2: Aggregation of Identical Transactions Before Sending**
+
+   Throttling + transaction batches → instead of 1000 separate messages, send 1 AggregatedTransaction.
+
+   - Combine transactions with the same name (e.g., GET /api/users) and time window (e.g., 1 second).
+   - Instead of 1000 transactions, send one with count = 1000 and average metrics.
+   - How to choose the time?
+   - Store P50, P95, P100 (percentiles).
+   - Save min(startTime) and max(endTime) to see the interval boundaries and calculate Transactions Per Minute.
+
+   What do we lose?
+   - The detail of each specific transaction.
+   - Exact startTime and endTime for each transaction.
+
+   What do we gain?
+   - A sharp reduction in load on the Collector and DB (10-100 times fewer records).
+   - All necessary metrics (P50, P95, P100, avg) remain.
+   - You can continue to build graphs and calculate metrics, but with less load.
+
+   **Optimization #3: Filtering "Garbage"**
+
+   Transactions with duration < `thresholdMs` will not be sent, as they are not critical.
+
+
+
 ## Data types
 
 ### Transaction
@@ -17,7 +71,7 @@
 ### AggregatedTransaction
 | Field | Type | Description |
 |-------|------|-------------|
-| aggregationId | string | Identifier of the aggregation | 
+| aggregationId | string | Identifier of the aggregation |
 | name | string | Name of the transaction |
 | avgStartTime | number | Average timestamp when transaction started |
 | minStartTime | number | Minimum timestamp when transaction started |
@@ -25,8 +79,8 @@
 | p50duration | number | 50th percentile (median) duration of transaction in milliseconds |
 | p95duration | number | 95th percentile duration of transaction in milliseconds |
 | maxDuration | number | Maximum duration of transaction in milliseconds |
-| count | number | how many transactions aggregated | 
-| aggregatedSpans | AggregatedSpan[] | List of spans in transactions | 
+| count | number | how many transactions aggregated |
+| aggregatedSpans | AggregatedSpan[] | List of spans in transactions |
 
 
 ### Span
@@ -74,7 +128,7 @@ When completing a transaction:
    - `finishStatus` "failure" has a priority over `thresholdMs`
    - Otherwise, the transaction goes through the [sampling process](#sampling)
 
-3. After successful sampling, the transaction is added to the list for sending 
+3. After successful sampling, the transaction is added to the list for sending
 
 ### 3. Sending Transactions
 
