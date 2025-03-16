@@ -69,7 +69,7 @@ export default class PerformanceMonitoring {
   /**
    * Queue transaction for sending
    *
-   * @param transaction
+   * @param transaction - Transaction to queue
    */
   public queueTransaction(transaction: Transaction): void {
     this.sendQueue.push(transaction);
@@ -84,7 +84,7 @@ export default class PerformanceMonitoring {
    *
    * @param name - Transaction name
    * @param tags - Optional tags for the transaction
-   * @param severity
+   * @param severity - Severity of the transaction
    * @returns Transaction object
    */
   public startTransaction(name: string, severity: 'default' | 'critical' = 'default'): Transaction {
@@ -193,12 +193,16 @@ export default class PerformanceMonitoring {
   }
 
   /**
-   *
-   * @param transactions
+   * Aggregates spans from multiple transactions into statistical summaries
+   * Groups spans by name across all transactions in the group
+   * 
+   * @param transactions - Transactions containing spans to aggregate
+   * @returns Array of aggregated spans with statistical metrics
    */
   private aggregateSpans(transactions: Transaction[]): AggregatedSpan[] {
     const spansByName = new Map<string, Span[]>();
-
+    
+    // Group spans by name across all transactions
     transactions.forEach(transaction => {
       transaction.spans.forEach(span => {
         const spans = spansByName.get(span.name) || [];
@@ -208,10 +212,15 @@ export default class PerformanceMonitoring {
       });
     });
 
+    // Aggregate each group of spans
     return Array.from(spansByName.entries()).map(([name, spans]) => {
       const durations = spans.map(s => s.duration ?? 0).sort((a, b) => a - b);
       const startTimes = spans.map(s => s.startTime ?? 0);
-      const endTimes = spans.map(s => s.endTime ?? 0);
+      const endTimes = spans.map((s, index) => s.endTime ?? startTimes[index]);
+      
+      // Calculate failure rate for spans
+      const failureCount = spans.filter(s => s.status === 'failure').length;
+      const failureRate = (failureCount / spans.length) * 100;
 
       return {
         aggregationId: `${name}-${Date.now()}`,
@@ -221,14 +230,16 @@ export default class PerformanceMonitoring {
         p50duration: this.percentile(durations, 50),
         p95duration: this.percentile(durations, 95),
         maxDuration: Math.max(...durations),
+        failureRate
       };
     });
   }
 
   /**
-   *
-   * @param sortedValues
-   * @param p
+   * Calculates the percentile value from a sorted array of numbers
+   * @param sortedValues - Sorted array of numbers
+   * @param p - Percentile to calculate (e.g., 50 for median, 95 for 95th percentile)
+   * @returns Percentile value
    */
   private percentile(sortedValues: number[], p: number): number {
     const index = Math.ceil((p / 100) * sortedValues.length) - 1;
@@ -237,8 +248,9 @@ export default class PerformanceMonitoring {
   }
 
   /**
-   *
-   * @param values
+   * Calculates the average value from an array of numbers
+   * @param values - Array of numbers
+   * @returns Average value
    */
   private average(values: number[]): number {
     return values.reduce((a, b) => a + b, 0) / values.length;
@@ -260,23 +272,4 @@ export default class PerformanceMonitoring {
 
     await this.transport.send(performanceMessage);
   }
-}
-
-/**
- *
- */
-export class Performance {
-  private static instance: Performance;
-
-  /**
-   *
-   */
-  static getInstance(): Performance {
-    if (!Performance.instance) {
-      Performance.instance = new Performance();
-    }
-
-    return Performance.instance;
-  }
-  // ... rest of the class
 }

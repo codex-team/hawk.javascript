@@ -17,6 +17,7 @@ export class Span {
   public endTime?: number;
   public duration?: number;
   public readonly metadata?: Record<string, unknown>;
+  public status: 'success' | 'failure' = 'success';
 
   /**
    * Constructor for Span
@@ -29,10 +30,13 @@ export class Span {
   }
 
   /**
-   * Finishes the span by setting the end time and calculating duration
+   * Finishes the span and calculates its duration
+   * 
+   * @param status - Status of the span ('success' or 'failure'). Defaults to 'success'
    */
-  public finish(): void {
+  public finish(status: 'success' | 'failure' = 'success'): void {
     this.endTime = getTimestamp();
     this.duration = this.endTime - this.startTime;
+    this.status = status;
   }
 }

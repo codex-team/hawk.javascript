@@ -20,5 +20,6 @@ export interface AggregatedSpan {
   p50duration: number;
   p95duration: number;
   maxDuration: number;
+  failureRate: number;
 }
 
