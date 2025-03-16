@@ -1,48 +1,96 @@
 /**
- * @file Integration for catching console logs and other info
+ * @file Module for intercepting console logs with stack trace capture
  */
 
-interface ConsoleLogEvent {
-    /**
-     * Window.console object method (i.e. log, info, warn)
-     */
-    method: string;
+import type { ConsoleLogEvent } from '@hawk.so/types';
 
-    /**
-     * Time when the log was occurred
-     */
-    timestamp: Date;
+const createConsoleCatcher = (): {
+  initConsoleCatcher: () => void;
+  addErrorEvent: (event: ErrorEvent | PromiseRejectionEvent) => void;
+  getConsoleLogStack: () => ConsoleLogEvent[];
+} => {
+  const MAX_LOGS = 20;
+  const consoleOutput: ConsoleLogEvent[] = [];
+  let isInitialized = false;
 
-    /**
-     * Log argument
-     */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    args: any;
-}
-
-/**
- * Contains all data that will be logged by window.console
- */
-const consoleOutput: ConsoleLogEvent[] = [];
-
-// Override console methods
-Object.keys(window.console).forEach(key => {
-  const oldFunction = window.console[key];
-
-  window.console[key] = function (...args): void {
-    consoleOutput.push({
-      method: key,
-      timestamp: new Date(),
-      args,
-    });
-    oldFunction.apply(window.console, args);
+  const addToConsoleOutput = (logEvent: ConsoleLogEvent): void => {
+    if (consoleOutput.length >= MAX_LOGS) {
+      consoleOutput.shift();
+    }
+    consoleOutput.push(logEvent);
   };
-});
 
-/**
- * @param event - event to modify
- * @param data - event data
- */
-export default function (event, data): void {
-  data.payload.consoleOutput = consoleOutput;
-}
+  const createConsoleEventFromError = (
+    event: ErrorEvent | PromiseRejectionEvent
+  ): ConsoleLogEvent => {
+    if (event instanceof ErrorEvent) {
+      return {
+        method: 'error',
+        timestamp: new Date(),
+        type: event.error?.name || 'Error',
+        message: event.error?.message || event.message,
+        stack: event.error?.stack || '',
+        fileLine: event.filename
+          ? `${event.filename}:${event.lineno}:${event.colno}`
+          : '',
+      };
+    }
+
+    return {
+      method: 'error',
+      timestamp: new Date(),
+      type: 'UnhandledRejection',
+      message: event.reason?.message || String(event.reason),
+      stack: event.reason?.stack || '',
+      fileLine: '',
+    };
+  };
+
+  return {
+    initConsoleCatcher(): void {
+      if (isInitialized) {
+        return;
+      }
+
+      isInitialized = true;
+      const consoleMethods: string[] = ['log', 'warn', 'error', 'info', 'debug'];
+
+      consoleMethods.forEach((method) => {
+        if (typeof window.console[method] !== 'function') {
+          return;
+        }
+
+        const oldFunction = window.console[method].bind(window.console);
+
+        window.console[method] = function (...args: unknown[]): void {
+          const stack = new Error().stack?.split('\n').slice(2).join('\n') || '';
+
+          const logEvent: ConsoleLogEvent = {
+            method,
+            timestamp: new Date(),
+            type: method,
+            message: args.map((arg) => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' '),
+            stack,
+            fileLine: stack.split('\n')[0]?.trim(),
+          };
+
+          addToConsoleOutput(logEvent);
+          oldFunction(...args);
+        };
+      });
+    },
+
+    addErrorEvent(event: ErrorEvent | PromiseRejectionEvent): void {
+      const logEvent = createConsoleEventFromError(event);
+
+      addToConsoleOutput(logEvent);
+    },
+
+    getConsoleLogStack(): ConsoleLogEvent[] {
+      return [ ...consoleOutput ];
+    },
+  };
+};
+
+const consoleCatcher = createConsoleCatcher();
+export const { initConsoleCatcher, getConsoleLogStack, addErrorEvent } = consoleCatcher;
