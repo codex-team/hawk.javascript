@@ -170,10 +170,8 @@ export default class PerformanceMonitoring {
    * Schedule periodic batch sending of transactions
    */
   private scheduleBatchSend(): void {
-    const timer = isBrowser ? window.setInterval : setInterval;
-
     // Устанавливаем интервал для последующих отправок
-    this.batchTimeout = timer(() => void this.processSendQueue(), this.batchInterval);
+    this.batchTimeout = setInterval(() => void this.processSendQueue(), this.batchInterval);
   }
 
   /**
@@ -210,10 +208,9 @@ export default class PerformanceMonitoring {
     const performanceMessage: PerformanceMessage = {
       token: this.token,
       catcherType: 'performance',
-      payload: transactions.map(transaction => ({
-        ...transaction.getData(),
-        catcherVersion: this.version,
-      })),
+      payload: {
+        transactions: transactions.map(transaction => transaction.getData())
+      },
     };
 
     await this.transport.send(performanceMessage);

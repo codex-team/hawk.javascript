@@ -1,19 +1,5 @@
 import type { EncodedIntegrationToken } from '@hawk.so/types';
-import type { Span } from '../modules/performance';
-
-/**
- * Interface for performance monitoring message payload
- */
-export interface PerformancePayload {
-  id: string;
-  name: string;
-  startTime: number;
-  endTime?: number;
-  duration?: number;
-  tags: Record<string, string>;
-  spans: Span[];
-  catcherVersion: string;
-}
+import { TransactionData } from 'src/modules/performance/transaction';
 
 /**
  * Interface for performance monitoring message
@@ -32,5 +18,7 @@ export interface PerformanceMessage {
   /**
    * Performance monitoring data
    */
-  payload: PerformancePayload[];
+  payload: {
+    transactions: TransactionData[];
+  };
 }

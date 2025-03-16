@@ -156,11 +156,11 @@ export default class Catcher {
     }
 
     if (settings.performance) {
-      const sampleRate = typeof settings.performance === 'object' ?
+      const sampleRate = typeof settings.performance === 'object' && typeof settings.performance.sampleRate === 'number' ?
         settings.performance.sampleRate :
         1.0;
 
-      const batchInterval = typeof settings.performance === 'object' ?
+      const batchInterval = typeof settings.performance === 'object' && typeof settings.performance.batchInterval === 'number' ?
         settings.performance.batchInterval :
         undefined;
 

@@ -3,7 +3,7 @@ import { isBrowser } from './is-browser';
 /**
  * Get high-resolution timestamp in milliseconds
  */
-export const getTimestamp = (): number => {
+export function getTimestamp(): number {
   if (isBrowser) {
     return performance.now();
   }

@@ -3,7 +3,7 @@ import PerformanceMonitoring from ".";
 import { Span } from "./span";
 import { id } from "../../utils/id";
 
-interface TransactionData {
+export interface TransactionData {
   id: string;
   name: string;
   startTime: number;
@@ -45,9 +45,11 @@ export class Transaction {
   }
 
   /**
-   *
-   * @param name
-   * @param metadata
+   * Starts a new span within this transaction
+   * 
+   * @param name - Name of the span
+   * @param metadata - Optional metadata to attach to the span
+   * @returns New span instance
    */
   public startSpan(name: string, metadata?: Record<string, unknown>): Span {
     const data = {
@@ -104,31 +106,9 @@ export class SampledOutTransaction extends Transaction {
     super(data, null as unknown as PerformanceMonitoring);
   }
 
-  /**
-   * Start a new span within this sampled out transaction
-   *
-   * @param name - Name of the span
-   * @param metadata - Optional metadata to attach to the span
-   * @returns A new Span instance that won't be sent to server
-   */
-  public startSpan(name: string, metadata?: Record<string, unknown>): Span {
-    const data = {
-      id: id(),
-      transactionId: this.id,
-      name,
-      startTime: getTimestamp(),
-      metadata,
-    };
-
-    const span = new Span(data);
-
-    this.spans.push(span);
-
-    return span;
-  }
 
   /**
-   *
+   * Finishes the transaction but does not send it to server since it was sampled out
    */
   public finish(): void {
     // Do nothing - don't send to server

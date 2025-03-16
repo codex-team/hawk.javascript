@@ -272,11 +272,14 @@ interface Span {
 
 #### Measuring Route Changes in Vue.js
 ```javascript
-import { Catcher } from '@hawk.so/javascript';
+import { HawkCatcher } from '@hawk.so/javascript';
 import Vue from 'vue';
 import Router from 'vue-router';
 
-const hawk = new Catcher('your-integration-token');
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  performance: true
+});
 
 router.beforeEach((to, from, next) => {
   const transaction = hawk.startTransaction('route-change', {
@@ -319,18 +322,3 @@ async function fetchUsers() {
   }
 }
 ```
-
-### Configuration
-
-- `token`: Your project's Integration Token
-- `release`: Unique identifier of the release. Used for source map consuming
-- `user`: Current authenticated user
-- `context`: Any data you want to pass with every message. Has limitation of length.
-- `vue`: Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application)
-- `disableGlobalErrorsHandling`: Do not initialize global errors handling
-- `disableVueErrorHandler`: Do not initialize Vue errors handling
-- `beforeSend`: This Method allows you to filter any data you don't want sending to Hawk
-- `performance`: Enable/disable performance monitoring
-  - `true`: Enable with 100% sampling
-  - `{sampleRate: number}`: Enable with custom sampling rate (0.0 to 1.0)
-  - `false` or `undefined`: Disable performance monitoring
