@@ -79,8 +79,6 @@
     <h3>Aggregation Testing</h3>
     <div class="transaction-buttons">
       <button id="generateSameNameTx">Generate 5 Transactions with Same Name</button>
-      <button id="generateWithSpans">Generate Transaction with Spans</button>
-      <button id="forceAggregation">Force Aggregation and Send</button>
     </div>
   </div>
   
@@ -90,10 +88,12 @@
   <script type="module">
     import HawkCatcher from '../src';
 
+    const TOKEN = 'eyJpbnRlZ3JhdGlvbklkIjoiNWU5OTE1MzItZTdiYy00ZjA0LTliY2UtYmIzZmE5ZTUwMTg3Iiwic2VjcmV0IjoiMTBlMTA4MjQtZTcyNC00YWFkLTkwMDQtMzExYTU1OWMzZTIxIn0';
+
     document.addEventListener('DOMContentLoaded', function() {
       // Initialize Hawk with performance monitoring
-      const hawk = new HawkCatcher({
-        token: 'eyJpbnRlZ3JhdGlvbklkIjoiNWU5OTE1MzItZTdiYy00ZjA0LTliY2UtYmIzZmE5ZTUwMTg3Iiwic2VjcmV0IjoiMTBlMTA4MjQtZTcyNC00YWFkLTkwMDQtMzExYTU1OWMzZTIxIn0',
+      let hawk = new HawkCatcher({
+        token: TOKEN,
         release: '1.0.0',
         performance: {
           sampleRate: parseFloat(document.getElementById('sampleRate').value),
@@ -108,11 +108,15 @@
       document.getElementById('batchInterval').addEventListener('change', updateSettings);
       
       function updateSettings() {
-        hawk.configurePerformance({
+        hawk = new HawkCatcher({
+        token: TOKEN,
+        release: '1.0.0',
+        performance: {
           sampleRate: parseFloat(document.getElementById('sampleRate').value),
           thresholdMs: parseInt(document.getElementById('thresholdMs').value),
           batchInterval: parseInt(document.getElementById('batchInterval').value)
-        });
+        }
+      });
         logMessage('Settings updated');
       }
       
@@ -189,38 +193,6 @@
           generateTransaction('same-name-transaction', duration);
         }
         logMessage('Generated 5 transactions with the same name (for aggregation)');
-      });
-      
-      document.getElementById('generateWithSpans').addEventListener('click', function() {
-        const tx = hawk.startTransaction('transaction-with-spans');
-        
-        // Create multiple spans with the same name (for span aggregation)
-        for (let i = 0; i < 3; i++) {
-          const span = tx.startSpan('database-query');
-          setTimeout(() => span.finish(), 20 + i * 10);
-        }
-        
-        for (let i = 0; i < 2; i++) {
-          const span = tx.startSpan('api-call');
-          setTimeout(() => span.finish(), 30 + i * 15);
-        }
-        
-        setTimeout(() => {
-          tx.finish();
-          logTransaction(tx, 'success', 'default', 100);
-          logMessage('Transaction with multiple spans of the same name (for span aggregation)');
-        }, 100);
-      });
-      
-      document.getElementById('forceAggregation').addEventListener('click', function() {
-        // This would normally be an internal method, but for demo purposes
-        // we're exposing it to force aggregation and sending
-        if (typeof hawk._performance._processSendQueue === 'function') {
-          hawk._performance._processSendQueue();
-          logMessage('Forced aggregation and sending of queued transactions');
-        } else {
-          logMessage('Unable to force aggregation (internal API not available)');
-        }
       });
     });
   </script>
