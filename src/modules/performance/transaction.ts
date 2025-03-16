@@ -1,63 +1,66 @@
-import { getTimestamp } from "../../utils/get-timestamp";
-import PerformanceMonitoring from ".";
-import { Span } from "./span";
-import { id } from "../../utils/id";
+import { getTimestamp } from '../../utils/get-timestamp';
+import type PerformanceMonitoring from '.';
+import { Span } from './span';
+import { id } from '../../utils/id';
+import type { PerformanceMonitoringConfig } from './types';
 
-export interface TransactionData {
-  id: string;
+/**
+ * Interface representing data needed to construct a Transaction
+ */
+export interface TransactionConstructionData {
+  /**
+   * Name of the transaction (e.g. 'page-load', 'api-call')
+   */
   name: string;
-  startTime: number;
-  endTime?: number;
-  duration?: number;
-  tags: Record<string, string>;
-  spans: Span[];
+
+  /**
+   * Severity level of the transaction
+   * - 'default': Normal transaction that might be sampled out
+   * - 'critical': High priority transaction that will be sent regardless of sampling rate
+   */
+  severity: 'default' | 'critical';
 }
 
 /**
  * Class representing a transaction that can contain multiple spans
  */
 export class Transaction {
-  public readonly id: string;
+  public readonly id: string = id();
   public readonly name: string;
-  public readonly startTime: number;
+  public readonly startTime: number = getTimestamp();
   public endTime?: number;
   public duration?: number;
-  public readonly tags: Record<string, string>;
   public readonly spans: Span[] = [];
+  public finishStatus: 'success' | 'failure' = 'success';
+  private severity: 'default' | 'critical' = 'default';
 
   /**
    * Constructor for Transaction
    *
    * @param data - Data to initialize the transaction with. Contains id, name, startTime, tags
    * @param performance - Reference to the PerformanceMonitoring instance that created this transaction
+   * @param config - Configuration for this transaction
    */
   constructor(
-    data: TransactionData,
-    private readonly performance: PerformanceMonitoring
+    data: TransactionConstructionData,
+    private readonly performance: PerformanceMonitoring,
+    private readonly config: PerformanceMonitoringConfig
   ) {
-    this.id = data.id;
     this.name = data.name;
-    this.startTime = data.startTime;
-    this.endTime = data.endTime;
-    this.duration = data.duration;
-    this.tags = data.tags;
-    this.spans = data.spans;
+    this.severity = data.severity;
   }
 
   /**
    * Starts a new span within this transaction
-   * 
+   *
    * @param name - Name of the span
    * @param metadata - Optional metadata to attach to the span
    * @returns New span instance
    */
-  public startSpan(name: string, metadata?: Record<string, unknown>): Span {
+  public startSpan(name: string): Span {
     const data = {
-      id: id(),
       transactionId: this.id,
       name,
-      startTime: getTimestamp(),
-      metadata,
     };
 
     const span = new Span(data);
@@ -68,49 +71,55 @@ export class Transaction {
   }
 
   /**
+   * Finishes the transaction and queues it for sending if:
+   * - It's a failure or has critical severity
+   * - Its duration is above the threshold and passes sampling
    *
+   * @param status - Status of the transaction ('success' or 'failure'). Defaults to 'success'
    */
-  public finish(): void {
-    // Finish all unfinished spans
-    this.spans.forEach(span => {
-      if (!span.endTime) {
-        span.finish();
-      }
-    });
-
+  public finish(status: 'success' | 'failure' = 'success'): void {
     this.endTime = getTimestamp();
     this.duration = this.endTime - this.startTime;
+    this.finishStatus = status;
+
+    // Always send if it's a failure or critical severity
+    if (status === 'failure' || this.severity === 'critical') {
+      this.queueForSending();
+
+      return;
+    }
+
+    // Filter out short transactions
+    if (this.duration < this.config.thresholdMs) {
+      return;
+    }
+
+    // Apply sampling
+    if (this.shouldSample()) {
+      this.queueForSending();
+    }
+  }
+
+  /**
+   * Determines if this transaction should be sampled based on configured sample rate
+   *
+   * @returns True if transaction should be sampled, false otherwise
+   */
+  private shouldSample(): boolean {
+    return Math.random() <= this.config.sampleRate;
+  }
+
+  /**
+   * Queues this transaction for sending to the server
+   */
+  private queueForSending(): void {
     this.performance.queueTransaction(this);
   }
 
   /**
-   * Returns transaction data that should be sent to server
-   */
-  public getData(): TransactionData {
-    const { performance, ...data } = this;
-
-    return data;
-  }
-}
-
-/**
- * Class representing a sampled out transaction that won't be sent to server
- */
-export class SampledOutTransaction extends Transaction {
-  /**
-   * Constructor for SampledOutTransaction
    *
-   * @param data - Data to initialize the transaction with. Contains id, name, startTime, tags and spans
    */
-  constructor(data: TransactionData) {
-    super(data, null as unknown as PerformanceMonitoring);
-  }
-
-
-  /**
-   * Finishes the transaction but does not send it to server since it was sampled out
-   */
-  public finish(): void {
-    // Do nothing - don't send to server
+  public get status(): 'success' | 'failure' {
+    return this.finishStatus;
   }
 }

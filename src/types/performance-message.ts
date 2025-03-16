@@ -1,5 +1,5 @@
 import type { EncodedIntegrationToken } from '@hawk.so/types';
-import { TransactionData } from 'src/modules/performance/transaction';
+import type { AggregatedTransaction } from './transaction';
 
 /**
  * Interface for performance monitoring message
@@ -19,6 +19,6 @@ export interface PerformanceMessage {
    * Performance monitoring data
    */
   payload: {
-    transactions: TransactionData[];
+    transactions: AggregatedTransaction[];
   };
 }

@@ -16,8 +16,8 @@ import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
-import PerformanceMonitoring from './modules/performance';
-import { Transaction } from './modules/performance/transaction';
+import type { Transaction } from './modules/performance/transaction';
+import PerformanceMonitoring from './modules/performance/index';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -158,19 +158,23 @@ export default class Catcher {
     if (settings.performance) {
       const sampleRate = typeof settings.performance === 'object' && typeof settings.performance.sampleRate === 'number' ?
         settings.performance.sampleRate :
-        1.0;
+        undefined;
 
       const batchInterval = typeof settings.performance === 'object' && typeof settings.performance.batchInterval === 'number' ?
         settings.performance.batchInterval :
         undefined;
 
+      const thresholdMs = typeof settings.performance === 'object' && typeof settings.performance.thresholdMs === 'number' ?
+        settings.performance.thresholdMs :
+        undefined;
+
       this.performance = new PerformanceMonitoring(
         this.transport,
         this.token,
-        this.version,
         this.debug,
         sampleRate,
-        batchInterval
+        batchInterval,
+        thresholdMs
       );
     }
   }
@@ -249,14 +253,13 @@ export default class Catcher {
    * Starts a new transaction
    *
    * @param name - Name of the transaction (e.g., 'page-load', 'api-request')
-   * @param tags - Key-value pairs for additional transaction data
    */
-  public startTransaction(name: string, tags: Record<string, string> = {}): Transaction | undefined {
+  public startTransaction(name: string): Transaction | undefined {
     if (this.performance === null) {
       console.error('Hawk: can not start transaction. Performance monitoring is not enabled. Please enable it by setting performance: true in the HawkCatcher constructor.');
     }
 
-    return this.performance?.startTransaction(name, tags);
+    return this.performance?.startTransaction(name);
   }
 
   /**

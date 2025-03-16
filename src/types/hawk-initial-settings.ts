@@ -80,19 +80,28 @@ export interface HawkInitialSettings {
    * - {sampleRate: number} to enable with custom sample rate
    * - false or undefined to disable
    */
-  performance?: boolean | {
-    /**
-     * Sample rate for performance data (0.0 to 1.0)
-     *
-     * @default 1.0
-     */
-    sampleRate: number;
+  performance?: boolean | PerformanceMonitoringConfig;
+}
 
-    /**
-     * Interval between batch sends in milliseconds
-     *
-     * @default 3000
-     */
-    batchInterval?: number;
-  };
+export interface PerformanceMonitoringConfig {
+  /**
+   * Sample rate for performance data (0.0 to 1.0)
+   *
+   * @default 1.0
+   */
+  sampleRate: number;
+
+  /**
+   * Interval between batch sends in milliseconds
+   *
+   * @default 3000
+   */
+  batchInterval: number;
+
+  /**
+   * Interval between batch sends in milliseconds
+   *
+   * @default 3000
+   */
+  thresholdMs: number;
 }

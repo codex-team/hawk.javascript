@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hawk.js Demo</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1, h2, h3 {
+      margin-top: 30px;
+    }
+    button {
+      padding: 8px 16px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .settings-panel {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    .settings-panel label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    .settings-panel input {
+      margin-bottom: 10px;
+      padding: 5px;
+    }
+    .transaction-buttons {
+      margin-top: 15px;
+    }
+    .results {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #eee;
+      border-radius: 5px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .transaction-info {
+      margin-bottom: 10px;
+      padding: 10px;
+      background-color: #fff;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hawk.js Demo</h1>
+  
+  <h2>Performance Monitoring Settings Demo</h2>
+  <div class="settings-panel">
+    <h3>Configuration</h3>
+    <label for="sampleRate">Sample Rate (0-1):</label>
+    <input type="number" id="sampleRate" min="0" max="1" step="0.1" value="1.0">
+    
+    <label for="thresholdMs">Threshold (ms):</label>
+    <input type="number" id="thresholdMs" min="0" value="20">
+    
+    <label for="batchInterval">Batch Interval (ms):</label>
+    <input type="number" id="batchInterval" min="1000" value="3000">
+    
+    <h3>Generate Transactions</h3>
+    <div class="transaction-buttons">
+      <button id="generateFast">Generate Fast Transaction (10ms)</button>
+      <button id="generateSlow">Generate Slow Transaction (100ms)</button>
+      <button id="generateFailure">Generate Failed Transaction</button>
+      <button id="generateCritical">Generate Critical Transaction</button>
+      <button id="generateBatch">Generate 10 Transactions</button>
+    </div>
+    
+    <h3>Aggregation Testing</h3>
+    <div class="transaction-buttons">
+      <button id="generateSameNameTx">Generate 5 Transactions with Same Name</button>
+      <button id="generateWithSpans">Generate Transaction with Spans</button>
+      <button id="forceAggregation">Force Aggregation and Send</button>
+    </div>
+  </div>
+  
+  <h3>Results</h3>
+  <div id="results" class="results"></div>
+  
+  <script type="module">
+    import HawkCatcher from '../src';
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize Hawk with performance monitoring
+      const hawk = new HawkCatcher({
+        token: 'eyJpbnRlZ3JhdGlvbklkIjoiNWU5OTE1MzItZTdiYy00ZjA0LTliY2UtYmIzZmE5ZTUwMTg3Iiwic2VjcmV0IjoiMTBlMTA4MjQtZTcyNC00YWFkLTkwMDQtMzExYTU1OWMzZTIxIn0',
+        release: '1.0.0',
+        performance: {
+          sampleRate: parseFloat(document.getElementById('sampleRate').value),
+          thresholdMs: parseInt(document.getElementById('thresholdMs').value),
+          batchInterval: parseInt(document.getElementById('batchInterval').value)
+        }
+      });
+      
+      // Update settings when changed
+      document.getElementById('sampleRate').addEventListener('change', updateSettings);
+      document.getElementById('thresholdMs').addEventListener('change', updateSettings);
+      document.getElementById('batchInterval').addEventListener('change', updateSettings);
+      
+      function updateSettings() {
+        hawk.configurePerformance({
+          sampleRate: parseFloat(document.getElementById('sampleRate').value),
+          thresholdMs: parseInt(document.getElementById('thresholdMs').value),
+          batchInterval: parseInt(document.getElementById('batchInterval').value)
+        });
+        logMessage('Settings updated');
+      }
+      
+      // Generate a single transaction with simulated duration
+      function generateTransaction(name, duration, status = 'success', severity = 'default') {
+        const tx = hawk.startTransaction(name, severity);
+        
+        // Simulate some spans
+        const span1 = tx.startSpan('database-query');
+        setTimeout(() => span1.finish(), duration * 0.3);
+        
+        const span2 = tx.startSpan('api-call');
+        setTimeout(() => span2.finish(), duration * 0.5);
+        
+        // Finish transaction after duration
+        setTimeout(() => {
+          tx.finish(status);
+          logTransaction(tx, status, severity, duration);
+        }, duration);
+        
+        return tx;
+      }
+      
+      // Log transaction to UI
+      function logTransaction(tx, status, severity, duration) {
+        const txInfo = document.createElement('div');
+        txInfo.className = 'transaction-info';
+        txInfo.innerHTML = `
+          <strong>Transaction:</strong> ${tx.name} (ID: ${tx.id})<br>
+          <strong>Status:</strong> ${status}<br>
+          <strong>Severity:</strong> ${severity}<br>
+          <strong>Duration:</strong> ~${duration}ms<br>
+          <strong>Spans:</strong> ${tx.spans.length}
+        `;
+        document.getElementById('results').prepend(txInfo);
+      }
+      
+      // Log message to UI
+      function logMessage(message) {
+        const msgInfo = document.createElement('div');
+        msgInfo.className = 'transaction-info';
+        msgInfo.innerHTML = `<strong>Info:</strong> ${message}`;
+        document.getElementById('results').prepend(msgInfo);
+      }
+      
+      // Button event handlers
+      document.getElementById('generateFast').addEventListener('click', function() {
+        generateTransaction('fast-transaction', 10);
+      });
+      
+      document.getElementById('generateSlow').addEventListener('click', function() {
+        generateTransaction('slow-transaction', 100);
+      });
+      
+      document.getElementById('generateFailure').addEventListener('click', function() {
+        generateTransaction('failed-transaction', 50, 'failure');
+      });
+      
+      document.getElementById('generateCritical').addEventListener('click', function() {
+        generateTransaction('critical-transaction', 5, 'success', 'critical');
+      });
+      
+      document.getElementById('generateBatch').addEventListener('click', function() {
+        for (let i = 0; i < 10; i++) {
+          const duration = Math.floor(Math.random() * 100) + 10;
+          generateTransaction(`batch-transaction-${i}`, duration);
+        }
+        logMessage('Generated 10 random transactions');
+      });
+      
+      document.getElementById('generateSameNameTx').addEventListener('click', function() {
+        for (let i = 0; i < 5; i++) {
+          const duration = Math.floor(Math.random() * 100) + 30;
+          generateTransaction('same-name-transaction', duration);
+        }
+        logMessage('Generated 5 transactions with the same name (for aggregation)');
+      });
+      
+      document.getElementById('generateWithSpans').addEventListener('click', function() {
+        const tx = hawk.startTransaction('transaction-with-spans');
+        
+        // Create multiple spans with the same name (for span aggregation)
+        for (let i = 0; i < 3; i++) {
+          const span = tx.startSpan('database-query');
+          setTimeout(() => span.finish(), 20 + i * 10);
+        }
+        
+        for (let i = 0; i < 2; i++) {
+          const span = tx.startSpan('api-call');
+          setTimeout(() => span.finish(), 30 + i * 15);
+        }
+        
+        setTimeout(() => {
+          tx.finish();
+          logTransaction(tx, 'success', 'default', 100);
+          logMessage('Transaction with multiple spans of the same name (for span aggregation)');
+        }, 100);
+      });
+      
+      document.getElementById('forceAggregation').addEventListener('click', function() {
+        // This would normally be an internal method, but for demo purposes
+        // we're exposing it to force aggregation and sending
+        if (typeof hawk._performance._processSendQueue === 'function') {
+          hawk._performance._processSendQueue();
+          logMessage('Forced aggregation and sending of queued transactions');
+        } else {
+          logMessage('Unable to force aggregation (internal API not available)');
+        }
+      });
+    });
+  </script>
+</body>
+</html> 
