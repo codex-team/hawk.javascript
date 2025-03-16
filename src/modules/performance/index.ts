@@ -123,7 +123,7 @@ export default class PerformanceMonitoring {
   public destroy(): void {
     // Clear batch sending timer
     if (this.batchTimeout !== null) {
-      const clear = isBrowser ? window.clearInterval : clearInterval;
+      const clear = isBrowser ? window.clearTimeout : clearTimeout;
 
       clear(this.batchTimeout);
       this.batchTimeout = null;
@@ -170,8 +170,11 @@ export default class PerformanceMonitoring {
    * Schedule periodic batch sending of transactions
    */
   private scheduleBatchSend(): void {
-    // Устанавливаем интервал для последующих отправок
-    this.batchTimeout = setInterval(() => void this.processSendQueue(), this.batchInterval);
+    this.batchTimeout = setTimeout(() => {
+      void this.processSendQueue();
+      
+      this.scheduleBatchSend(); // Schedule next batch
+    }, this.batchInterval);
   }
 
   /**

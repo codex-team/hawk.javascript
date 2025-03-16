@@ -450,7 +450,7 @@
     if (message.catcherType === 'performance') {
       lastBatchTime = new Date();
       document.getElementById('batchStats').textContent = 
-        `Last batch sent: ${lastBatchTime.toLocaleTimeString()} (${message.payload.length} transactions)`;
+        `Last batch sent: ${lastBatchTime.toLocaleTimeString()} (${message.payload.transactions.length} transactions)`;
     }
     return originalSend.call(this, data);
   };
