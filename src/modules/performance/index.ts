@@ -102,7 +102,7 @@ export default class PerformanceMonitoring {
     return new Transaction(data, this, {
       sampleRate: this.sampleRate,
       thresholdMs: this.thresholdMs,
-      criticalDurationThresholdMs: this.criticalDurationThresholdMs
+      criticalDurationThresholdMs: this.criticalDurationThresholdMs,
     });
   }
 
@@ -202,13 +202,13 @@ export default class PerformanceMonitoring {
   /**
    * Aggregates spans from multiple transactions into statistical summaries
    * Groups spans by name across all transactions in the group
-   * 
+   *
    * @param transactions - Transactions containing spans to aggregate
    * @returns Array of aggregated spans with statistical metrics
    */
   private aggregateSpans(transactions: Transaction[]): AggregatedSpan[] {
     const spansByName = new Map<string, Span[]>();
-    
+
     // Group spans by name across all transactions
     transactions.forEach(transaction => {
       transaction.spans.forEach(span => {
@@ -224,7 +224,7 @@ export default class PerformanceMonitoring {
       const durations = spans.map(s => s.duration ?? 0).sort((a, b) => a - b);
       const startTimes = spans.map(s => s.startTime ?? 0);
       const endTimes = spans.map((s, index) => s.endTime ?? startTimes[index]);
-      
+
       // Calculate failure rate for spans
       const failureCount = spans.filter(s => s.status === 'failure').length;
       const failureRate = (failureCount / spans.length) * 100;
@@ -237,13 +237,14 @@ export default class PerformanceMonitoring {
         p50duration: this.percentile(durations, 50),
         p95duration: this.percentile(durations, 95),
         maxDuration: Math.max(...durations),
-        failureRate
+        failureRate,
       };
     });
   }
 
   /**
    * Calculates the percentile value from a sorted array of numbers
+   *
    * @param sortedValues - Sorted array of numbers
    * @param p - Percentile to calculate (e.g., 50 for median, 95 for 95th percentile)
    * @returns Percentile value
@@ -256,6 +257,7 @@ export default class PerformanceMonitoring {
 
   /**
    * Calculates the average value from an array of numbers
+   *
    * @param values - Array of numbers
    * @returns Average value
    */

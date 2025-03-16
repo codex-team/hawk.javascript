@@ -31,7 +31,7 @@ export class Span {
 
   /**
    * Finishes the span and calculates its duration
-   * 
+   *
    * @param status - Status of the span ('success' or 'failure'). Defaults to 'success'
    */
   public finish(status: 'success' | 'failure' = 'success'): void {

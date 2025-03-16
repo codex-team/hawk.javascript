@@ -99,15 +99,17 @@ export interface PerformanceMonitoringConfig {
   batchInterval: number;
 
   /**
-   * Minimum duration threshold in milliseconds. 
+   * Minimum duration threshold in milliseconds.
    * Transactions shorter than this will be filtered out.
+   *
    * @default 100
    */
   thresholdMs: number;
 
   /**
-   * Maximum duration threshold in milliseconds. 
+   * Maximum duration threshold in milliseconds.
    * Transactions with duration greather than this will not be samples out.
+   *
    * @default 500
    */
   criticalDurationThresholdMs: number;
