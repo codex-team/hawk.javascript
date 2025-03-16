@@ -73,6 +73,7 @@ export class Transaction {
   /**
    * Finishes the transaction and queues it for sending if:
    * - It's a failure or has critical severity
+   * - Its duration is above the critical threshold
    * - Its duration is above the threshold and passes sampling
    *
    * @param status - Status of the transaction ('success' or 'failure'). Defaults to 'success'
@@ -85,7 +86,12 @@ export class Transaction {
     // Always send if it's a failure or critical severity
     if (status === 'failure' || this.severity === 'critical') {
       this.queueForSending();
+      return;
+    }
 
+    // Always send if duration exceeds critical threshold
+    if (this.duration >= this.config.criticalDurationThresholdMs) {
+      this.queueForSending();
       return;
     }
 

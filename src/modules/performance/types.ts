@@ -43,4 +43,5 @@ export interface AggregatedSpan {
 export interface PerformanceMonitoringConfig {
   sampleRate: number;
   thresholdMs: number;
+  criticalDurationThresholdMs: number;
 }

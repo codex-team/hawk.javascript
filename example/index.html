@@ -84,64 +84,6 @@
             font-size: 15px;
             color:inherit;
         }
-
-        .performance-demo {
-            border-radius: 4px;
-        }
-
-        .performance-demo button {
-            padding: 8px 16px;
-            padding-right: 32px;
-            background: #4979E4;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            position: relative;
-            min-width: 200px;
-            text-align: left;
-        }
-
-        .performance-demo button:hover {
-            background: #4869d2;
-        }
-
-        .performance-demo button[disabled] {
-            background: #4979E4;
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        .performance-demo button .spinner {
-            display: none;
-            width: 10px;
-            height: 10px;
-            border: 2px solid #fff;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            animation: rotation 1s linear infinite;
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            margin-top: -5px;
-        }
-
-        #sampleRate, #batchInterval, #generateTransactions {
-          margin-bottom: 10px;
-        }
-
-        .performance-demo button[disabled] .spinner {
-            display: block;
-        }
-
-        @keyframes rotation {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
-        }
     </style>
 </head>
 <body>
@@ -210,55 +152,7 @@
     <br><br>
     <button id="btn-console-test">Make</button>
 </section>
-<section>
-    <h2>Performance Monitoring Demo</h2>
-    <div class="performance-demo">
-        <button id="simulateComplexOperation">
-            Simulate Complex Operation
-            <span class="spinner"></span>
-        </button>
-    </div>
-</section>
-<section>
-    <h2>Performance Monitoring Settings Demo</h2>
-    <div class="performance-demo">
-      <div class="input-group">
-        <label for="sampleRate">Sample Rate (0-1):</label>
-        <input 
-          type="number" 
-          id="sampleRate" 
-          value="1.0" 
-          min="0" 
-          max="1" 
-          step="0.1"
-          oninput="updateSampleRate(this.value)"
-        >
-        <label for="batchInterval">Batch Interval (ms):</label>
-        <input 
-          type="number" 
-          id="batchInterval" 
-          value="3000" 
-          min="1000" 
-          step="1000"
-          oninput="updateBatchInterval(this.value)"
-        >
-      </div>
-      <div>
-        <button id="generateTransactions">
-          Generate 100 Transactions
-          <span class="spinner"></span>
-        </button>
-        <div id="transactionStats">
-          Sampled: 0 / Total: 0
-        </div>
-        <div id="batchStats">
-          Last batch sent: Never
-        </div>
-      </div>
-    </div>
-</section>
-<!-- <script src="https://unpkg.com/vue@2"></script> -->
-<script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+<script src="https://unpkg.com/vue@2"></script>
 <section>
     <h2>Test Vue integration: $root</h2>
     <div id="vue-app-1">
@@ -302,7 +196,7 @@
             el: tag,
             instance: new Editor(),
             classProto: Editor,
-            longText: 'Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.',
+            longText: 'Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.',
           }
         },
         props: {
@@ -340,120 +234,7 @@
     context: {
       rootContextSample: '12345'
     },
-    performance: true
   })
-</script>
-<script type="module">
-  import HawkCatcher from '../src';
-  // Simulate complex operation with nested spans
-  document.getElementById('simulateComplexOperation').addEventListener('click', () => {
-    const button = document.getElementById('simulateComplexOperation');
-    button.disabled = true;
-
-    const transaction = window.hawk.startTransaction('complex-operation', {
-      type: 'background'
-    });
-
-    const step1 = transaction.startSpan('step-1');
-    setTimeout(() => {
-      step1.finish();
-
-      const step2 = transaction.startSpan('step-2');
-      // Simulate unfinished span
-      
-      const step3 = transaction.startSpan('step-3');
-      setTimeout(() => {
-        step3.finish();
-        transaction.finish();
-        button.disabled = false;
-      }, 300);
-    }, 400);
-  });
-
-  // Function to update sample rate
-  window.updateSampleRate = (value) => {
-    const rate = parseFloat(value);
-    const interval = parseInt(document.getElementById('batchInterval').value);
-    
-    window.hawk = new HawkCatcher({
-      token: 'eyJpbnRlZ3JhdGlvbklkIjoiNWU5OTE1MzItZTdiYy00ZjA0LTliY2UtYmIzZmE5ZTUwMTg3Iiwic2VjcmV0IjoiMTBlMTA4MjQtZTcyNC00YWFkLTkwMDQtMzExYTU1OWMzZTIxIn0=',
-      performance: {
-        sampleRate: rate,
-        batchInterval: interval
-      }
-    });
-  };
-
-  // Function to update batch interval
-  window.updateBatchInterval = (value) => {
-    const interval = parseInt(value);
-    const rate = parseFloat(document.getElementById('sampleRate').value);
-    
-    window.hawk = new HawkCatcher({
-      token: 'eyJpbnRlZ3JhdGlvbklkIjoiNWU5OTE1MzItZTdiYy00ZjA0LTliY2UtYmIzZmE5ZTUwMTg3Iiwic2VjcmV0IjoiMTBlMTA4MjQtZTcyNC00YWFkLTkwMDQtMzExYTU1OWMzZTIxIn0=',
-      performance: {
-        sampleRate: rate,
-        batchInterval: interval
-      }
-    });
-  };
-
-  // Test sampling and throttling
-  let totalTransactions = 0;
-  let sampledTransactions = 0;
-  let lastBatchTime = null;
-
-  document.getElementById('generateTransactions').addEventListener('click', async () => {
-    const button = document.getElementById('generateTransactions');
-    button.disabled = true;
-    
-    // Reset counters
-    totalTransactions = 0;
-    sampledTransactions = 0;
-    
-    // Generate transactions rapidly
-    for (let i = 0; i < 100; i++) {
-      totalTransactions++;
-      
-      const transaction = window.hawk.startTransaction(`test-${i}`, {
-        type: 'test'
-      });
-
-      // Add some spans
-      const span1 = transaction.startSpan('span-1');
-      await new Promise(resolve => setTimeout(resolve, 50));
-      span1.finish();
-
-      const span2 = transaction.startSpan('span-2');
-      await new Promise(resolve => setTimeout(resolve, 50));
-      span2.finish();
-
-      // Check if transaction was sampled
-      if (transaction.finish.toString().includes('queueTransaction')) {
-        sampledTransactions++;
-      }
-
-      transaction.finish();
-
-      // Update stats
-      document.getElementById('transactionStats').textContent = 
-        `Sampled: ${sampledTransactions} / Total: ${totalTransactions}`;
-    }
-
-    button.disabled = false;
-  });
-
-  // Monitor WebSocket messages to detect batches
-  const originalSend = WebSocket.prototype.send;
-  WebSocket.prototype.send = function(data) {
-    const message = JSON.parse(data);
-    if (message.catcherType === 'performance') {
-      lastBatchTime = new Date();
-      document.getElementById('batchStats').textContent = 
-        `Last batch sent: ${lastBatchTime.toLocaleTimeString()} (${message.payload.transactions.length} transactions)`;
-    }
-    return originalSend.call(this, data);
-  };
 </script>
 </body>
 </html>

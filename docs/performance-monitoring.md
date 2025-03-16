@@ -2,30 +2,29 @@
 
 ## Optimizations
 
-If we simply send all transactions without filtering and grouping, it will create a huge load on the service. We need to balance between data completeness and the efficiency of storage and processing.
+Sending all transactions without filtering and aggregation would create an heavy load on the service. We must carefully balance data completeness with efficient storage and processing to ensure optimal performance monitoring.
 
-### 1. Which transactions need to be sent?
+### 1. Transaction Selection Criteria
 
 #### Problem: Too Much Data in case of full sending
 
-   If we send every transaction:
+  Sending every transaction without filtering creates several critical issues:
 
-   - The load on the server increases sharply (especially with high traffic).
-   - The huge amount of the data is duplicate information, which does not significantly affect the analysis.
+   - Significantly increased server load, particularly during high traffic periods
+   - Large amounts of redundant data that provide minimal analytical value
    - "Infinite loops" in client code may generate endless transactions.
 
 #### Solution: Smart Sampling and Grouping
 
-   We do not need all transactions, but we need representative data.
+   Instead of collecting every transaction, we focus on gathering a representative sample that provides meaningful insights while minimizing data volume. 
 
-### 2. How to reduce data flow without losing quality?
-
+### 2. Data Flow Optimization Strategies
 #### Optimization #1: Sampling (Sending Part of the Data Randomly)
 
-   How not to lose rare and slow requests?
+   To ensure we capture important but infrequent transactions:
 
-   - We can increase the sampling chance for slow transactions (P95 > 500ms is sent with a probability of 50-100%).
-   - Errors (`status` == 'Failure') are always sent.
+   – Slow transactions are always sent. Transaction is considered slow if its duration is greater than criticalDurationThresholdMs parameter.
+   - Errors (`status` == 'failure') are always sent.
 
    See [Sampling](#sampling) for details.
 
@@ -33,7 +32,7 @@ If we simply send all transactions without filtering and grouping, it will creat
 
    Throttling + transaction batches → instead of 1000 separate messages, send 1 `AggregatedTransaction`.
 
-##### Combine transactions with the same name (e.g., GET /api/users) and time window (e.g., 1 second).
+##### Combine transactions with the same name (e.g., GET /api/users) and time window (e.g., 3 seconds).
 
 Instead of 1000 transactions, send one with count = 1000 and average metrics.
 

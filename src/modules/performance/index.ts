@@ -20,8 +20,13 @@ const DEFAULT_SAMPLE_RATE = 1.0;
  * Default threshold in milliseconds for filtering out short transactions
  * Transactions shorter than this duration will not be sent
  */
-
 const DEFAULT_THRESHOLD_MS = 20;
+
+/**
+ * Default threshold in milliseconds for critical transactions
+ * Transactions longer than this duration will always be sent regardless of sampling
+ */
+const DEFAULT_CRITICAL_DURATION_THRESHOLD_MS = 500;
 
 /**
  * Class for managing performance monitoring
@@ -48,7 +53,8 @@ export default class PerformanceMonitoring {
    * @param debug - Debug mode flag
    * @param sampleRate - Sample rate for performance data (0.0 to 1.0). Must be between 0 and 1.
    * @param batchInterval - Interval between batch sends in milliseconds. Defaults to 3000ms.
-   * @param thresholdMs - Minimum duration threshold in milliseconds. Transactions shorter than this will be filtered out. Defaults to 1000ms.
+   * @param thresholdMs - Minimum duration threshold in milliseconds. Transactions shorter than this will be filtered out. Defaults to 20ms.
+   * @param criticalDurationThresholdMs - Duration threshold for critical transactions. Transactions longer than this will always be sent. Defaults to 500ms.
    */
   constructor(
     private readonly transport: Socket,
@@ -56,7 +62,8 @@ export default class PerformanceMonitoring {
     private readonly debug: boolean = false,
     sampleRate: number = DEFAULT_SAMPLE_RATE,
     private readonly batchInterval: number = DEFAULT_BATCH_INTERVAL,
-    private readonly thresholdMs: number = DEFAULT_THRESHOLD_MS
+    private readonly thresholdMs: number = DEFAULT_THRESHOLD_MS,
+    private readonly criticalDurationThresholdMs: number = DEFAULT_CRITICAL_DURATION_THRESHOLD_MS
   ) {
     if (sampleRate < 0 || sampleRate > 1) {
       console.error('Performance monitoring sample rate must be between 0 and 1');
@@ -83,7 +90,6 @@ export default class PerformanceMonitoring {
    * Starts a new transaction
    *
    * @param name - Transaction name
-   * @param tags - Optional tags for the transaction
    * @param severity - Severity of the transaction
    * @returns Transaction object
    */
@@ -96,6 +102,7 @@ export default class PerformanceMonitoring {
     return new Transaction(data, this, {
       sampleRate: this.sampleRate,
       thresholdMs: this.thresholdMs,
+      criticalDurationThresholdMs: this.criticalDurationThresholdMs
     });
   }
 

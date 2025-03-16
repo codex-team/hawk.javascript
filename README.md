@@ -74,7 +74,7 @@ Initialization settings:
 | `disableGlobalErrorsHandling` | boolean | optional | Do not initialize global errors handling |
 | `disableVueErrorHandler` | boolean | optional | Do not initialize Vue errors handling |
 | `beforeSend` | function(event) => event | optional | This Method allows you to filter any data you don't want sending to Hawk |
-| `performance` | boolean\|object | optional | Performance monitoring settings. When object, accepts: <br> - `sampleRate`: Sample rate (0.0 to 1.0, default: 1.0) <br> - `thresholdMs`: Minimum duration threshold in ms (default: 20) <br> - `batchInterval`: Batch send interval in ms (default: 3000) |
+| `performance` | boolean\|object | optional | Performance monitoring settings. When object, accepts: <br> - `sampleRate`: Sample rate (0.0 to 1.0, default: 1.0) <br> - `thresholdMs`: Minimum duration threshold in ms (default: 20) <br> - `criticalDurationThresholdMs`: Duration threshold for critical transactions in ms (default: 500) <br> - `batchInterval`: Batch send interval in ms (default: 3000) |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -202,6 +202,7 @@ const hawk = new HawkCatcher({
 
 Transactions are automatically filtered based on:
 - Duration threshold (transactions shorter than `thresholdMs` are ignored)
+- Critical duration threshold (transactions longer than `criticalDurationThresholdMs` are always sent)
 - Sample rate (random sampling based on `sampleRate`)
 - Severity (critical transactions are always sent regardless of sampling)
 - Status (failed transactions are always sent regardless of sampling)
