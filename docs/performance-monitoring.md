@@ -84,6 +84,7 @@ Transactions with duration < `thresholdMs` will not be sent, as they are not cri
 | p95duration | number | 95th percentile duration of transaction in milliseconds |
 | maxDuration | number | Maximum duration of transaction in milliseconds |
 | count | number | how many transactions aggregated |
+| failureRate | number | percentage of transactions with status 'failure' |
 | aggregatedSpans | AggregatedSpan[] | List of spans in transactions |
 
 
@@ -95,6 +96,7 @@ Transactions with duration < `thresholdMs` will not be sent, as they are not cri
 | startTime | number | Timestamp when span started |
 | endTime | number | Timestamp when span ended |
 | duration | number | Total duration of span in milliseconds |
+| status | string | Status when span finished. 'success' (default) or 'failure' |
 
 ### AggregatedSpan
 See [Transaction Aggregation](#transaction-aggregation) for details on how spans are aggregated.
@@ -108,6 +110,7 @@ See [Transaction Aggregation](#transaction-aggregation) for details on how spans
 | p50duration | number | 50th percentile (median) duration of span in milliseconds |
 | p95duration | number | 95th percentile duration of span in milliseconds |
 | maxDuration | number | Maximum duration of span in milliseconds |
+| failureRate | number | percentage of spans with status 'failure' |
 
 ## Transaction Lifecycle
 
