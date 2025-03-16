@@ -16,12 +16,15 @@ import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
+import type { Transaction } from './modules/performance/transaction';
+import PerformanceMonitoring from './modules/performance/index';
 import { addErrorEvent, getConsoleLogStack, initConsoleCatcher } from './addons/consoleCatcher';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
  */
 declare const VERSION: string;
+
 
 /**
  * Hawk JavaScript Catcher
@@ -92,6 +95,12 @@ export default class Catcher {
    */
   private readonly disableVueErrorHandler: boolean = false;
 
+
+  /**
+   * Performance monitoring instance
+   */
+  private readonly performance: PerformanceMonitoring | null = null;
+
   /**
    * Catcher constructor
    *
@@ -147,6 +156,29 @@ export default class Catcher {
 
     if (settings.vue) {
       this.connectVue(settings.vue);
+    }
+
+    if (settings.performance) {
+      const sampleRate = typeof settings.performance === 'object' && typeof settings.performance.sampleRate === 'number' ?
+        settings.performance.sampleRate :
+        undefined;
+
+      const batchInterval = typeof settings.performance === 'object' && typeof settings.performance.batchInterval === 'number' ?
+        settings.performance.batchInterval :
+        undefined;
+
+      const thresholdMs = typeof settings.performance === 'object' && typeof settings.performance.thresholdMs === 'number' ?
+        settings.performance.thresholdMs :
+        undefined;
+
+      this.performance = new PerformanceMonitoring(
+        this.transport,
+        this.token,
+        this.debug,
+        sampleRate,
+        batchInterval,
+        thresholdMs
+      );
     }
   }
 
@@ -217,6 +249,27 @@ export default class Catcher {
     }, {
       disableVueErrorHandler: this.disableVueErrorHandler,
     });
+  }
+
+
+  /**
+   * Starts a new transaction
+   *
+   * @param name - Name of the transaction (e.g., 'page-load', 'api-request')
+   */
+  public startTransaction(name: string): Transaction | undefined {
+    if (this.performance === null) {
+      console.error('Hawk: can not start transaction. Performance monitoring is not enabled. Please enable it by setting performance: true in the HawkCatcher constructor.');
+    }
+
+    return this.performance?.startTransaction(name);
+  }
+
+  /**
+   * Clean up resources
+   */
+  public destroy(): void {
+    this.performance?.destroy();
   }
 
   /**

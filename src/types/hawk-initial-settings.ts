@@ -73,4 +73,44 @@ export interface HawkInitialSettings {
    * Used by @hawk.so/nuxt since Nuxt has own error hook.
    */
   disableVueErrorHandler?: boolean;
+
+  /**
+   * Performance monitoring settings
+   * - true to enable with default settings
+   * - {sampleRate: number} to enable with custom sample rate
+   * - false or undefined to disable
+   */
+  performance?: boolean | PerformanceMonitoringConfig;
+}
+
+export interface PerformanceMonitoringConfig {
+  /**
+   * Sample rate for performance data (0.0 to 1.0)
+   *
+   * @default 1.0
+   */
+  sampleRate: number;
+
+  /**
+   * Interval between batch sends in milliseconds
+   *
+   * @default 3000
+   */
+  batchInterval: number;
+
+  /**
+   * Minimum duration threshold in milliseconds.
+   * Transactions shorter than this will be filtered out.
+   *
+   * @default 100
+   */
+  thresholdMs: number;
+
+  /**
+   * Maximum duration threshold in milliseconds.
+   * Transactions with duration greather than this will not be samples out.
+   *
+   * @default 500
+   */
+  criticalDurationThresholdMs: number;
 }

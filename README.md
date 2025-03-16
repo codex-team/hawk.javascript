@@ -24,7 +24,7 @@ Then import `@hawk.so/javascript` module to your code.
 
 ```js
 import HawkCatcher from '@hawk.so/javascript';
-````
+```
 
 ### Load from CDN
 
@@ -74,6 +74,7 @@ Initialization settings:
 | `disableGlobalErrorsHandling` | boolean | optional | Do not initialize global errors handling |
 | `disableVueErrorHandler` | boolean | optional | Do not initialize Vue errors handling |
 | `beforeSend` | function(event) => event | optional | This Method allows you to filter any data you don't want sending to Hawk |
+| `performance` | boolean\|object | optional | Performance monitoring settings. When object, accepts: <br> - `sampleRate`: Sample rate (0.0 to 1.0, default: 1.0) <br> - `thresholdMs`: Minimum duration threshold in ms (default: 20) <br> - `criticalDurationThresholdMs`: Duration threshold for critical transactions in ms (default: 500) <br> - `batchInterval`: Batch send interval in ms (default: 3000) |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -151,7 +152,6 @@ const hawk = new HawkCatcher({
 
 or pass it any moment after Hawk Catcher was instantiated:
 
-
 ```js
 import Vue from 'vue';
 
@@ -160,4 +160,155 @@ const hawk = new HawkCatcher({
 });
 
 hawk.connectVue(Vue)
+```
+
+## Performance Monitoring
+
+The SDK can monitor performance of your application by tracking transactions and spans.
+
+### Transaction Batching and Aggregation
+
+Transactions are collected, aggregated, and sent in batches to reduce network overhead and provide statistical insights:
+
+- Transactions with the same name are grouped together
+- Statistical metrics are calculated (p50, p95, max durations)
+- Spans are aggregated across transactions
+- Failure rates are tracked for both transactions and spans
+
+You can configure the batch interval using the `batchInterval` option:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  performance: {
+    batchInterval: 5000 // Send batches every 5 seconds
+  }
+});
+```
+
+### Sampling and Filtering
+
+You can configure what percentage of transactions should be sent to Hawk using the `sampleRate` option:
+
+```typescript
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  performance: {
+    sampleRate: 0.2, // Sample 20% of transactions
+    thresholdMs: 50  // Only send transactions longer than 50ms
+  }
+});
+```
+
+Transactions are automatically filtered based on:
+- Duration threshold (transactions shorter than `thresholdMs` are ignored)
+- Critical duration threshold (transactions longer than `criticalDurationThresholdMs` are always sent)
+- Sample rate (random sampling based on `sampleRate`)
+- Severity (critical transactions are always sent regardless of sampling)
+- Status (failed transactions are always sent regardless of sampling)
+
+### API Reference
+
+#### startTransaction(name: string, severity?: 'default' | 'critical'): Transaction
+
+Starts a new transaction. A transaction represents a high-level operation like a page load or an API call.
+
+- `name`: Name of the transaction
+- `severity`: Optional severity level. 'critical' transactions are always sent regardless of sampling.
+
+#### Transaction Methods
+
+```typescript
+interface Transaction {
+  // Start a new span within this transaction
+  startSpan(name: string): Span;
+  
+  // Finish the transaction with optional status
+  finish(status?: 'success' | 'failure'): void;
+}
+```
+
+#### Span Methods
+
+```typescript
+interface Span {
+  // Finish the span with optional status
+  finish(status?: 'success' | 'failure'): void;
+}
+```
+
+### Examples
+
+#### Measuring Route Changes in Vue.js
+```javascript
+import { HawkCatcher } from '@hawk.so/javascript';
+import Vue from 'vue';
+import Router from 'vue-router';
+
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  performance: true
+});
+
+router.beforeEach((to, from, next) => {
+  const transaction = hawk.startTransaction('route-change');
+  
+  next();
+  
+  // After route change is complete
+  Vue.nextTick(() => {
+    transaction.finish();
+  });
+});
+```
+
+#### Measuring API Calls with Error Handling
+```javascript
+async function fetchUsers() {
+  const transaction = hawk.startTransaction('fetch-users');
+  
+  const apiSpan = transaction.startSpan('api-call');
+  
+  try {
+    const response = await fetch('/api/users');
+    
+    if (!response.ok) {
+      apiSpan.finish('failure');
+      transaction.finish('failure');
+      return null;
+    }
+    
+    const data = await response.json();
+    apiSpan.finish('success');
+    
+    const processSpan = transaction.startSpan('process-data');
+    // Process data...
+    processSpan.finish();
+    
+    transaction.finish('success');
+    return data;
+  } catch (error) {
+    apiSpan.finish('failure');
+    transaction.finish('failure');
+    throw error;
+  }
+}
+```
+
+#### Critical Transactions
+```javascript
+function processPayment(paymentDetails) {
+  // Mark as critical to ensure it's always sent regardless of sampling
+  const transaction = hawk.startTransaction('payment-processing', 'critical');
+  
+  try {
+    // Payment processing logic...
+    
+    transaction.finish('success');
+    return true;
+  } catch (error) {
+    transaction.finish('failure');
+    throw error;
+  }
+}
 ```
