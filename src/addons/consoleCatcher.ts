@@ -3,6 +3,7 @@
  */
 
 import type { ConsoleLogEvent } from '@hawk.so/types';
+import safeStringify from 'safe-stringify';
 
 const createConsoleCatcher = (): {
   initConsoleCatcher: () => void;
@@ -69,7 +70,7 @@ const createConsoleCatcher = (): {
             method,
             timestamp: new Date(),
             type: method,
-            message: args.map((arg) => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' '),
+            message: args.map((arg) => typeof arg === 'string' ? arg : safeStringify(arg)).join(' '),
             stack,
             fileLine: stack.split('\n')[0]?.trim(),
           };
