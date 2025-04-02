@@ -80,7 +80,7 @@ export default class StackParser {
        * In some cases column number of the error stack trace frame would be less then 200, but source code is minified
        * For this cases we need to check, that all of the lines to collect have length less than 200 too
        */
-      for (const lineToCheck in lines.slice(lineFrom, lineTo)) {
+      lines.slice(lineFrom, lineTo).forEach((lineToCheck) => {
         if (lineToCheck.length > minifiedSourceCodeThreshold) {
           return null;
         } else {
@@ -91,7 +91,7 @@ export default class StackParser {
 
           extractedLineIndex += 1;
         }
-      }
+      });
 
       return sourceCodeLines;
     } catch (e) {
