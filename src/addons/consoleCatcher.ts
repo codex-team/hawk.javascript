@@ -37,7 +37,7 @@ const createConsoleCatcher = (): {
   const formatConsoleArgs = (
     args: unknown[]
   ): { message: string; styles: string[] } => {
-    if (args.length === 0) return { message: "", styles: [] };
+    if (args.length === 0) return { message: '', styles: [] };
 
     const firstArg = args[0];
     if (typeof firstArg !== 'string' || !firstArg.includes('%c')) {
@@ -56,8 +56,10 @@ const createConsoleCatcher = (): {
 
     // Extract styles from arguments
     let styleIndex = 0;
+
     for (let i = 1; i < args.length; i++) {
       const arg = args[i];
+
       if (typeof arg === 'string' && message.indexOf('%c', styleIndex) !== -1) {
         styles.push(arg);
         styleIndex = message.indexOf('%c', styleIndex) + 2;
