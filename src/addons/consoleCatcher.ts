@@ -20,7 +20,9 @@ const createConsoleCatcher = (): {
     const seen = new WeakSet();
 
     return JSON.stringify(obj, (key, value) => {
+
       if (typeof value === 'object' && value !== null) {
+
         if (seen.has(value)) {
           return '[Circular]';
         }
@@ -88,6 +90,7 @@ const createConsoleCatcher = (): {
   const createConsoleEventFromError = (
     event: ErrorEvent | PromiseRejectionEvent
   ): ConsoleLogEvent => {
+
     if (event instanceof ErrorEvent) {
 
       return {
@@ -136,7 +139,8 @@ const createConsoleCatcher = (): {
 
         window.console[method] = function (...args: unknown[]): void {
           const stack =
-            new Error().stack?.split('\n').slice(2).join('\n') || '';
+            new Error().stack?.split('\n').slice(2)
+            .join('\n') || '';
           const { message, styles } = formatConsoleArgs(args);
 
           const logEvent: ConsoleLogEvent = {
@@ -163,7 +167,7 @@ const createConsoleCatcher = (): {
 
     getConsoleLogStack(): ConsoleLogEvent[] {
 
-      return [...consoleOutput];
+      return [ ...consoleOutput ];
     },
   };
 };
