@@ -53,7 +53,12 @@ const createConsoleCatcher = (): {
     // Add remaining arguments that aren't styles
     const remainingArgs = args
       .slice(styles.length + 1)
-      .map((arg) => (typeof arg === 'string' ? arg : safeStringify(arg)))
+      .map((arg) => {
+        if (typeof arg === 'string') return arg;
+        if (typeof arg === 'number' || typeof arg === 'boolean')
+          return String(arg);
+        return safeStringify(arg);
+      })
       .join(' ');
 
     return {
