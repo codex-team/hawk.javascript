@@ -1,8 +1,8 @@
 /**
  * @file Module for intercepting console logs with stack trace capture
  */
-
-import type { ConsoleLogEvent } from '@hawk.so/types';
+import safeStringify from "safe-stringify";
+import type { ConsoleLogEvent } from "@hawk.so/types";
 
 const createConsoleCatcher = (): {
   initConsoleCatcher: () => void;
@@ -14,40 +14,19 @@ const createConsoleCatcher = (): {
   let isInitialized = false;
 
   /**
-   * Safely stringifies objects handling circular references
-   */
-  const safeStringify = (obj: unknown): string => {
-    const seen = new WeakSet();
-
-    return JSON.stringify(obj, (key, value) => {
-
-      if (typeof value === 'object' && value !== null) {
-
-        if (seen.has(value)) {
-          return '[Circular]';
-        }
-        seen.add(value);
-      }
-
-      return value;
-    });
-  };
-
-  /**
    * Formats console arguments handling %c directives
    */
   const formatConsoleArgs = (
     args: unknown[]
   ): { message: string; styles: string[] } => {
-    if (args.length === 0) return { message: '', styles: [] };
+    if (args.length === 0) return { message: "", styles: [] };
 
     const firstArg = args[0];
-    if (typeof firstArg !== 'string' || !firstArg.includes('%c')) {
-
+    if (typeof firstArg !== "string" || !firstArg.includes("%c")) {
       return {
         message: args
-          .map((arg) => (typeof arg === 'string' ? arg : safeStringify(arg)))
-          .join(' '),
+          .map((arg) => (typeof arg === "string" ? arg : safeStringify(arg)))
+          .join(" "),
         styles: [],
       };
     }
@@ -62,20 +41,20 @@ const createConsoleCatcher = (): {
     for (let i = 1; i < args.length; i++) {
       const arg = args[i];
 
-      if (typeof arg === 'string' && message.indexOf('%c', styleIndex) !== -1) {
+      if (typeof arg === "string" && message.indexOf("%c", styleIndex) !== -1) {
         styles.push(arg);
-        styleIndex = message.indexOf('%c', styleIndex) + 2;
+        styleIndex = message.indexOf("%c", styleIndex) + 2;
       }
     }
 
     // Add remaining arguments that aren't styles
     const remainingArgs = args
       .slice(styles.length + 1)
-      .map((arg) => (typeof arg === 'string' ? arg : safeStringify(arg)))
-      .join(' ');
+      .map((arg) => (typeof arg === "string" ? arg : safeStringify(arg)))
+      .join(" ");
 
     return {
-      message: message + (remainingArgs ? ' ' + remainingArgs : ''),
+      message: message + (remainingArgs ? " " + remainingArgs : ""),
       styles,
     };
   };
@@ -90,28 +69,26 @@ const createConsoleCatcher = (): {
   const createConsoleEventFromError = (
     event: ErrorEvent | PromiseRejectionEvent
   ): ConsoleLogEvent => {
-
     if (event instanceof ErrorEvent) {
-
       return {
-        method: 'error',
+        method: "error",
         timestamp: new Date(),
-        type: event.error?.name || 'Error',
+        type: event.error?.name || "Error",
         message: event.error?.message || event.message,
-        stack: event.error?.stack || '',
+        stack: event.error?.stack || "",
         fileLine: event.filename
           ? `${event.filename}:${event.lineno}:${event.colno}`
-          : '',
+          : "",
       };
     }
 
     return {
-      method: 'error',
+      method: "error",
       timestamp: new Date(),
-      type: 'UnhandledRejection',
+      type: "UnhandledRejection",
       message: event.reason?.message || String(event.reason),
-      stack: event.reason?.stack || '',
-      fileLine: '',
+      stack: event.reason?.stack || "",
+      fileLine: "",
     };
   };
 
@@ -123,15 +100,15 @@ const createConsoleCatcher = (): {
 
       isInitialized = true;
       const consoleMethods: string[] = [
-        'log',
-        'warn',
-        'error',
-        'info',
-        'debug',
+        "log",
+        "warn",
+        "error",
+        "info",
+        "debug",
       ];
 
       consoleMethods.forEach((method) => {
-        if (typeof window.console[method] !== 'function') {
+        if (typeof window.console[method] !== "function") {
           return;
         }
 
@@ -139,8 +116,7 @@ const createConsoleCatcher = (): {
 
         window.console[method] = function (...args: unknown[]): void {
           const stack =
-            new Error().stack?.split('\n').slice(2)
-            .join('\n') || '';
+            new Error().stack?.split("\n").slice(2).join("\n") || "";
           const { message, styles } = formatConsoleArgs(args);
 
           const logEvent: ConsoleLogEvent = {
@@ -149,7 +125,7 @@ const createConsoleCatcher = (): {
             type: method,
             message,
             stack,
-            fileLine: stack.split('\n')[0]?.trim(),
+            fileLine: stack.split("\n")[0]?.trim(),
             styles,
           };
 
@@ -166,8 +142,7 @@ const createConsoleCatcher = (): {
     },
 
     getConsoleLogStack(): ConsoleLogEvent[] {
-
-      return [ ...consoleOutput ];
+      return [...consoleOutput];
     },
   };
 };
