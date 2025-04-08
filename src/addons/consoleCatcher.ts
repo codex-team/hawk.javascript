@@ -14,6 +14,22 @@ const createConsoleCatcher = (): {
   let isInitialized = false;
 
   /**
+   * Converts any argument to its string representation
+   *
+   * @param arg - Console arguments
+   */
+  const stringifyArg = (arg: unknown): string => {
+    if (typeof arg === 'string') {
+      return arg;
+    }
+    if (typeof arg === 'number' || typeof arg === 'boolean') {
+      return String(arg);
+    }
+
+    return safeStringify(arg);
+  };
+
+  /**
    * Formats console arguments handling %c directives
    *
    * @param args - Console arguments that may include %c style directives
@@ -30,16 +46,7 @@ const createConsoleCatcher = (): {
 
     if (typeof firstArg !== 'string' || !firstArg.includes('%c')) {
       return {
-        message: args.map((arg) => {
-          if (typeof arg === 'string') {
-            return arg;
-          }
-          if (typeof arg === 'number' || typeof arg === 'boolean') {
-            return String(arg);
-          }
-
-          return safeStringify(arg);
-        }).join(''),
+        message: args.map(stringifyArg).join(' '),
         styles: [],
       };
     }
@@ -63,16 +70,7 @@ const createConsoleCatcher = (): {
     // Add remaining arguments that aren't styles
     const remainingArgs = args
       .slice(styles.length + 1)
-      .map((arg) => {
-        if (typeof arg === 'string') {
-          return arg;
-        }
-        if (typeof arg === 'number' || typeof arg === 'boolean') {
-          return String(arg);
-        }
-
-        return safeStringify(arg);
-      })
+      .map(stringifyArg)
       .join(' ');
 
     return {
