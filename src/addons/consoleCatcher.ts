@@ -4,11 +4,14 @@
 import safeStringify from 'safe-stringify';
 import type { ConsoleLogEvent } from '@hawk.so/types';
 
-const createConsoleCatcher = (): {
+/**
+ * Creates a console interceptor that captures and formats console output
+ */
+function createConsoleCatcher(): {
   initConsoleCatcher: () => void;
   addErrorEvent: (event: ErrorEvent | PromiseRejectionEvent) => void;
   getConsoleLogStack: () => ConsoleLogEvent[];
-} => {
+  } {
   const MAX_LOGS = 20;
   const consoleOutput: ConsoleLogEvent[] = [];
   let isInitialized = false;
@@ -16,9 +19,9 @@ const createConsoleCatcher = (): {
   /**
    * Converts any argument to its string representation
    *
-   * @param arg - Console arguments
+   * @param arg - Value to convert to string
    */
-  const stringifyArg = (arg: unknown): string => {
+  function stringifyArg(arg: unknown): string {
     if (typeof arg === 'string') {
       return arg;
     }
@@ -27,19 +30,22 @@ const createConsoleCatcher = (): {
     }
 
     return safeStringify(arg);
-  };
+  }
 
   /**
    * Formats console arguments handling %c directives
    *
-   * @param args - Console arguments that may include %c style directives
+   * @param args - Console arguments that may include style directives
    */
-  const formatConsoleArgs = (
-    args: unknown[]
-  ): { message: string; styles: string[] } => {
+  function formatConsoleArgs(args: unknown[]): {
+    message: string;
+    styles: string[];
+  } {
     if (args.length === 0) {
-      return { message: '',
-        styles: [] };
+      return {
+        message: '',
+        styles: [],
+      };
     }
 
     const firstArg = args[0];
@@ -77,18 +83,28 @@ const createConsoleCatcher = (): {
       message: message + (remainingArgs ? ' ' + remainingArgs : ''),
       styles,
     };
-  };
+  }
 
-  const addToConsoleOutput = (logEvent: ConsoleLogEvent): void => {
+  /**
+   * Adds a console log event to the output buffer
+   *
+   * @param logEvent - The console log event to be added to the output buffer
+   */
+  function addToConsoleOutput(logEvent: ConsoleLogEvent): void {
     if (consoleOutput.length >= MAX_LOGS) {
       consoleOutput.shift();
     }
     consoleOutput.push(logEvent);
-  };
+  }
 
-  const createConsoleEventFromError = (
+  /**
+   * Creates a console log event from an error or promise rejection
+   *
+   * @param event - The error event or promise rejection event to convert
+   */
+  function createConsoleEventFromError(
     event: ErrorEvent | PromiseRejectionEvent
-  ): ConsoleLogEvent => {
+  ): ConsoleLogEvent {
     if (event instanceof ErrorEvent) {
       return {
         method: 'error',
@@ -110,63 +126,71 @@ const createConsoleCatcher = (): {
       stack: event.reason?.stack || '',
       fileLine: '',
     };
-  };
+  }
 
-  return {
-    initConsoleCatcher(): void {
-      if (isInitialized) {
+  /**
+   * Initializes the console interceptor by overriding default console methods
+   */
+  function initConsoleCatcher(): void {
+    if (isInitialized) {
+      return;
+    }
+
+    isInitialized = true;
+    const consoleMethods: string[] = ['log', 'warn', 'error', 'info', 'debug'];
+
+    consoleMethods.forEach(function overrideConsoleMethod(method) {
+      if (typeof window.console[method] !== 'function') {
         return;
       }
 
-      isInitialized = true;
-      const consoleMethods: string[] = [
-        'log',
-        'warn',
-        'error',
-        'info',
-        'debug',
-      ];
+      const oldFunction = window.console[method].bind(window.console);
 
-      consoleMethods.forEach((method) => {
-        if (typeof window.console[method] !== 'function') {
-          return;
-        }
+      window.console[method] = function (...args: unknown[]): void {
+        const stack = new Error().stack?.split('\n').slice(2)
+          .join('\n') || '';
+        const { message, styles } = formatConsoleArgs(args);
 
-        const oldFunction = window.console[method].bind(window.console);
-
-        window.console[method] = function (...args: unknown[]): void {
-          const stack =
-            new Error().stack?.split('\n').slice(2)
-              .join('\n') || '';
-          const { message, styles } = formatConsoleArgs(args);
-
-          const logEvent: ConsoleLogEvent = {
-            method,
-            timestamp: new Date(),
-            type: method,
-            message,
-            stack,
-            fileLine: stack.split('\n')[0]?.trim(),
-            styles,
-          };
-
-          addToConsoleOutput(logEvent);
-          oldFunction(...args);
+        const logEvent: ConsoleLogEvent = {
+          method,
+          timestamp: new Date(),
+          type: method,
+          message,
+          stack,
+          fileLine: stack.split('\n')[0]?.trim(),
+          styles,
         };
-      });
-    },
 
-    addErrorEvent(event: ErrorEvent | PromiseRejectionEvent): void {
-      const logEvent = createConsoleEventFromError(event);
+        addToConsoleOutput(logEvent);
+        oldFunction(...args);
+      };
+    });
+  }
 
-      addToConsoleOutput(logEvent);
-    },
+  /**
+   * Handles error events by converting them to console log events
+   *
+   * @param event - The error or promise rejection event to handle
+   */
+  function addErrorEvent(event: ErrorEvent | PromiseRejectionEvent): void {
+    const logEvent = createConsoleEventFromError(event);
 
-    getConsoleLogStack(): ConsoleLogEvent[] {
-      return [ ...consoleOutput ];
-    },
+    addToConsoleOutput(logEvent);
+  }
+
+  /**
+   * Returns the current console output buffer
+   */
+  function getConsoleLogStack(): ConsoleLogEvent[] {
+    return [ ...consoleOutput ];
+  }
+
+  return {
+    initConsoleCatcher,
+    addErrorEvent,
+    getConsoleLogStack,
   };
-};
+}
 
 const consoleCatcher = createConsoleCatcher();
 
