@@ -32,8 +32,7 @@ const createConsoleCatcher = (): {
           if (typeof arg === 'number' || typeof arg === 'boolean')
             return String(arg);
           return safeStringify(arg);
-        })
-        .join(''),
+        }).join(''),
         styles: [],
       };
     }
