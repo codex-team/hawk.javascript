@@ -28,8 +28,13 @@ const createConsoleCatcher = (): {
 
       return {
         message: args
-          .map((arg) => (typeof arg === 'string' ? arg : safeStringify(arg)))
-          .join(' '),
+        .map((arg) => {
+          if (typeof arg === 'string') return arg;
+          if (typeof arg === 'number' || typeof arg === 'boolean')
+            return String(arg);
+          return safeStringify(arg);
+        })
+        .join(''),
         styles: [],
       };
     }
