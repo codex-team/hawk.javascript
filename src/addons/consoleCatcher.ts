@@ -15,22 +15,29 @@ const createConsoleCatcher = (): {
 
   /**
    * Formats console arguments handling %c directives
+   *
+   * @param args - Console arguments that may include %c style directives
    */
   const formatConsoleArgs = (
     args: unknown[]
   ): { message: string; styles: string[] } => {
-
-    if (args.length === 0) return { message: '', styles: [] };
+    if (args.length === 0) {
+      return { message: '',
+        styles: [] };
+    }
 
     const firstArg = args[0];
 
     if (typeof firstArg !== 'string' || !firstArg.includes('%c')) {
-
       return {
         message: args.map((arg) => {
-          if (typeof arg === 'string') return arg;
-          if (typeof arg === 'number' || typeof arg === 'boolean')
+          if (typeof arg === 'string') {
+            return arg;
+          }
+          if (typeof arg === 'number' || typeof arg === 'boolean') {
             return String(arg);
+          }
+
           return safeStringify(arg);
         }).join(''),
         styles: [],
@@ -57,9 +64,13 @@ const createConsoleCatcher = (): {
     const remainingArgs = args
       .slice(styles.length + 1)
       .map((arg) => {
-        if (typeof arg === 'string') return arg;
-        if (typeof arg === 'number' || typeof arg === 'boolean')
+        if (typeof arg === 'string') {
+          return arg;
+        }
+        if (typeof arg === 'number' || typeof arg === 'boolean') {
           return String(arg);
+        }
+
         return safeStringify(arg);
       })
       .join(' ');
@@ -71,7 +82,6 @@ const createConsoleCatcher = (): {
   };
 
   const addToConsoleOutput = (logEvent: ConsoleLogEvent): void => {
-
     if (consoleOutput.length >= MAX_LOGS) {
       consoleOutput.shift();
     }
@@ -81,9 +91,7 @@ const createConsoleCatcher = (): {
   const createConsoleEventFromError = (
     event: ErrorEvent | PromiseRejectionEvent
   ): ConsoleLogEvent => {
-
     if (event instanceof ErrorEvent) {
-
       return {
         method: 'error',
         timestamp: new Date(),
@@ -108,7 +116,6 @@ const createConsoleCatcher = (): {
 
   return {
     initConsoleCatcher(): void {
-
       if (isInitialized) {
         return;
       }
@@ -123,7 +130,6 @@ const createConsoleCatcher = (): {
       ];
 
       consoleMethods.forEach((method) => {
-
         if (typeof window.console[method] !== 'function') {
           return;
         }
@@ -132,7 +138,8 @@ const createConsoleCatcher = (): {
 
         window.console[method] = function (...args: unknown[]): void {
           const stack =
-            new Error().stack?.split('\n').slice(2).join('\n') || '';
+            new Error().stack?.split('\n').slice(2)
+              .join('\n') || '';
           const { message, styles } = formatConsoleArgs(args);
 
           const logEvent: ConsoleLogEvent = {
@@ -158,12 +165,12 @@ const createConsoleCatcher = (): {
     },
 
     getConsoleLogStack(): ConsoleLogEvent[] {
-
       return [ ...consoleOutput ];
     },
   };
 };
 
 const consoleCatcher = createConsoleCatcher();
+
 export const { initConsoleCatcher, getConsoleLogStack, addErrorEvent } =
   consoleCatcher;
