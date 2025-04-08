@@ -124,8 +124,7 @@ const createConsoleCatcher = (): {
 
         window.console[method] = function (...args: unknown[]): void {
           const stack =
-            new Error().stack?.split('\n').slice(2)
-            .join('\n') || '';
+            new Error().stack?.split('\n').slice(2).join('\n') || '';
           const { message, styles } = formatConsoleArgs(args);
 
           const logEvent: ConsoleLogEvent = {
