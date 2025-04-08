@@ -25,6 +25,7 @@ const createConsoleCatcher = (): {
     const firstArg = args[0];
 
     if (typeof firstArg !== 'string' || !firstArg.includes('%c')) {
+
       return {
         message: args
           .map((arg) => (typeof arg === 'string' ? arg : safeStringify(arg)))
@@ -74,6 +75,7 @@ const createConsoleCatcher = (): {
   ): ConsoleLogEvent => {
 
     if (event instanceof ErrorEvent) {
+
       return {
         method: 'error',
         timestamp: new Date(),
@@ -149,6 +151,7 @@ const createConsoleCatcher = (): {
     },
 
     getConsoleLogStack(): ConsoleLogEvent[] {
+
       return [ ...consoleOutput ];
     },
   };
