@@ -27,8 +27,7 @@ const createConsoleCatcher = (): {
     if (typeof firstArg !== 'string' || !firstArg.includes('%c')) {
 
       return {
-        message: args
-        .map((arg) => {
+        message: args.map((arg) => {
           if (typeof arg === 'string') return arg;
           if (typeof arg === 'number' || typeof arg === 'boolean')
             return String(arg);
