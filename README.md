@@ -73,6 +73,7 @@ Initialization settings:
 | `vue` | Vue constructor | optional | Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application) |
 | `disableGlobalErrorsHandling` | boolean | optional | Do not initialize global errors handling |
 | `disableVueErrorHandler` | boolean | optional | Do not initialize Vue errors handling |
+| `disableConsoleLogHandler` | boolean | optional | Do not initialize console logs tracking |
 | `beforeSend` | function(event) => event | optional | This Method allows you to filter any data you don't want sending to Hawk |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.

@@ -93,6 +93,11 @@ export default class Catcher {
   private readonly disableVueErrorHandler: boolean = false;
 
   /**
+   * Disable console log handler
+   */
+  private readonly disableConsoleLogHandler: boolean = false;
+
+  /**
    * Catcher constructor
    *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
@@ -111,6 +116,7 @@ export default class Catcher {
     this.context = settings.context || undefined;
     this.beforeSend = settings.beforeSend;
     this.disableVueErrorHandler = settings.disableVueErrorHandler ?? false;
+    this.disableConsoleLogHandler = settings.disableConsoleLogHandler ?? false;
 
     if (!this.token) {
       log(
@@ -136,7 +142,10 @@ export default class Catcher {
       },
     });
 
-    initConsoleCatcher();
+    if (!settings.disableConsoleLogHandler) {
+      initConsoleCatcher();
+      console.log('Console log handler initialized');
+    }
 
     /**
      * Set global handlers
