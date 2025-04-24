@@ -144,7 +144,6 @@ export default class Catcher {
 
     if (!settings.disableConsoleLogHandler) {
       initConsoleCatcher();
-      console.log('Console log handler initialized');
     }
 
     /**
@@ -246,7 +245,9 @@ export default class Catcher {
      * Add error to console logs
      */
 
-    addErrorEvent(event);
+    if (!this.disableConsoleLogHandler) {
+      addErrorEvent(event);
+    }
 
     /**
      * Promise rejection reason is recommended to be an Error, but it can be a string:
@@ -512,7 +513,7 @@ export default class Catcher {
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
     const getParams = this.getGetParams();
-    const consoleLogs = getConsoleLogStack();
+    const consoleLogs = !this.disableConsoleLogHandler ? getConsoleLogStack() : [];
 
     const addons: JavaScriptAddons = {
       window: {
