@@ -95,7 +95,7 @@ export default class Catcher {
   /**
    * Console log handler
    */
-  private readonly consoleTracking: boolean = true;
+  private readonly consoleTracking: boolean;
 
   /**
    * Catcher constructor
@@ -142,7 +142,7 @@ export default class Catcher {
       },
     });
 
-    if (settings.consoleTracking) {
+    if (this.consoleTracking) {
       initConsoleCatcher();
     }
 
