@@ -513,7 +513,7 @@ export default class Catcher {
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
     const getParams = this.getGetParams();
-    const consoleLogs = this.consoleTracking ? getConsoleLogStack() : [];
+    const consoleLogs = this.consoleTracking && getConsoleLogStack();
 
     const addons: JavaScriptAddons = {
       window: {
@@ -532,7 +532,7 @@ export default class Catcher {
       addons.RAW_EVENT_DATA = this.getRawData(error);
     }
 
-    if (consoleLogs.length > 0) {
+    if (consoleLogs && consoleLogs.length > 0) {
       addons.consoleOutput = consoleLogs;
     }
 
