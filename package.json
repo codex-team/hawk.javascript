@@ -1,7 +1,7 @@
 {
   "name": "@hawk.so/javascript",
   "type": "commonjs",
-  "version": "3.2.4",
+  "version": "3.2.5",
   "description": "JavaScript errors tracking for Hawk.so",
   "files": [
     "dist"
