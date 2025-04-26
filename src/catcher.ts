@@ -93,9 +93,9 @@ export default class Catcher {
   private readonly disableVueErrorHandler: boolean = false;
 
   /**
-   * Disable console log handler
+   * Console log handler
    */
-  private readonly disableConsoleLogHandler: boolean = false;
+  private readonly consoleTracking: boolean = true;
 
   /**
    * Catcher constructor
@@ -116,7 +116,7 @@ export default class Catcher {
     this.context = settings.context || undefined;
     this.beforeSend = settings.beforeSend;
     this.disableVueErrorHandler = settings.disableVueErrorHandler ?? false;
-    this.disableConsoleLogHandler = settings.disableConsoleLogHandler ?? false;
+    this.consoleTracking = settings.consoleTracking ?? true;
 
     if (!this.token) {
       log(
@@ -142,7 +142,7 @@ export default class Catcher {
       },
     });
 
-    if (!settings.disableConsoleLogHandler) {
+    if (settings.consoleTracking) {
       initConsoleCatcher();
     }
 
@@ -245,7 +245,7 @@ export default class Catcher {
      * Add error to console logs
      */
 
-    if (!this.disableConsoleLogHandler) {
+    if (this.consoleTracking) {
       addErrorEvent(event);
     }
 
@@ -513,7 +513,7 @@ export default class Catcher {
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
     const getParams = this.getGetParams();
-    const consoleLogs = !this.disableConsoleLogHandler ? getConsoleLogStack() : [];
+    const consoleLogs = this.consoleTracking ? getConsoleLogStack() : [];
 
     const addons: JavaScriptAddons = {
       window: {

@@ -75,7 +75,7 @@ export interface HawkInitialSettings {
   disableVueErrorHandler?: boolean;
 
   /**
-   * Disable console log handler
+   * Console log handler
    */
-  disableConsoleLogHandler?: boolean;
+  consoleTracking?: boolean;
 }
