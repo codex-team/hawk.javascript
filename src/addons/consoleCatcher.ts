@@ -147,6 +147,16 @@ function createConsoleCatcher(): {
       const oldFunction = window.console[method].bind(window.console);
 
       window.console[method] = function (...args: unknown[]): void {
+
+        /**
+         * If the console call originates from Vue's internal runtime bundle, skip interception
+         * to avoid capturing Vue-internal warnings and causing recursive loops.
+         */
+        const rawStack = new Error().stack || '';
+        if (rawStack.includes('runtime-core.esm-bundler.js')) {
+          return oldFunction(...args);
+        }
+
         const stack = new Error().stack?.split('\n').slice(2)
           .join('\n') || '';
         const { message, styles } = formatConsoleArgs(args);
