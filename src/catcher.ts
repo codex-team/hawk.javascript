@@ -93,6 +93,11 @@ export default class Catcher {
   private readonly disableVueErrorHandler: boolean = false;
 
   /**
+   * Console log handler
+   */
+  private readonly consoleTracking: boolean;
+
+  /**
    * Catcher constructor
    *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
@@ -111,6 +116,7 @@ export default class Catcher {
     this.context = settings.context || undefined;
     this.beforeSend = settings.beforeSend;
     this.disableVueErrorHandler = settings.disableVueErrorHandler ?? false;
+    this.consoleTracking = settings.consoleTracking ?? true;
 
     if (!this.token) {
       log(
@@ -136,7 +142,9 @@ export default class Catcher {
       },
     });
 
-    initConsoleCatcher();
+    if (this.consoleTracking) {
+      initConsoleCatcher();
+    }
 
     /**
      * Set global handlers
@@ -237,7 +245,9 @@ export default class Catcher {
      * Add error to console logs
      */
 
-    addErrorEvent(event);
+    if (this.consoleTracking) {
+      addErrorEvent(event);
+    }
 
     /**
      * Promise rejection reason is recommended to be an Error, but it can be a string:
@@ -503,7 +513,7 @@ export default class Catcher {
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
     const getParams = this.getGetParams();
-    const consoleLogs = getConsoleLogStack();
+    const consoleLogs = this.consoleTracking && getConsoleLogStack();
 
     const addons: JavaScriptAddons = {
       window: {
@@ -522,7 +532,7 @@ export default class Catcher {
       addons.RAW_EVENT_DATA = this.getRawData(error);
     }
 
-    if (consoleLogs.length > 0) {
+    if (consoleLogs && consoleLogs.length > 0) {
       addons.consoleOutput = consoleLogs;
     }
 

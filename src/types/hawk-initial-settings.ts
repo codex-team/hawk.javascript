@@ -73,4 +73,9 @@ export interface HawkInitialSettings {
    * Used by @hawk.so/nuxt since Nuxt has own error hook.
    */
   disableVueErrorHandler?: boolean;
+
+  /**
+   * Console log handler
+   */
+  consoleTracking?: boolean;
 }
