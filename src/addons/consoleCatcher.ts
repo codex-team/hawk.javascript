@@ -20,6 +20,8 @@ function createConsoleCatcher(): {
    * Converts any argument to its string representation
    *
    * @param arg - Value to convert to string
+   * @throws Error if the argument can not be stringified, for example by such reason:
+   *  SecurityError: Failed to read a named property 'toJSON' from 'Window': Blocked a frame with origin "https://codex.so" from accessing a cross-origin frame.
    */
   function stringifyArg(arg: unknown): string {
     if (typeof arg === 'string') {
@@ -52,7 +54,13 @@ function createConsoleCatcher(): {
 
     if (typeof firstArg !== 'string' || !firstArg.includes('%c')) {
       return {
-        message: args.map(stringifyArg).join(' '),
+        message: args.map(arg => {
+          try {
+            return stringifyArg(arg);
+          } catch (error) {
+            return '[Error stringifying argument: ' + (error instanceof Error ? error.message : String(error)) + ']';
+          }
+        }).join(' '),
         styles: [],
       };
     }
@@ -76,7 +84,13 @@ function createConsoleCatcher(): {
     // Add remaining arguments that aren't styles
     const remainingArgs = args
       .slice(styles.length + 1)
-      .map(stringifyArg)
+      .map(arg => {
+        try {
+          return stringifyArg(arg);
+        } catch (error) {
+          return '[Error stringifying argument: ' + (error instanceof Error ? error.message : String(error)) + ']';
+        }
+      })
       .join(' ');
 
     return {
