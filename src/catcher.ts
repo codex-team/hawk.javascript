@@ -16,7 +16,7 @@ import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
-import { addErrorEvent, getConsoleLogStack, initConsoleCatcher } from './addons/consoleCatcher';
+import { ConsoleCatcher } from './addons/consoleCatcher';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -98,6 +98,11 @@ export default class Catcher {
   private readonly consoleTracking: boolean;
 
   /**
+   * Console catcher instance
+   */
+  private consoleCatcher: ConsoleCatcher | null = null;
+
+  /**
    * Catcher constructor
    *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
@@ -143,7 +148,8 @@ export default class Catcher {
     });
 
     if (this.consoleTracking) {
-      initConsoleCatcher();
+      this.consoleCatcher = new ConsoleCatcher();
+      this.consoleCatcher.init();
     }
 
     /**
@@ -244,9 +250,8 @@ export default class Catcher {
     /**
      * Add error to console logs
      */
-
-    if (this.consoleTracking) {
-      addErrorEvent(event);
+    if (this.consoleTracking && this.consoleCatcher) {
+      this.consoleCatcher.addErrorEvent(event);
     }
 
     /**
@@ -513,7 +518,8 @@ export default class Catcher {
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
     const getParams = this.getGetParams();
-    const consoleLogs = this.consoleTracking && getConsoleLogStack();
+    const consoleLogs =
+      this.consoleTracking && this.consoleCatcher ? this.consoleCatcher.getConsoleLogStack() : null;
 
     const addons: JavaScriptAddons = {
       window: {
@@ -533,7 +539,7 @@ export default class Catcher {
     }
 
     if (consoleLogs && consoleLogs.length > 0) {
-      addons.consoleOutput = consoleLogs;
+      (addons as any).consoleOutput = consoleLogs;
     }
 
     return addons;
