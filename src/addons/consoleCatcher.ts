@@ -11,6 +11,7 @@ export class ConsoleCatcher {
   private readonly MAX_LOGS = 20;
   private readonly consoleOutput: ConsoleLogEvent[] = [];
   private isInitialized = false;
+  private isProcessing = false;
 
   /**
    * Converts any argument to its string representation
@@ -131,6 +132,11 @@ export class ConsoleCatcher {
       const oldFunction = window.console[method].bind(window.console);
 
       window.console[method] = (...args: unknown[]): void => {
+        // Prevent recursive calls
+        if (this.isProcessing) {
+          return oldFunction(...args);
+        }
+
         /**
          * If the console call originates from Vue's internal runtime bundle, skip interception
          * to avoid capturing Vue-internal warnings and causing recursive loops.
@@ -140,20 +146,34 @@ export class ConsoleCatcher {
           return oldFunction(...args);
         }
 
-        const stack = new Error().stack?.split('\n').slice(2).join('\n') || '';
-        const { message, styles } = this.formatConsoleArgs(args);
+        // Additional protection against Hawk internal calls
+        if (rawStack.includes('hawk.javascript') || rawStack.includes('@hawk.so')) {
+          return oldFunction(...args);
+        }
 
-        const logEvent: ConsoleLogEvent = {
-          method,
-          timestamp: new Date(),
-          type: method,
-          message,
-          stack,
-          fileLine: stack.split('\n')[0]?.trim(),
-          styles,
-        };
+        this.isProcessing = true;
 
-        this.addToConsoleOutput(logEvent);
+        try {
+          const stack = new Error().stack?.split('\n').slice(2).join('\n') || '';
+          const { message, styles } = this.formatConsoleArgs(args);
+
+          const logEvent: ConsoleLogEvent = {
+            method,
+            timestamp: new Date(),
+            type: method,
+            message,
+            stack,
+            fileLine: stack.split('\n')[0]?.trim(),
+            styles,
+          };
+
+          this.addToConsoleOutput(logEvent);
+        } catch (error) {
+          // Silently ignore errors in console processing to prevent infinite loops
+        } finally {
+          this.isProcessing = false;
+        }
+
         oldFunction(...args);
       };
     });
