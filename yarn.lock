@@ -316,10 +316,10 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@hawk.so/types@^0.1.20":
-  version "0.1.20"
-  resolved "https://registry.yarnpkg.com/@hawk.so/types/-/types-0.1.20.tgz#90f4b3998ef5f025f5b99dae31da264d5bbe3450"
-  integrity sha512-3a07TekmgqOT9OKeMkqcV73NxzK1dS06pG66VaHO0f5DEEH2+SNfZErqe1v8hkLQIk+GkgZVZLtHqnskjQabuw==
+"@hawk.so/types@^0.1.30":
+  version "0.1.30"
+  resolved "https://registry.yarnpkg.com/@hawk.so/types/-/types-0.1.30.tgz#0002fe4854bd48d050ded00195a3935d082cef20"
+  integrity sha512-2elLi5HM1/g5Xs6t9c2/iEd1pkT1fL+oFv9iSs+xZPFCxKHJLDgzoNB5dAEuSuiNmJ7bc4byNDrSd88e2GBhWw==
   dependencies:
     "@types/mongodb" "^3.5.34"
 

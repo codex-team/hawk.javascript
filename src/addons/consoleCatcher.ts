@@ -2,7 +2,7 @@
  * @file Module for intercepting console logs with stack trace capture
  */
 import safeStringify from 'safe-stringify';
-import type { ExtendedConsoleLogEvent as ConsoleLogEvent } from '../types/console';
+import { ConsoleLogEvent } from '@hawk.so/types';
 
 /**
  * Console interceptor that captures and formats console output
