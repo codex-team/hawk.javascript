@@ -63,9 +63,11 @@ export interface HawkInitialSettings {
   disableGlobalErrorsHandling?: boolean;
 
   /**
-   * This Method allows you to filter any data you don't want sending to Hawk
+   * This Method allows you to filter any data you don't want sending to Hawk.
+   * 
+   * Return `false` to prevent the event from being sent to Hawk.
    */
-  beforeSend?(event: HawkJavaScriptEvent): HawkJavaScriptEvent;
+  beforeSend?(event: HawkJavaScriptEvent): HawkJavaScriptEvent | false;
 
   /**
    * Disable Vue.js error handler
