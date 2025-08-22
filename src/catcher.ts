@@ -115,8 +115,8 @@ export default class Catcher {
     this.user = settings.user || Catcher.getGeneratedUser();
     this.context = settings.context || undefined;
     this.beforeSend = settings.beforeSend;
-    this.disableVueErrorHandler = settings.disableVueErrorHandler || false;
-    this.consoleTracking = settings.consoleTracking || true;
+    this.disableVueErrorHandler = settings.disableVueErrorHandler !== null && settings.disableVueErrorHandler !== undefined ? settings.disableVueErrorHandler : false;
+    this.consoleTracking = settings.consoleTracking !== null && settings.consoleTracking !== undefined ? settings.consoleTracking : true;
 
     if (!this.token) {
       log(
@@ -549,10 +549,12 @@ export default class Catcher {
       return;
     }
 
+    const stack = error.stack !== null && error.stack !== undefined ? error.stack : '';
+
     return {
       name: error.name,
       message: error.message,
-      stack: error.stack || '',
+      stack,
     };
   }
 
