@@ -24,10 +24,12 @@ export default class StackParser {
 
     return Promise.all(stackParsed.map(async (frame) => {
       const sourceCode = await this.extractSourceCode(frame);
-
+      const file = frame.fileName !== null && frame.fileName !== undefined ? frame.fileName : '';
+      const line = frame.lineNumber !== null && frame.lineNumber !== undefined ? frame.lineNumber : 0;
+      
       return {
-        file: frame.fileName ?? '',
-        line: frame.lineNumber ?? 0,
+        file,
+        line,
         column: frame.columnNumber,
         sourceCode: sourceCode !== null ? sourceCode : undefined,
         function: frame.functionName,
