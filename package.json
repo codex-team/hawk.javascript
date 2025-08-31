@@ -1,7 +1,7 @@
 {
   "name": "@hawk.so/javascript",
   "type": "commonjs",
-  "version": "3.2.8",
+  "version": "3.2.9-rc.1",
   "description": "JavaScript errors tracking for Hawk.so",
   "files": [
     "dist"
@@ -47,7 +47,7 @@
     "vue": "^2"
   },
   "dependencies": {
-    "@hawk.so/types": "^0.1.20",
+    "@hawk.so/types": "^0.1.30",
     "error-stack-parser": "^2.1.4",
     "safe-stringify": "^1.1.1",
     "vite-plugin-dts": "^4.2.4"
