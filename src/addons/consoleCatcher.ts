@@ -2,7 +2,7 @@
  * @file Module for intercepting console logs with stack trace capture
  */
 import safeStringify from 'safe-stringify';
-import { ConsoleLogEvent } from '@hawk.so/types';
+import type { ConsoleLogEvent } from '@hawk.so/types';
 
 /**
  * Console interceptor that captures and formats console output
@@ -12,6 +12,72 @@ export class ConsoleCatcher {
   private readonly consoleOutput: ConsoleLogEvent[] = [];
   private isInitialized = false;
   private isProcessing = false;
+
+  /**
+   * Initializes the console interceptor by overriding default console methods
+   */
+  public init(): void {
+    if (this.isInitialized) {
+      return;
+    }
+
+    this.isInitialized = true;
+    const consoleMethods: string[] = ['log', 'warn', 'error', 'info', 'debug'];
+
+    consoleMethods.forEach((method) => {
+      if (typeof window.console[method] !== 'function') {
+        return;
+      }
+
+      const oldFunction = window.console[method].bind(window.console);
+
+      window.console[method] = (...args: unknown[]): void => {
+        // Prevent recursive calls
+        if (this.isProcessing) {
+          return oldFunction(...args);
+        }
+
+        /**
+         * If the console call originates from Vue's internal runtime bundle, skip interception
+         * to avoid capturing Vue-internal warnings and causing recursive loops.
+         */
+        const rawStack = new Error().stack || '';
+        if (rawStack.includes('runtime-core.esm-bundler.js')) {
+          return oldFunction(...args);
+        }
+
+        // Additional protection against Hawk internal calls
+        if (rawStack.includes('hawk.javascript') || rawStack.includes('@hawk.so')) {
+          return oldFunction(...args);
+        }
+
+        this.isProcessing = true;
+
+        try {
+          const stack = new Error().stack?.split('\n').slice(2).join('\n') || '';
+          const { message, styles } = this.formatConsoleArgs(args);
+
+          const logEvent: ConsoleLogEvent = {
+            method,
+            timestamp: new Date(),
+            type: method,
+            message,
+            stack,
+            fileLine: stack.split('\n')[0]?.trim(),
+            styles,
+          };
+
+          this.addToConsoleOutput(logEvent);
+        } catch (error) {
+          // Silently ignore errors in console processing to prevent infinite loops
+        } finally {
+          this.isProcessing = false;
+        }
+
+        oldFunction(...args);
+      };
+    });
+  }
 
   /**
    * Converts any argument to its string representation
@@ -111,72 +177,6 @@ export class ConsoleCatcher {
       stack: event.reason?.stack || '',
       fileLine: '',
     };
-  }
-
-  /**
-   * Initializes the console interceptor by overriding default console methods
-   */
-  public init(): void {
-    if (this.isInitialized) {
-      return;
-    }
-
-    this.isInitialized = true;
-    const consoleMethods: string[] = ['log', 'warn', 'error', 'info', 'debug'];
-
-    consoleMethods.forEach((method) => {
-      if (typeof window.console[method] !== 'function') {
-        return;
-      }
-
-      const oldFunction = window.console[method].bind(window.console);
-
-      window.console[method] = (...args: unknown[]): void => {
-        // Prevent recursive calls
-        if (this.isProcessing) {
-          return oldFunction(...args);
-        }
-
-        /**
-         * If the console call originates from Vue's internal runtime bundle, skip interception
-         * to avoid capturing Vue-internal warnings and causing recursive loops.
-         */
-        const rawStack = new Error().stack || '';
-        if (rawStack.includes('runtime-core.esm-bundler.js')) {
-          return oldFunction(...args);
-        }
-
-        // Additional protection against Hawk internal calls
-        if (rawStack.includes('hawk.javascript') || rawStack.includes('@hawk.so')) {
-          return oldFunction(...args);
-        }
-
-        this.isProcessing = true;
-
-        try {
-          const stack = new Error().stack?.split('\n').slice(2).join('\n') || '';
-          const { message, styles } = this.formatConsoleArgs(args);
-
-          const logEvent: ConsoleLogEvent = {
-            method,
-            timestamp: new Date(),
-            type: method,
-            message,
-            stack,
-            fileLine: stack.split('\n')[0]?.trim(),
-            styles,
-          };
-
-          this.addToConsoleOutput(logEvent);
-        } catch (error) {
-          // Silently ignore errors in console processing to prevent infinite loops
-        } finally {
-          this.isProcessing = false;
-        }
-
-        oldFunction(...args);
-      };
-    });
   }
 
   /**
