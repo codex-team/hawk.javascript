@@ -80,6 +80,21 @@ export class ConsoleCatcher {
   }
 
   /**
+   * Handles error events by converting them to console log events
+   */
+  public addErrorEvent(event: ErrorEvent | PromiseRejectionEvent): void {
+    const logEvent = this.createConsoleEventFromError(event);
+    this.addToConsoleOutput(logEvent);
+  }
+
+  /**
+   * Returns the current console output buffer
+   */
+  public getConsoleLogStack(): ConsoleLogEvent[] {
+    return [...this.consoleOutput];
+  }
+
+  /**
    * Converts any argument to its string representation
    */
   private stringifyArg(arg: unknown): string {
@@ -177,20 +192,5 @@ export class ConsoleCatcher {
       stack: event.reason?.stack || '',
       fileLine: '',
     };
-  }
-
-  /**
-   * Handles error events by converting them to console log events
-   */
-  public addErrorEvent(event: ErrorEvent | PromiseRejectionEvent): void {
-    const logEvent = this.createConsoleEventFromError(event);
-    this.addToConsoleOutput(logEvent);
-  }
-
-  /**
-   * Returns the current console output buffer
-   */
-  public getConsoleLogStack(): ConsoleLogEvent[] {
-    return [...this.consoleOutput];
   }
 }
