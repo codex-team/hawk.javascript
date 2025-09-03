@@ -1,9 +1,23 @@
 # Hawk JavaScript Catcher
 
-[Hawk](https://github.com/codex-team/hawk) allows to track JavaScript and TypeScript errors in your applications.
+Error tracking for JavaScript/TypeScript applications.
 
-Here is the [Hawk Web](//garage.hawk.so) client and here is the [Documentation](//docs.hawk.so).
+- [Hawk Web](//garage.hawk.so)
+- [Documentation (En)](//docs.hawk.so)
+- [Documentation (Ru)](//docs.hawk-tracker.ru)
 
+## Features
+
+- 🦅 Automatic error catching
+- 💎 Manual error and logs sending
+- 🙂 Attaching user information
+- 📦 Attaching additional context
+- 🛡️ Sensitive data filtering
+- 🌟 Source maps consuming
+- 💬 Console logs tracking
+- <img src="https://cdn.svglogos.dev/logos/vue.svg" width="16" height="16"> &nbsp;Vue support
+- <img src="https://cdn.svglogos.dev/logos/react.svg" width="16" height="16">  &nbsp;React support
+  
 ## Installation
 
 We recommend adding Hawk script to page above others to prevent missing any errors.
@@ -78,10 +92,6 @@ Initialization settings:
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
-### Usage in React project
-
-You can use the JavaScript catcher in your React project. Create the Hawk Catcher instance in a `index.js` file of your project.
-
 ## Manual sending
 
 You can send errors or other messages to the Hawk manually, for example at your `catch` blocks or any debug conditions.
@@ -135,7 +145,7 @@ window.hawk = new HawkCatcher({
 
 You can use the `beforeSend()` hook to prevent sending a particular event. Return `false` for that.
 
-## Integrate to Vue application
+## Usage with &nbsp; <img src="https://cdn.svglogos.dev/logos/vue.svg" width="22"> &nbsp;Vue.js 
 
 Vue apps have their own error handler, so if you want to catcher errors thrown inside Vue components, you should set up a Vue integration.
 
@@ -161,4 +171,20 @@ const hawk = new HawkCatcher({
 });
 
 hawk.connectVue(Vue)
+```
+
+
+## Usage with &nbsp; <img src="https://cdn.svglogos.dev/logos/react.svg" width="22"> &nbsp;React
+
+React is suppported out of the box. No additional setup required. 
+
+Create the Hawk Catcher instance in a `index.js` file of your project.
+
+
+```js
+import HawkCatcher from '@hawk.so/javascript';
+
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN'
+});
 ```
