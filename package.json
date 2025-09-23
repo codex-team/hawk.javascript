@@ -31,7 +31,7 @@
     "name": "CodeX",
     "email": "team@codex.so"
   },
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "bugs": {
     "url": "https://github.com/codex-team/hawk.javascript/issues"
   },

@@ -17,7 +17,7 @@ Error tracking for JavaScript/TypeScript applications.
 - 💬 Console logs tracking
 - <img src="https://cdn.svglogos.dev/logos/vue.svg" width="16" height="16"> &nbsp;Vue support
 - <img src="https://cdn.svglogos.dev/logos/react.svg" width="16" height="16">  &nbsp;React support
-  
+
 ## Installation
 
 We recommend adding Hawk script to page above others to prevent missing any errors.
@@ -145,7 +145,7 @@ window.hawk = new HawkCatcher({
 
 You can use the `beforeSend()` hook to prevent sending a particular event. Return `false` for that.
 
-## Usage with &nbsp; <img src="https://cdn.svglogos.dev/logos/vue.svg" width="22"> &nbsp;Vue.js 
+## Usage with &nbsp; <img src="https://cdn.svglogos.dev/logos/vue.svg" width="22"> &nbsp;Vue.js
 
 Vue apps have their own error handler, so if you want to catcher errors thrown inside Vue components, you should set up a Vue integration.
 
@@ -176,7 +176,7 @@ hawk.connectVue(Vue)
 
 ## Usage with &nbsp; <img src="https://cdn.svglogos.dev/logos/react.svg" width="22"> &nbsp;React
 
-React is suppported out of the box. No additional setup required. 
+React is suppported out of the box. No additional setup required.
 
 Create the Hawk Catcher instance in a `index.js` file of your project.
 
@@ -188,3 +188,8 @@ const hawk = new HawkCatcher({
   token: 'INTEGRATION_TOKEN'
 });
 ```
+
+## License
+
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+See the [LICENSE](./LICENSE) file for the full text.
