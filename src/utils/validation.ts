@@ -12,19 +12,25 @@ interface ValidationResult<T> {
 
 /**
  * Validates user data - basic security checks
+ *
+ * @param user
  */
 export function validateUser(user: AffectedUser): ValidationResult<AffectedUser> {
   const errors: string[] = [];
 
   if (!user || !Sanitizer.isObject(user)) {
     errors.push('User must be an object');
-    return { isValid: false, errors };
+
+    return { isValid: false,
+      errors };
   }
 
   // Validate required ID
   if (!user.id || typeof user.id !== 'string' || user.id.trim() === '') {
     errors.push('User ID is required and must be a non-empty string');
-    return { isValid: false, errors };
+
+    return { isValid: false,
+      errors };
   }
 
   const validatedUser: AffectedUser = {
@@ -53,13 +59,17 @@ export function validateUser(user: AffectedUser): ValidationResult<AffectedUser>
 
 /**
  * Validates context data - basic security checks
+ *
+ * @param context
  */
 export function validateContext(context: EventContext): ValidationResult<EventContext> {
   const errors: string[] = [];
 
   if (!context || !Sanitizer.isObject(context)) {
     errors.push('Context must be an object');
-    return { isValid: false, errors };
+
+    return { isValid: false,
+      errors };
   }
 
   return {
@@ -71,6 +81,9 @@ export function validateContext(context: EventContext): ValidationResult<EventCo
 
 /**
  * Logs validation errors
+ *
+ * @param prefix
+ * @param errors
  */
 export function logValidationErrors(prefix: string, errors: string[]): void {
   errors.forEach((error) => {

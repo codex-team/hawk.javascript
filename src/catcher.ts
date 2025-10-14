@@ -242,6 +242,7 @@ export default class Catcher {
 
     if (!validation.isValid) {
       logValidationErrors('setUser', validation.errors);
+
       return;
     }
 
@@ -265,6 +266,7 @@ export default class Catcher {
 
     if (!validation.isValid) {
       logValidationErrors('setContext', validation.errors);
+
       return;
     }
 
