@@ -241,17 +241,10 @@ export default class Catcher {
   }
 
   /**
-   * Clear current user information
+   * Clear current user information (revert to generated user)
    */
   public clearUser(): void {
-    this.user = null;
-  }
-
-  /**
-   * Get current user information
-   */
-  public getCurrentUser(): AffectedUser | null {
-    return this.user;
+    this.user = Catcher.getGeneratedUser();
   }
 
   /**
@@ -268,13 +261,6 @@ export default class Catcher {
    */
   public clearContext(): void {
     this.context = undefined;
-  }
-
-  /**
-   * Get current context data
-   */
-  public getCurrentContext(): EventContext | undefined {
-    return this.context;
   }
 
   /**

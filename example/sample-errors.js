@@ -28,7 +28,9 @@ const buttonPromiseRejection = document.getElementById('btn-promise-rejection');
 
 buttonPromiseRejection.addEventListener('click', function promiseRejectionSample() {
   // Promise.reject('This is a sample rejected promise');
-  Promise.resolve().then(realErrorSample).then(() => {});
+  Promise.resolve()
+    .then(realErrorSample)
+    .then(() => {});
 });
 
 /**
@@ -77,7 +79,6 @@ buttonManualSending.addEventListener('click', () => {
  */
 const buttonSetUser = document.getElementById('btn-set-user');
 const buttonClearUser = document.getElementById('btn-clear-user');
-const buttonGetUser = document.getElementById('btn-get-user');
 
 buttonSetUser.addEventListener('click', () => {
   const userId = document.getElementById('userId').value;
@@ -102,17 +103,11 @@ buttonClearUser.addEventListener('click', () => {
   window.hawk.clearUser();
 });
 
-buttonGetUser.addEventListener('click', () => {
-  const currentUser = window.hawk.getCurrentUser();
-  alert('Current user: ' + (currentUser ? JSON.stringify(currentUser, null, 2) : 'No user set'));
-});
-
 /**
  * Context Management
  */
 const buttonSetContext = document.getElementById('btn-set-context');
 const buttonClearContext = document.getElementById('btn-clear-context');
-const buttonGetContext = document.getElementById('btn-get-context');
 
 buttonSetContext.addEventListener('click', () => {
   const contextKey = document.getElementById('contextKey').value;
@@ -132,14 +127,6 @@ buttonSetContext.addEventListener('click', () => {
 
 buttonClearContext.addEventListener('click', () => {
   window.hawk.clearContext();
-});
-
-buttonGetContext.addEventListener('click', () => {
-  const currentContext = window.hawk.getCurrentContext();
-  alert(
-    'Current context: ' +
-      (currentContext ? JSON.stringify(currentContext, null, 2) : 'No context set')
-  );
 });
 
 /**
