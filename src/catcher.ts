@@ -63,7 +63,7 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private user: AffectedUser | null;
+  private user: AffectedUser;
 
   /**
    * Any additional data passed by user for sending with all messages
