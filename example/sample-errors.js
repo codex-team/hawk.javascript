@@ -107,7 +107,6 @@ buttonClearUser.addEventListener('click', () => {
  * Context Management
  */
 const buttonSetContext = document.getElementById('btn-set-context');
-const buttonClearContext = document.getElementById('btn-clear-context');
 
 buttonSetContext.addEventListener('click', () => {
   const contextKey = document.getElementById('contextKey').value;
@@ -123,21 +122,4 @@ buttonSetContext.addEventListener('click', () => {
   };
 
   window.hawk.setContext(context);
-});
-
-buttonClearContext.addEventListener('click', () => {
-  window.hawk.clearContext();
-});
-
-/**
- * Test without user
- */
-const buttonTestWithoutUser = document.getElementById('btn-test-without-user');
-
-buttonTestWithoutUser.addEventListener('click', () => {
-  // Clear user first to ensure no user is set
-  window.hawk.clearUser();
-
-  // Send error without user
-  window.hawk.send(new Error('Test error without user'));
 });

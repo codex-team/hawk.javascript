@@ -142,9 +142,6 @@ hawk.setContext({
   version: '2.1.0',
   environment: 'production',
 });
-
-// Clear context data
-hawk.clearContext();
 ```
 
 ## Source maps consuming

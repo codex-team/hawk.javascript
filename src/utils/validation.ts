@@ -1,60 +1,27 @@
+import log from './log';
 import type { AffectedUser, EventContext } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
-
-/**
- * Validation result interface
- */
-interface ValidationResult<T> {
-  isValid: boolean;
-  data?: T;
-  errors: string[];
-}
 
 /**
  * Validates user data - basic security checks
  *
  * @param user
  */
-export function validateUser(user: AffectedUser): ValidationResult<AffectedUser> {
-  const errors: string[] = [];
-
+export function validateUser(user: AffectedUser): boolean {
   if (!user || !Sanitizer.isObject(user)) {
-    errors.push('User must be an object');
+    log('validateUser: User must be an object', 'warn');
 
-    return { isValid: false,
-      errors };
+    return false;
   }
 
   // Validate required ID
   if (!user.id || typeof user.id !== 'string' || user.id.trim() === '') {
-    errors.push('User ID is required and must be a non-empty string');
+    log('validateUser: User ID is required and must be a non-empty string', 'warn');
 
-    return { isValid: false,
-      errors };
+    return false;
   }
 
-  const validatedUser: AffectedUser = {
-    id: user.id.trim(),
-  };
-
-  // Add optional fields if they exist and are strings
-  if (user.name && typeof user.name === 'string') {
-    validatedUser.name = user.name.trim();
-  }
-
-  if (user.url && typeof user.url === 'string') {
-    validatedUser.url = user.url.trim();
-  }
-
-  if (user.image && typeof user.image === 'string') {
-    validatedUser.image = user.image.trim();
-  }
-
-  return {
-    isValid: true,
-    data: validatedUser,
-    errors,
-  };
+  return true;
 }
 
 /**
@@ -62,31 +29,12 @@ export function validateUser(user: AffectedUser): ValidationResult<AffectedUser>
  *
  * @param context
  */
-export function validateContext(context: EventContext): ValidationResult<EventContext> {
-  const errors: string[] = [];
-
+export function validateContext(context: EventContext): boolean {
   if (!context || !Sanitizer.isObject(context)) {
-    errors.push('Context must be an object');
+    log('validateContext: Context must be an object', 'warn');
 
-    return { isValid: false,
-      errors };
+    return false;
   }
 
-  return {
-    isValid: true,
-    data: context,
-    errors,
-  };
-}
-
-/**
- * Logs validation errors
- *
- * @param prefix
- * @param errors
- */
-export function logValidationErrors(prefix: string, errors: string[]): void {
-  errors.forEach((error) => {
-    console.warn(`${prefix}: ${error}`);
-  });
+  return true;
 }
