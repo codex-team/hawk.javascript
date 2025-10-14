@@ -63,12 +63,12 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private readonly user: AffectedUser;
+  private user: AffectedUser | null;
 
   /**
    * Any additional data passed by user for sending with all messages
    */
-  private readonly context: EventContext | undefined;
+  private context: EventContext | undefined;
 
   /**
    * This Method allows developer to filter any data you don't want sending to Hawk
@@ -218,13 +218,63 @@ export default class Catcher {
    */
   public connectVue(vue): void {
     // eslint-disable-next-line no-new
-    this.vue = new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
-      void this.formatAndSend(error, {
-        vue: addons,
-      });
-    }, {
-      disableVueErrorHandler: this.disableVueErrorHandler,
-    });
+    this.vue = new VueIntegration(
+      vue,
+      (error: Error, addons: VueIntegrationAddons) => {
+        void this.formatAndSend(error, {
+          vue: addons,
+        });
+      },
+      {
+        disableVueErrorHandler: this.disableVueErrorHandler,
+      }
+    );
+  }
+
+  /**
+   * Update the current user information
+   *
+   * @param user - New user information
+   */
+  public setUser(user: AffectedUser): void {
+    this.user = user;
+  }
+
+  /**
+   * Clear current user information
+   */
+  public clearUser(): void {
+    this.user = null;
+  }
+
+  /**
+   * Get current user information
+   */
+  public getCurrentUser(): AffectedUser | null {
+    return this.user;
+  }
+
+  /**
+   * Update the context data that will be sent with all events
+   *
+   * @param context - New context data
+   */
+  public setContext(context: EventContext): void {
+    this.context = context;
+  }
+
+  /**
+   * Clear current context data
+   */
+  public clearContext(): void {
+    this.context = undefined;
+  }
+
+  /**
+   * Get current context data
+   */
+  public getCurrentContext(): EventContext | undefined {
+    return this.context;
   }
 
   /**

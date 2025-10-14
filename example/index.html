@@ -1,240 +1,270 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Hawk JavaScript example</title>
-    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        body {
-            font-family: Roboto, system-ui, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #2F3341;
-            color: #DBE6FF;
-            font-size: 13px;
-        }
+      body {
+        font-family: Roboto, system-ui, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #2f3341;
+        color: #dbe6ff;
+        font-size: 13px;
+      }
 
-        header {
-            padding: 30px;
-            background: #242732;
-        }
+      header {
+        padding: 30px;
+        background: #242732;
+      }
 
-        h1 {
-            font-weight: bold;
-            font-size: 20px;
-            margin: 0 0 15px;
-        }
+      h1 {
+        font-weight: bold;
+        font-size: 20px;
+        margin: 0 0 15px;
+      }
 
-        a {
-            color: inherit;
-        }
+      a {
+        color: inherit;
+      }
 
-        section {
-            padding: 15px;
-            border: 1px solid rgba(219,230,255,0.10);
-            border-radius: 4px;
-            margin: 15px;
-        }
+      section {
+        padding: 15px;
+        border: 1px solid rgba(219, 230, 255, 0.1);
+        border-radius: 4px;
+        margin: 15px;
+      }
 
-        h2 {
-            font-weight: 500;
-            margin: 0 0 10px;
-            font-size: 13px;
-            color: rgba(219,230,255,0.60);
-            letter-spacing: 0.24px;
-            text-align: left;
-            text-transform: uppercase;
-        }
+      h2 {
+        font-weight: 500;
+        margin: 0 0 10px;
+        font-size: 13px;
+        color: rgba(219, 230, 255, 0.6);
+        letter-spacing: 0.24px;
+        text-align: left;
+        text-transform: uppercase;
+      }
 
-        h2 small {
-          text-transform: none;
-          font-size: 14px;
-          opacity: .6;
-          font-weight: normal;
-          margin-left: 15px;
-        }
+      h2 small {
+        text-transform: none;
+        font-size: 14px;
+        opacity: 0.6;
+        font-weight: normal;
+        margin-left: 15px;
+      }
 
-        button {
-            display: inline-block;
-            padding: 8px 20px;
-            border: 0;
-            border-radius: 5px;
-            background: #4979E4;
-            color: #DBE6FF;
-            font-weight: 500;
-            font-size: 14px;
-            cursor: pointer;
-        }
+      button {
+        display: inline-block;
+        padding: 8px 20px;
+        border: 0;
+        border-radius: 5px;
+        background: #4979e4;
+        color: #dbe6ff;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+      }
 
-        button:hover {
-            background: #4869d2;
-        }
+      button:hover {
+        background: #4869d2;
+      }
 
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 15px;
-        }
+      label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 15px;
+      }
 
-        input, select {
-            background: rgba(36,39,50,0.68);
-            border: 1px solid rgba(0,0,0,0.18);
-            border-radius: 3px;
-            padding: 10px 15px;
-            font-size: 15px;
-            color:inherit;
-        }
+      input,
+      select {
+        background: rgba(36, 39, 50, 0.68);
+        border: 1px solid rgba(0, 0, 0, 0.18);
+        border-radius: 3px;
+        padding: 10px 15px;
+        font-size: 15px;
+        color: inherit;
+      }
     </style>
-</head>
-<body>
-<header>
-    <h1>
-        Hawk JavaScript Catcher
-    </h1>
-    <a href="https://github.com/codex-team/hawk.javascript">https://github.com/codex-team/hawk.javascript</a>
-</header>
-<section>
-    <h2>Send test event</h2>
-    <button onclick="window.hawk.test()">hawk.test()</button>
-</section>
-<section>
-    <h2>Send real error</h2>
-    <button id="btn-real-error">Real error</button>
-</section>
-<section>
-    <h2>Send Unhandled promise rejection error</h2>
-    <button id="btn-promise-rejection">
-        Unhandled promise rejection
-    </button>
-</section>
-<section>
-  <h2>
-    Send event manually
-    <small>
-      Through the <code>.send(error, context)</code> method
-    </small>
-  </h2>
-  <label for="errorContext">Error context</label>
-  <input type="text" id="errorContext" placeholder="Any data you want">
-  <br>
-  <br>
-  <button id="btn-manual-sending">
-    Send manual message
-  </button>
-</section>
-<section>
-    <h2>Send the specified number of errors</h2>
-    <label for="errorsNumber">Enter the number of errors to send</label>
-    <input type="number" id="errorsNumber" value="1000">
-    <br><br>
-    <label for="errorType">Select errors type</label>
-    <select id="errorType">
+  </head>
+  <body>
+    <header>
+      <h1>Hawk JavaScript Catcher</h1>
+      <a href="https://github.com/codex-team/hawk.javascript"
+        >https://github.com/codex-team/hawk.javascript</a
+      >
+    </header>
+    <section>
+      <h2>Send test event</h2>
+      <button onclick="window.hawk.test()">hawk.test()</button>
+      <br /><br />
+      <button id="btn-test-without-user">Test without user</button>
+    </section>
+    <section>
+      <h2>Send real error</h2>
+      <button id="btn-real-error">Real error</button>
+    </section>
+    <section>
+      <h2>Send Unhandled promise rejection error</h2>
+      <button id="btn-promise-rejection">Unhandled promise rejection</button>
+    </section>
+    <section>
+      <h2>
+        Send event manually
+        <small> Through the <code>.send(error, context)</code> method </small>
+      </h2>
+      <label for="errorContext">Error context</label>
+      <input type="text" id="errorContext" placeholder="Any data you want" />
+      <br />
+      <br />
+      <button id="btn-manual-sending">Send manual message</button>
+    </section>
+    <section>
+      <h2>Send the specified number of errors</h2>
+      <label for="errorsNumber">Enter the number of errors to send</label>
+      <input type="number" id="errorsNumber" value="1000" />
+      <br /><br />
+      <label for="errorType">Select errors type</label>
+      <select id="errorType">
         <option value="TypeError">TypeError</option>
         <option value="RangeError">RangeError</option>
         <option value="Error">Error</option>
-    </select>
-    <br><br>
-    <button id="btn-send-many">Send errors</button>
-</section>
-<section>
-    <h2>Test console catcher</h2>
-    <label for="consoleCatcherTestTextInput">Enter text</label>
-    <input type="text" id="consoleCatcherTestTextInput">
-    <br><br>
-    <label for="consoleMethod" style="display: inline">console.</label>
-    <select id="consoleMethod">
+      </select>
+      <br /><br />
+      <button id="btn-send-many">Send errors</button>
+    </section>
+    <section>
+      <h2>Test console catcher</h2>
+      <label for="consoleCatcherTestTextInput">Enter text</label>
+      <input type="text" id="consoleCatcherTestTextInput" />
+      <br /><br />
+      <label for="consoleMethod" style="display: inline">console.</label>
+      <select id="consoleMethod">
         <option value="log">log</option>
         <option value="error">error</option>
         <option value="info">info</option>
         <option value="debug">debug</option>
         <option value="warn">warn</option>
-    </select>
-    <br><br>
-    <button id="btn-console-test">Make</button>
-</section>
-<script src="https://unpkg.com/vue@2"></script>
-<section>
-    <h2>Test Vue integration: $root</h2>
-    <div id="vue-app-1">
+      </select>
+      <br /><br />
+      <button id="btn-console-test">Make</button>
+    </section>
+    <section>
+      <h2>User Management</h2>
+      <label for="userId">User ID</label>
+      <input type="text" id="userId" placeholder="user123" />
+      <br /><br />
+      <label for="userName">User Name</label>
+      <input type="text" id="userName" placeholder="John Doe" />
+      <br /><br />
+      <label for="userUrl">User URL</label>
+      <input type="text" id="userUrl" placeholder="/users/123" />
+      <br /><br />
+      <button id="btn-set-user">Set User</button>
+      <button id="btn-clear-user">Clear User</button>
+      <button id="btn-get-user">Get Current User</button>
+    </section>
+    <section>
+      <h2>Context Management</h2>
+      <label for="contextKey">Context Key</label>
+      <input type="text" id="contextKey" placeholder="feature" />
+      <br /><br />
+      <label for="contextValue">Context Value</label>
+      <input type="text" id="contextValue" placeholder="user-dashboard" />
+      <br /><br />
+      <button id="btn-set-context">Set Context</button>
+      <button id="btn-clear-context">Clear Context</button>
+      <button id="btn-get-context">Get Current Context</button>
+    </section>
+    <script src="https://unpkg.com/vue@2"></script>
+    <section>
+      <h2>Test Vue integration: $root</h2>
+      <div id="vue-app-1">
         <button @click="buttonClicked">{{ label }}</button>
-    </div>
-    <script>
-      new Vue({
-        el: '#vue-app-1',
-        data: {
-          label: 'Error in Vue $root'
-        },
-        methods:{
-          buttonClicked(){
-            foo();
-          }
-        }
-      })
-    </script>
-</section>
-<section>
-    <h2>Test Vue integration: &lt;test-component&gt;</h2>
-    <div id="vue-app-2">
-        <test-component :title="label"/>
-    </div>
-    <script>
-      class Editor {}
+      </div>
+      <script>
+        new Vue({
+          el: '#vue-app-1',
+          data: {
+            label: 'Error in Vue $root',
+          },
+          methods: {
+            buttonClicked() {
+              foo();
+            },
+          },
+        });
+      </script>
+    </section>
+    <section>
+      <h2>Test Vue integration: &lt;test-component&gt;</h2>
+      <div id="vue-app-2">
+        <test-component :title="label" />
+      </div>
+      <script>
+        class Editor {}
 
-      const tag = document.createElement('div');
+        const tag = document.createElement('div');
 
-      tag.classList.add('my-class', 'my-class--second');
-      tag.setAttribute('title', 'My title');
-      tag.dataset.index = 123;
-      tag.innerHTML = document.body.innerHTML;
+        tag.classList.add('my-class', 'my-class--second');
+        tag.setAttribute('title', 'My title');
+        tag.dataset.index = 123;
+        tag.innerHTML = document.body.innerHTML;
 
-      Vue.component('test-component', {
-        data(){
-          return {
-            number: 1,
-            bool: false,
-            arr: [1,2,3, [new Editor(), tag.cloneNode()], {foo: 'bar'}],
-            el: tag,
-            instance: new Editor(),
-            classProto: Editor,
-            longText: 'Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it\'s simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.',
-          }
+        Vue.component('test-component', {
+          data() {
+            return {
+              number: 1,
+              bool: false,
+              arr: [1, 2, 3, [new Editor(), tag.cloneNode()], { foo: 'bar' }],
+              el: tag,
+              instance: new Editor(),
+              classProto: Editor,
+              longText:
+                "Upvoting this, given it's simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it's simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it's simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it's simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.Upvoting this, given it's simplicity. In my use case I need to check all the attributes in an object for dodgy values-NaNs, nulls, undefined (they were points on a graph and these values prevented the graph from drawing). To get the value instead of the name, in the loop you would just do obj[someVariable]. Perhaps the reason it was downvoted so much is because it is not recursive. So this would not be an adequate solution if you have a highly structured object.",
+            };
+          },
+          props: {
+            title: String,
+          },
+          computed: {
+            changedItem() {
+              return this.number + 1;
+            },
+          },
+          template:
+            '<button @click="buttonClicked" :data-item="number" data-changed-item="changedItem">{{ title }} - {{ changedItem }}</button>',
+          methods: {
+            buttonClicked() {
+              bar();
+            },
+          },
+        });
+
+        new Vue({
+          el: '#vue-app-2',
+          data: {
+            label: 'Error in Vue-component',
+          },
+        });
+      </script>
+    </section>
+    <script src="sample-errors.js"></script>
+    <script type="module">
+      import HawkCatcher from '../src';
+
+      window.hawk = new HawkCatcher({
+        token:
+          'eyJpbnRlZ3JhdGlvbklkIjoiNWU5OTE1MzItZTdiYy00ZjA0LTliY2UtYmIzZmE5ZTUwMTg3Iiwic2VjcmV0IjoiMTBlMTA4MjQtZTcyNC00YWFkLTkwMDQtMzExYTU1OWMzZTIxIn0=',
+        // collectorEndpoint: 'ws://localhost:3000/ws',
+        vue: window.Vue,
+        context: {
+          rootContextSample: '12345',
         },
-        props: {
-          title: String,
-        },
-        computed: {
-          changedItem(){
-            return this.number + 1;
-          }
-        },
-        template: '<button @click="buttonClicked" :data-item="number" data-changed-item="changedItem">{{ title }} - {{ changedItem }}</button>',
-        methods: {
-          buttonClicked(){
-            bar();
-          }
-        }
       });
-
-      new Vue({
-        el: '#vue-app-2',
-        data: {
-          label: 'Error in Vue-component'
-        },
-      })
     </script>
-</section>
-<script src="sample-errors.js"></script>
-<script type="module">
-  import HawkCatcher from '../src';
-
-  window.hawk = new HawkCatcher({
-    token: 'eyJpbnRlZ3JhdGlvbklkIjoiNWU5OTE1MzItZTdiYy00ZjA0LTliY2UtYmIzZmE5ZTUwMTg3Iiwic2VjcmV0IjoiMTBlMTA4MjQtZTcyNC00YWFkLTkwMDQtMzExYTU1OWMzZTIxIn0=',
-    // collectorEndpoint: 'ws://localhost:3000/ws',
-    vue: window.Vue,
-    context: {
-      rootContextSample: '12345'
-    },
-  })
-</script>
-</body>
+  </body>
 </html>
