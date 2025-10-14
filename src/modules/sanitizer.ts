@@ -8,15 +8,6 @@
  */
 export default class Sanitizer {
   /**
-   * Check if passed variable is an object
-   *
-   * @param target - variable to check
-   */
-  public static isObject(target: any): boolean {
-    return Sanitizer.typeOf(target) === 'object';
-  }
-
-  /**
    * Maximum string length
    */
   private static readonly maxStringLen: number = 200;
@@ -36,6 +27,15 @@ export default class Sanitizer {
    * Maximum length of context arrays
    */
   private static readonly maxArrayLength: number = 10;
+
+  /**
+   * Check if passed variable is an object
+   *
+   * @param target - variable to check
+   */
+  public static isObject(target: any): boolean {
+    return Sanitizer.typeOf(target) === 'object';
+  }
 
   /**
    * Apply sanitizing for array/object/primitives
