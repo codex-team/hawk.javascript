@@ -33,13 +33,24 @@ export default class Sanitizer {
    *
    * @param data - any object to sanitize
    * @param depth - current depth of recursion
+   * @param seen - Set of already seen objects to prevent circular references
    */
-  public static sanitize(data: any, depth = 0): any {
+  public static sanitize(data: any, depth = 0, seen = new WeakSet<object>()): any {
+    /**
+     * Check for circular references on objects and arrays
+     */
+    if (data !== null && typeof data === 'object') {
+      if (seen.has(data)) {
+        return '<circular>';
+      }
+      seen.add(data);
+    }
+
     /**
      * If value is an Array, apply sanitizing for each element
      */
     if (Sanitizer.isArray(data)) {
-      return this.sanitizeArray(data, depth + 1);
+      return this.sanitizeArray(data, depth + 1, seen);
 
       /**
        * If value is an Element, format it as string with outer HTML
@@ -66,7 +77,7 @@ export default class Sanitizer {
        * If values is an object, do recursive call
        */
     } else if (Sanitizer.isObject(data)) {
-      return Sanitizer.sanitizeObject(data, depth + 1);
+      return Sanitizer.sanitizeObject(data, depth + 1, seen);
 
       /**
        * If values is a string, trim it for max-length
@@ -86,8 +97,9 @@ export default class Sanitizer {
    *
    * @param arr - array to sanitize
    * @param depth - current depth of recursion
+   * @param seen - Set of already seen objects to prevent circular references
    */
-  private static sanitizeArray(arr: any[], depth: number): any[] {
+  private static sanitizeArray(arr: any[], depth: number, seen: WeakSet<object>): any[] {
     /**
      * If the maximum length is reached, slice array to max length and add a placeholder
      */
@@ -99,7 +111,7 @@ export default class Sanitizer {
     }
 
     return arr.map((item: any) => {
-      return Sanitizer.sanitize(item, depth);
+      return Sanitizer.sanitize(item, depth, seen);
     });
   }
 
@@ -108,8 +120,9 @@ export default class Sanitizer {
    *
    * @param data - object to beautify
    * @param depth - current depth of recursion
+   * @param seen - Set of already seen objects to prevent circular references
    */
-  private static sanitizeObject(data: { [key: string]: any }, depth: number): Record<string, any> | '<deep object>' | '<big object>' {
+  private static sanitizeObject(data: { [key: string]: any }, depth: number, seen: WeakSet<object>): Record<string, any> | '<deep object>' | '<big object>' {
     /**
      * If the maximum depth is reached, return a placeholder
      */
@@ -128,7 +141,7 @@ export default class Sanitizer {
 
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {
-        result[key] = Sanitizer.sanitize(data[key], depth);
+        result[key] = Sanitizer.sanitize(data[key], depth, seen);
       }
     }
 
@@ -268,7 +281,7 @@ export default class Sanitizer {
   private static formatClassPrototype(target: any): string {
     const className = Sanitizer.getClassNameByPrototype(target);
 
-    return `<instance of ${className}>`;
+    return `<class ${className}>`;
   }
 
   /**
@@ -279,6 +292,6 @@ export default class Sanitizer {
   private static formatClassInstance(target: any): string {
     const className = Sanitizer.getClassNameByInstance(target);
 
-    return `<class ${className}>`;
+    return `<instance of ${className}>`;
   }
 }
