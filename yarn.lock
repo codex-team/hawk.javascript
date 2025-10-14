@@ -316,10 +316,10 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@hawk.so/types@^0.1.20":
-  version "0.1.20"
-  resolved "https://registry.yarnpkg.com/@hawk.so/types/-/types-0.1.20.tgz#90f4b3998ef5f025f5b99dae31da264d5bbe3450"
-  integrity sha512-3a07TekmgqOT9OKeMkqcV73NxzK1dS06pG66VaHO0f5DEEH2+SNfZErqe1v8hkLQIk+GkgZVZLtHqnskjQabuw==
+"@hawk.so/types@^0.1.35":
+  version "0.1.35"
+  resolved "https://registry.yarnpkg.com/@hawk.so/types/-/types-0.1.35.tgz#6afd416dced1cc3282d721ca5621bf452b27aea1"
+  integrity sha512-uMTAeu6DlRlk+oputJBjTlrm1GzOkIwlMfGhpdOp3sRWe/YPGD6nMYlb9MZoVN6Yee7RIpYD7It+DPeUPAyIFw==
   dependencies:
     "@types/mongodb" "^3.5.34"
 
@@ -2618,11 +2618,6 @@ safe-regex-test@^1.0.3:
     call-bind "^1.0.6"
     es-errors "^1.3.0"
     is-regex "^1.1.4"
-
-safe-stringify@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/safe-stringify/-/safe-stringify-1.1.1.tgz#f4240f506d041f58374d6106e2a5850f6b1ce576"
-  integrity sha512-YSzQLuwp06fuvJD1h6+vVNFYZoXmDs5UUNPUbTvQK7Ap+L0qD4Vp+sN434C+pdS3prVVlUfQdNeiEIgxox/kUQ==
 
 semver@^6.3.1:
   version "6.3.1"
