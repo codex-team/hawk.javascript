@@ -17,6 +17,7 @@ import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { addErrorEvent, getConsoleLogStack, initConsoleCatcher } from './addons/consoleCatcher';
+import { validateUser, validateContext, logValidationErrors } from './utils/validation';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -237,7 +238,14 @@ export default class Catcher {
    * @param user - New user information
    */
   public setUser(user: AffectedUser): void {
-    this.user = user;
+    const validation = validateUser(user);
+
+    if (!validation.isValid) {
+      logValidationErrors('setUser', validation.errors);
+      return;
+    }
+
+    this.user = validation.data!;
   }
 
   /**
@@ -253,7 +261,14 @@ export default class Catcher {
    * @param context - New context data
    */
   public setContext(context: EventContext): void {
-    this.context = context;
+    const validation = validateContext(context);
+
+    if (!validation.isValid) {
+      logValidationErrors('setContext', validation.errors);
+      return;
+    }
+
+    this.context = validation.data!;
   }
 
   /**
