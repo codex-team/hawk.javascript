@@ -1,5 +1,5 @@
 import type { AffectedUser, EventContext } from '@hawk.so/types';
-import Sanitizer from 'src/modules/sanitizer';
+import Sanitizer from '../modules/sanitizer';
 
 /**
  * Validation result interface
