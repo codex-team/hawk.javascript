@@ -1,4 +1,5 @@
 import type { AffectedUser, EventContext } from '@hawk.so/types';
+import Sanitizer from 'src/modules/sanitizer';
 
 /**
  * Validation result interface
@@ -12,10 +13,10 @@ interface ValidationResult<T> {
 /**
  * Validates user data - basic security checks
  */
-export function validateUser(user: any): ValidationResult<AffectedUser> {
+export function validateUser(user: AffectedUser): ValidationResult<AffectedUser> {
   const errors: string[] = [];
 
-  if (!user || typeof user !== 'object') {
+  if (!user || !Sanitizer.isObject(user)) {
     errors.push('User must be an object');
     return { isValid: false, errors };
   }
@@ -53,35 +54,17 @@ export function validateUser(user: any): ValidationResult<AffectedUser> {
 /**
  * Validates context data - basic security checks
  */
-export function validateContext(context: any): ValidationResult<EventContext> {
+export function validateContext(context: EventContext): ValidationResult<EventContext> {
   const errors: string[] = [];
 
-  if (!context || typeof context !== 'object') {
+  if (!context || !Sanitizer.isObject(context)) {
     errors.push('Context must be an object');
     return { isValid: false, errors };
   }
 
-  const validatedContext: EventContext = {};
-
-  for (const [key, value] of Object.entries(context)) {
-    // Basic key validation
-    if (typeof key !== 'string' || key.trim() === '') {
-      continue;
-    }
-
-    // Check if value is serializable (prevents injection)
-    try {
-      JSON.stringify(value);
-    } catch (e) {
-      continue; // Skip non-serializable values
-    }
-
-    validatedContext[key.trim()] = value as any;
-  }
-
   return {
     isValid: true,
-    data: validatedContext,
+    data: context,
     errors,
   };
 }

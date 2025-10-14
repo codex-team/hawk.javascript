@@ -153,7 +153,7 @@ export default class Sanitizer {
    *
    * @param target - variable to check
    */
-  private static isObject(target: any): boolean {
+  public static isObject(target: any): boolean {
     return Sanitizer.typeOf(target) === 'object';
   }
 
