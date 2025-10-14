@@ -1,8 +1,8 @@
 /**
  * @file Module for intercepting console logs with stack trace capture
  */
-import safeStringify from 'safe-stringify';
 import type { ConsoleLogEvent } from '@hawk.so/types';
+import Sanitizer from '../modules/sanitizer';
 
 /**
  * Creates a console interceptor that captures and formats console output
@@ -31,7 +31,13 @@ function createConsoleCatcher(): {
       return String(arg);
     }
 
-    return safeStringify(arg);
+    /**
+     * Sanitize the argument before stringifying to handle circular references, deep objects, etc
+     * And then it can be stringified safely
+     */
+    const sanitized = Sanitizer.sanitize(arg);
+
+    return JSON.stringify(sanitized);
   }
 
   /**
