@@ -106,8 +106,45 @@ const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'});
 
 // somewhere in try-catch block or other custom place
 hawk.send(new Error('Something went wrong'), {
-  myOwnDebugInfo: '1234'
+  myOwnDebugInfo: '1234',
 });
+```
+
+## User Management
+
+You can dynamically manage user information after the catcher is initialized:
+
+```js
+const hawk = new HawkCatcher({ token: 'INTEGRATION_TOKEN' });
+
+// Set user information
+hawk.setUser({
+  id: 'user123',
+  name: 'John Doe',
+  url: '/users/123',
+  image: 'https://example.com/avatar.jpg',
+});
+
+// Clear user (revert to generated user)
+hawk.clearUser();
+```
+
+## Context Management
+
+You can dynamically update context data that will be sent with all events:
+
+```js
+const hawk = new HawkCatcher({ token: 'INTEGRATION_TOKEN' });
+
+// Set context data
+hawk.setContext({
+  feature: 'user-dashboard',
+  version: '2.1.0',
+  environment: 'production',
+});
+
+// Clear context data
+hawk.clearContext();
 ```
 
 ## Source maps consuming
