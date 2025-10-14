@@ -29,6 +29,15 @@ export default class Sanitizer {
   private static readonly maxArrayLength: number = 10;
 
   /**
+   * Check if passed variable is an object
+   *
+   * @param target - variable to check
+   */
+  public static isObject(target: any): boolean {
+    return Sanitizer.typeOf(target) === 'object';
+  }
+
+  /**
    * Apply sanitizing for array/object/primitives
    *
    * @param data - any object to sanitize
@@ -146,15 +155,6 @@ export default class Sanitizer {
     }
 
     return result;
-  }
-
-  /**
-   * Check if passed variable is an object
-   *
-   * @param target - variable to check
-   */
-  private static isObject(target: any): boolean {
-    return Sanitizer.typeOf(target) === 'object';
   }
 
   /**

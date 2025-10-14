@@ -17,6 +17,7 @@ import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { addErrorEvent, getConsoleLogStack, initConsoleCatcher } from './addons/consoleCatcher';
+import { validateUser, validateContext } from './utils/validation';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -63,12 +64,12 @@ export default class Catcher {
   /**
    * Current authenticated user
    */
-  private readonly user: AffectedUser;
+  private user: AffectedUser;
 
   /**
    * Any additional data passed by user for sending with all messages
    */
-  private readonly context: EventContext | undefined;
+  private context: EventContext | undefined;
 
   /**
    * This Method allows developer to filter any data you don't want sending to Hawk
@@ -112,8 +113,8 @@ export default class Catcher {
     this.token = settings.token;
     this.debug = settings.debug || false;
     this.release = settings.release;
-    this.user = settings.user || Catcher.getGeneratedUser();
-    this.context = settings.context || undefined;
+    this.setUser(settings.user || Catcher.getGeneratedUser());
+    this.setContext(settings.context || undefined);
     this.beforeSend = settings.beforeSend;
     this.disableVueErrorHandler = settings.disableVueErrorHandler !== null && settings.disableVueErrorHandler !== undefined ? settings.disableVueErrorHandler : false;
     this.consoleTracking = settings.consoleTracking !== null && settings.consoleTracking !== undefined ? settings.consoleTracking : true;
@@ -218,13 +219,50 @@ export default class Catcher {
    */
   public connectVue(vue): void {
     // eslint-disable-next-line no-new
-    this.vue = new VueIntegration(vue, (error: Error, addons: VueIntegrationAddons) => {
-      void this.formatAndSend(error, {
-        vue: addons,
-      });
-    }, {
-      disableVueErrorHandler: this.disableVueErrorHandler,
-    });
+    this.vue = new VueIntegration(
+      vue,
+      (error: Error, addons: VueIntegrationAddons) => {
+        void this.formatAndSend(error, {
+          vue: addons,
+        });
+      },
+      {
+        disableVueErrorHandler: this.disableVueErrorHandler,
+      }
+    );
+  }
+
+  /**
+   * Update the current user information
+   *
+   * @param user - New user information
+   */
+  public setUser(user: AffectedUser): void {
+    if (!validateUser(user)) {
+      return;
+    }
+
+    this.user = user;
+  }
+
+  /**
+   * Clear current user information (revert to generated user)
+   */
+  public clearUser(): void {
+    this.user = Catcher.getGeneratedUser();
+  }
+
+  /**
+   * Update the context data that will be sent with all events
+   *
+   * @param context - New context data
+   */
+  public setContext(context: EventContext | undefined): void {
+    if (!validateContext(context)) {
+      return;
+    }
+
+    this.context = context;
   }
 
   /**

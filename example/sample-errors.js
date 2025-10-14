@@ -28,7 +28,9 @@ const buttonPromiseRejection = document.getElementById('btn-promise-rejection');
 
 buttonPromiseRejection.addEventListener('click', function promiseRejectionSample() {
   // Promise.reject('This is a sample rejected promise');
-  Promise.resolve().then(realErrorSample).then(() => {});
+  Promise.resolve()
+    .then(realErrorSample)
+    .then(() => {});
 });
 
 /**
@@ -68,8 +70,56 @@ buttonManualSending.addEventListener('click', () => {
 
   window.hawk.send(
     new Error('Manual sending example'),
-    contextSample.trim().length
-      ? { contextSample }
-      : undefined
+    contextSample.trim().length ? { contextSample } : undefined
   );
+});
+
+/**
+ * User Management
+ */
+const buttonSetUser = document.getElementById('btn-set-user');
+const buttonClearUser = document.getElementById('btn-clear-user');
+
+buttonSetUser.addEventListener('click', () => {
+  const userId = document.getElementById('userId').value;
+  const userName = document.getElementById('userName').value;
+  const userUrl = document.getElementById('userUrl').value;
+
+  if (!userId.trim()) {
+    alert('User ID is required');
+    return;
+  }
+
+  const user = {
+    id: userId,
+    ...(userName.trim() && { name: userName }),
+    ...(userUrl.trim() && { url: userUrl }),
+  };
+
+  window.hawk.setUser(user);
+});
+
+buttonClearUser.addEventListener('click', () => {
+  window.hawk.clearUser();
+});
+
+/**
+ * Context Management
+ */
+const buttonSetContext = document.getElementById('btn-set-context');
+
+buttonSetContext.addEventListener('click', () => {
+  const contextKey = document.getElementById('contextKey').value;
+  const contextValue = document.getElementById('contextValue').value;
+
+  if (!contextKey.trim()) {
+    alert('Context key is required');
+    return;
+  }
+
+  const context = {
+    [contextKey]: contextValue,
+  };
+
+  window.hawk.setContext(context);
 });
