@@ -8,6 +8,15 @@
  */
 export default class Sanitizer {
   /**
+   * Check if passed variable is an object
+   *
+   * @param target - variable to check
+   */
+  public static isObject(target: any): boolean {
+    return Sanitizer.typeOf(target) === 'object';
+  }
+
+  /**
    * Maximum string length
    */
   private static readonly maxStringLen: number = 200;
@@ -146,15 +155,6 @@ export default class Sanitizer {
     }
 
     return result;
-  }
-
-  /**
-   * Check if passed variable is an object
-   *
-   * @param target - variable to check
-   */
-  public static isObject(target: any): boolean {
-    return Sanitizer.typeOf(target) === 'object';
   }
 
   /**
