@@ -113,8 +113,8 @@ export default class Catcher {
     this.token = settings.token;
     this.debug = settings.debug || false;
     this.release = settings.release;
-    this.user = settings.user || Catcher.getGeneratedUser();
-    this.context = settings.context || undefined;
+    this.setUser(settings.user || Catcher.getGeneratedUser());
+    this.setContext(settings.context || undefined);
     this.beforeSend = settings.beforeSend;
     this.disableVueErrorHandler = settings.disableVueErrorHandler !== null && settings.disableVueErrorHandler !== undefined ? settings.disableVueErrorHandler : false;
     this.consoleTracking = settings.consoleTracking !== null && settings.consoleTracking !== undefined ? settings.consoleTracking : true;
@@ -257,7 +257,7 @@ export default class Catcher {
    *
    * @param context - New context data
    */
-  public setContext(context: EventContext): void {
+  public setContext(context: EventContext | undefined): void {
     if (!validateContext(context)) {
       return;
     }
