@@ -5,14 +5,23 @@ import type { ConsoleLogEvent } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
 
 /**
+ * Maximum number of console logs to store
+ */
+const MAX_LOGS = 20;
+
+/**
+ * Console methods to intercept
+ */
+const CONSOLE_METHODS: string[] = ['log', 'warn', 'error', 'info', 'debug'];
+
+/**
  * Creates a console interceptor that captures and formats console output
  */
 function createConsoleCatcher(): {
   initConsoleCatcher: () => void;
   addErrorEvent: (event: ErrorEvent | PromiseRejectionEvent) => void;
   getConsoleLogStack: () => ConsoleLogEvent[];
-  } {
-  const MAX_LOGS = 20;
+} {
   const consoleOutput: ConsoleLogEvent[] = [];
   let isInitialized = false;
 
@@ -157,9 +166,8 @@ function createConsoleCatcher(): {
     }
 
     isInitialized = true;
-    const consoleMethods: string[] = ['log', 'warn', 'error', 'info', 'debug'];
 
-    consoleMethods.forEach(function overrideConsoleMethod(method) {
+    CONSOLE_METHODS.forEach(function overrideConsoleMethod(method) {
       if (typeof window.console[method] !== 'function') {
         return;
       }
@@ -216,3 +224,4 @@ const consoleCatcher = createConsoleCatcher();
 
 export const { initConsoleCatcher, getConsoleLogStack, addErrorEvent } =
   consoleCatcher;
+
