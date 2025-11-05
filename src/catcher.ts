@@ -16,7 +16,7 @@ import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
-import { addErrorEvent, getConsoleLogStack, initConsoleCatcher } from './addons/consoleCatcher';
+import { ConsoleCatcher } from './addons/consoleCatcher';
 import { validateUser, validateContext } from './utils/validation';
 
 /**
@@ -99,6 +99,11 @@ export default class Catcher {
   private readonly consoleTracking: boolean;
 
   /**
+   * Console catcher instance
+   */
+  private readonly consoleCatcher: ConsoleCatcher;
+
+  /**
    * Catcher constructor
    *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
@@ -116,8 +121,15 @@ export default class Catcher {
     this.setUser(settings.user || Catcher.getGeneratedUser());
     this.setContext(settings.context || undefined);
     this.beforeSend = settings.beforeSend;
-    this.disableVueErrorHandler = settings.disableVueErrorHandler !== null && settings.disableVueErrorHandler !== undefined ? settings.disableVueErrorHandler : false;
-    this.consoleTracking = settings.consoleTracking !== null && settings.consoleTracking !== undefined ? settings.consoleTracking : true;
+    this.disableVueErrorHandler =
+      settings.disableVueErrorHandler !== null && settings.disableVueErrorHandler !== undefined
+        ? settings.disableVueErrorHandler
+        : false;
+    this.consoleTracking =
+      settings.consoleTracking !== null && settings.consoleTracking !== undefined
+        ? settings.consoleTracking
+        : true;
+    this.consoleCatcher = ConsoleCatcher.getInstance();
 
     if (!this.token) {
       log(
@@ -144,7 +156,7 @@ export default class Catcher {
     });
 
     if (this.consoleTracking) {
-      initConsoleCatcher();
+      this.consoleCatcher.init();
     }
 
     /**
@@ -284,7 +296,7 @@ export default class Catcher {
      */
 
     if (this.consoleTracking) {
-      addErrorEvent(event);
+      this.consoleCatcher.addErrorEvent(event);
     }
 
     /**
@@ -551,7 +563,7 @@ export default class Catcher {
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
     const getParams = this.getGetParams();
-    const consoleLogs = this.consoleTracking && getConsoleLogStack();
+    const consoleLogs = this.consoleTracking && this.consoleCatcher.getConsoleLogStack();
 
     const addons: JavaScriptAddons = {
       window: {

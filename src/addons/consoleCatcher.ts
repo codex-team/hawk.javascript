@@ -15,15 +15,37 @@ const MAX_LOGS = 20;
 const CONSOLE_METHODS: string[] = ['log', 'warn', 'error', 'info', 'debug'];
 
 /**
- * Creates a console interceptor that captures and formats console output
+ * Console catcher class for intercepting and capturing console logs
  */
-function createConsoleCatcher(): {
-  initConsoleCatcher: () => void;
-  addErrorEvent: (event: ErrorEvent | PromiseRejectionEvent) => void;
-  getConsoleLogStack: () => ConsoleLogEvent[];
-} {
-  const consoleOutput: ConsoleLogEvent[] = [];
-  let isInitialized = false;
+export class ConsoleCatcher {
+  /**
+   * Singleton instance
+   */
+  private static instance: ConsoleCatcher | null = null;
+
+  /**
+   * Console output buffer
+   */
+  private readonly consoleOutput: ConsoleLogEvent[] = [];
+
+  /**
+   * Initialization flag
+   */
+  private isInitialized = false;
+
+  /**
+   * Private constructor to enforce singleton pattern
+   */
+  private constructor() {}
+
+  /**
+   * Get singleton instance
+   */
+  public static getInstance(): ConsoleCatcher {
+    ConsoleCatcher.instance ??= new ConsoleCatcher();
+
+    return ConsoleCatcher.instance;
+  }
 
   /**
    * Converts any argument to its string representation
@@ -32,7 +54,7 @@ function createConsoleCatcher(): {
    * @throws Error if the argument can not be stringified, for example by such reason:
    *  SecurityError: Failed to read a named property 'toJSON' from 'Window': Blocked a frame with origin "https://codex.so" from accessing a cross-origin frame.
    */
-  function stringifyArg(arg: unknown): string {
+  private stringifyArg(arg: unknown): string {
     if (typeof arg === 'string') {
       return arg;
     }
@@ -54,7 +76,7 @@ function createConsoleCatcher(): {
    *
    * @param args - Console arguments that may include style directives
    */
-  function formatConsoleArgs(args: unknown[]): {
+  private formatConsoleArgs(args: unknown[]): {
     message: string;
     styles: string[];
   } {
@@ -71,7 +93,7 @@ function createConsoleCatcher(): {
       return {
         message: args.map(arg => {
           try {
-            return stringifyArg(arg);
+            return this.stringifyArg(arg);
           } catch (error) {
             return '[Error stringifying argument: ' + (error instanceof Error ? error.message : String(error)) + ']';
           }
@@ -101,7 +123,7 @@ function createConsoleCatcher(): {
       .slice(styles.length + 1)
       .map(arg => {
         try {
-          return stringifyArg(arg);
+          return this.stringifyArg(arg);
         } catch (error) {
           return '[Error stringifying argument: ' + (error instanceof Error ? error.message : String(error)) + ']';
         }
@@ -119,11 +141,11 @@ function createConsoleCatcher(): {
    *
    * @param logEvent - The console log event to be added to the output buffer
    */
-  function addToConsoleOutput(logEvent: ConsoleLogEvent): void {
-    if (consoleOutput.length >= MAX_LOGS) {
-      consoleOutput.shift();
+  private addToConsoleOutput(logEvent: ConsoleLogEvent): void {
+    if (this.consoleOutput.length >= MAX_LOGS) {
+      this.consoleOutput.shift();
     }
-    consoleOutput.push(logEvent);
+    this.consoleOutput.push(logEvent);
   }
 
   /**
@@ -131,9 +153,7 @@ function createConsoleCatcher(): {
    *
    * @param event - The error event or promise rejection event to convert
    */
-  function createConsoleEventFromError(
-    event: ErrorEvent | PromiseRejectionEvent
-  ): ConsoleLogEvent {
+  private createConsoleEventFromError(event: ErrorEvent | PromiseRejectionEvent): ConsoleLogEvent {
     if (event instanceof ErrorEvent) {
       return {
         method: 'error',
@@ -160,24 +180,23 @@ function createConsoleCatcher(): {
   /**
    * Initializes the console interceptor by overriding default console methods
    */
-  function initConsoleCatcher(): void {
-    if (isInitialized) {
+  public init(): void {
+    if (this.isInitialized) {
       return;
     }
 
-    isInitialized = true;
+    this.isInitialized = true;
 
-    CONSOLE_METHODS.forEach(function overrideConsoleMethod(method) {
-      if (typeof window.console[method] !== 'function') {
+    CONSOLE_METHODS.forEach((method) => {
+      if (typeof globalThis.console[method] !== 'function') {
         return;
       }
 
       const oldFunction = window.console[method].bind(window.console);
 
-      window.console[method] = function (...args: unknown[]): void {
-        const stack = new Error().stack?.split('\n').slice(2)
-          .join('\n') || '';
-        const { message, styles } = formatConsoleArgs(args);
+      window.console[method] = (...args: unknown[]): void => {
+        const stack = new Error().stack?.split('\n').slice(2).join('\n') || '';
+        const { message, styles } = this.formatConsoleArgs(args);
 
         const logEvent: ConsoleLogEvent = {
           method,
@@ -189,7 +208,7 @@ function createConsoleCatcher(): {
           styles,
         };
 
-        addToConsoleOutput(logEvent);
+        this.addToConsoleOutput(logEvent);
         oldFunction(...args);
       };
     });
@@ -200,28 +219,16 @@ function createConsoleCatcher(): {
    *
    * @param event - The error or promise rejection event to handle
    */
-  function addErrorEvent(event: ErrorEvent | PromiseRejectionEvent): void {
-    const logEvent = createConsoleEventFromError(event);
+  public addErrorEvent(event: ErrorEvent | PromiseRejectionEvent): void {
+    const logEvent = this.createConsoleEventFromError(event);
 
-    addToConsoleOutput(logEvent);
+    this.addToConsoleOutput(logEvent);
   }
 
   /**
    * Returns the current console output buffer
    */
-  function getConsoleLogStack(): ConsoleLogEvent[] {
-    return [ ...consoleOutput ];
+  public getConsoleLogStack(): ConsoleLogEvent[] {
+    return [...this.consoleOutput];
   }
-
-  return {
-    initConsoleCatcher,
-    addErrorEvent,
-    getConsoleLogStack,
-  };
 }
-
-const consoleCatcher = createConsoleCatcher();
-
-export const { initConsoleCatcher, getConsoleLogStack, addErrorEvent } =
-  consoleCatcher;
-
