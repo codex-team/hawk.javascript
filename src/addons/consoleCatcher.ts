@@ -180,6 +180,7 @@ export class ConsoleCatcher {
   /**
    * Initializes the console interceptor by overriding default console methods
    */
+  // eslint-disable-next-line @typescript-eslint/member-ordering
   public init(): void {
     if (this.isInitialized) {
       return;
@@ -219,6 +220,7 @@ export class ConsoleCatcher {
    *
    * @param event - The error or promise rejection event to handle
    */
+  // eslint-disable-next-line @typescript-eslint/member-ordering
   public addErrorEvent(event: ErrorEvent | PromiseRejectionEvent): void {
     const logEvent = this.createConsoleEventFromError(event);
 
@@ -228,6 +230,7 @@ export class ConsoleCatcher {
   /**
    * Returns the current console output buffer
    */
+  // eslint-disable-next-line @typescript-eslint/member-ordering
   public getConsoleLogStack(): ConsoleLogEvent[] {
     return [...this.consoleOutput];
   }
