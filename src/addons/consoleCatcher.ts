@@ -48,6 +48,77 @@ export class ConsoleCatcher {
   }
 
   /**
+   * Initializes the console interceptor by overriding default console methods
+   */
+  public init(): void {
+    if (this.isInitialized) {
+      return;
+    }
+
+    const G =
+      typeof globalThis !== 'undefined'
+        ? globalThis
+        : typeof window !== 'undefined'
+        ? window
+        : undefined;
+
+    if (!G || !G.console) {
+      return;
+    }
+
+    this.isInitialized = true;
+
+    for (const method of CONSOLE_METHODS) {
+      const consoleMethod = this.getConsoleMethod(G.console, method);
+
+      if (!consoleMethod) {
+        continue;
+      }
+
+      const oldFunction = consoleMethod.bind(G.console);
+
+      G.console[method] = (...args: unknown[]): void => {
+        const errorStack = new Error().stack;
+        const stack = errorStack?.split('\n').slice(2).join('\n') || '';
+        const stackLines = stack.split('\n');
+        const fileLine = stackLines.length > 0 ? stackLines[0]?.trim() || '' : '';
+        const { message, styles } = this.formatConsoleArgs(args);
+
+        const logEvent: ConsoleLogEvent = {
+          method,
+          timestamp: new Date(),
+          type: method,
+          message,
+          stack,
+          fileLine,
+          styles,
+        };
+
+        this.addToConsoleOutput(logEvent);
+        oldFunction(...args);
+      };
+    }
+  }
+
+  /**
+   * Handles error events by converting them to console log events
+   *
+   * @param event - The error or promise rejection event to handle
+   */
+  public addErrorEvent(event: ErrorEvent | PromiseRejectionEvent): void {
+    const logEvent = this.createConsoleEventFromError(event);
+
+    this.addToConsoleOutput(logEvent);
+  }
+
+  /**
+   * Returns the current console output buffer
+   */
+  public getConsoleLogStack(): ConsoleLogEvent[] {
+    return [...this.consoleOutput];
+  }
+
+  /**
    * Converts any argument to its string representation
    *
    * @param arg - Value to convert to string
@@ -72,6 +143,38 @@ export class ConsoleCatcher {
   }
 
   /**
+   * Handles errors during stringification and returns error message
+   *
+   * @param error - Error that occurred during stringification
+   * @returns Error message string
+   */
+  private getStringifyErrorMessage(error: unknown): string {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    return `[Error stringifying argument: ${errorMessage}]`;
+  }
+
+  /**
+   * Type guard for console method access
+   *
+   * @param console - Console object
+   * @param method - Method name to check
+   * @returns Console method if it exists and is a function, null otherwise
+   */
+  private getConsoleMethod(
+    console: Console,
+    method: string
+  ): ((...args: unknown[]) => void) | null {
+    const methodValue = console[method as keyof Console];
+
+    if (typeof methodValue === 'function') {
+      return methodValue as (...args: unknown[]) => void;
+    }
+
+    return null;
+  }
+
+  /**
    * Formats console arguments handling %c directives
    *
    * @param args - Console arguments that may include style directives
@@ -91,41 +194,36 @@ export class ConsoleCatcher {
 
     if (typeof firstArg !== 'string' || !firstArg.includes('%c')) {
       return {
-        message: args.map(arg => {
-          try {
-            return this.stringifyArg(arg);
-          } catch (error) {
-            return '[Error stringifying argument: ' + (error instanceof Error ? error.message : String(error)) + ']';
-          }
-        }).join(' '),
+        message: args
+          .map((arg) => {
+            try {
+              return this.stringifyArg(arg);
+            } catch (error) {
+              return this.getStringifyErrorMessage(error);
+            }
+          })
+          .join(' '),
         styles: [],
       };
     }
 
-    // Handle %c formatting
-    const message = args[0] as string;
-    const styles: string[] = [];
+    // --- Improved %c parsing logic ---
+    const message = firstArg as string;
+    const styleCount = (message.match(/%c/g) || []).length;
 
-    // Extract styles from arguments
-    let styleIndex = 0;
+    // take only string styles (others safely stringified)
+    const styles = args
+      .slice(1, 1 + styleCount)
+      .map((style) => (typeof style === 'string' ? style : String(style)));
 
-    for (let i = 1; i < args.length; i++) {
-      const arg = args[i];
-
-      if (typeof arg === 'string' && message.indexOf('%c', styleIndex) !== -1) {
-        styles.push(arg);
-        styleIndex = message.indexOf('%c', styleIndex) + 2;
-      }
-    }
-
-    // Add remaining arguments that aren't styles
+    // Remaining args after style directives
     const remainingArgs = args
-      .slice(styles.length + 1)
-      .map(arg => {
+      .slice(1 + styleCount)
+      .map((arg) => {
         try {
           return this.stringifyArg(arg);
         } catch (error) {
-          return '[Error stringifying argument: ' + (error instanceof Error ? error.message : String(error)) + ']';
+          return this.getStringifyErrorMessage(error);
         }
       })
       .join(' ');
@@ -161,9 +259,7 @@ export class ConsoleCatcher {
         type: event.error?.name || 'Error',
         message: event.error?.message || event.message,
         stack: event.error?.stack || '',
-        fileLine: event.filename
-          ? `${event.filename}:${event.lineno}:${event.colno}`
-          : '',
+        fileLine: event.filename ? `${event.filename}:${event.lineno}:${event.colno}` : '',
       };
     }
 
@@ -176,73 +272,4 @@ export class ConsoleCatcher {
       fileLine: '',
     };
   }
-
-  /**
-   * Initializes the console interceptor by overriding default console methods
-   */
-  // eslint-disable-next-line @typescript-eslint/member-ordering
-  public init(): void {
-    if (this.isInitialized) {
-      return;
-    }
-
-    this.isInitialized = true;
-
-    CONSOLE_METHODS.forEach((method) => {
-      if (typeof window.console[method] !== 'function') {
-        return;
-      }
-
-      const oldFunction = window.console[method].bind(window.console);
-
-      window.console[method] = (...args: unknown[]): void => {
-        const stack = new Error().stack?.split('\n').slice(2)
-          .join('\n') || '';
-        const { message, styles } = this.formatConsoleArgs(args);
-
-        const logEvent: ConsoleLogEvent = {
-          method,
-          timestamp: new Date(),
-          type: method,
-          message,
-          stack,
-          fileLine: stack.split('\n')[0]?.trim(),
-          styles,
-        };
-
-        this.addToConsoleOutput(logEvent);
-        oldFunction(...args);
-      };
-    });
-  }
-
-  /**
-   * Handles error events by converting them to console log events
-   *
-   * @param event - The error or promise rejection event to handle
-   */
-  // eslint-disable-next-line @typescript-eslint/member-ordering
-  public addErrorEvent(event: ErrorEvent | PromiseRejectionEvent): void {
-    const logEvent = this.createConsoleEventFromError(event);
-
-    this.addToConsoleOutput(logEvent);
-  }
-
-  /**
-   * Returns the current console output buffer
-   */
-  // eslint-disable-next-line @typescript-eslint/member-ordering
-  public getConsoleLogStack(): ConsoleLogEvent[] {
-    return [ ...this.consoleOutput ];
-  }
 }
-// TODO:: 1) replace window with globalThis for better compatibility with different environments
-// const G = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : undefined);
-// if (!G || !G.console) return;
-// G.console[method]...
-// TODO:: 2) use .includes() instead of .indexOf() !== -1 for better readability (line 115)
-// TODO:: 3) use for...of loop instead of .forEach() for better performance/readability (line 190) for (const method of CONSOLE_METHODS)
-// TODO:: 4) extract error stringification logic to separate method to avoid duplication (lines 98, 128)
-// TODO:: 5) improve %c style directive parsing logic for better accuracy and edge cases
-// TODO:: 6) add type guards for console method access to improve type safety
-// TODO:: 7) Store original console methods and implement restore() to revert overrides — allows safe teardown, prevents double-wrapping, and avoids global side-effects.
