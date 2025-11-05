@@ -196,7 +196,8 @@ export class ConsoleCatcher {
       const oldFunction = window.console[method].bind(window.console);
 
       window.console[method] = (...args: unknown[]): void => {
-        const stack = new Error().stack?.split('\n').slice(2).join('\n') || '';
+        const stack = new Error().stack?.split('\n').slice(2)
+        .join('\n') || '';
         const { message, styles } = this.formatConsoleArgs(args);
 
         const logEvent: ConsoleLogEvent = {
@@ -232,7 +233,7 @@ export class ConsoleCatcher {
    */
   // eslint-disable-next-line @typescript-eslint/member-ordering
   public getConsoleLogStack(): ConsoleLogEvent[] {
-    return [...this.consoleOutput];
+    return [ ...this.consoleOutput ];
   }
 }
 // TODO:: 1) replace window with globalThis for better compatibility with different environments
