@@ -197,7 +197,7 @@ export class ConsoleCatcher {
 
       window.console[method] = (...args: unknown[]): void => {
         const stack = new Error().stack?.split('\n').slice(2)
-        .join('\n') || '';
+          .join('\n') || '';
         const { message, styles } = this.formatConsoleArgs(args);
 
         const logEvent: ConsoleLogEvent = {
