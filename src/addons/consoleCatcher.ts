@@ -232,3 +232,13 @@ export class ConsoleCatcher {
     return [...this.consoleOutput];
   }
 }
+// TODO:: 1) replace window with globalThis for better compatibility with different environments
+// const G = typeof globalThis !== 'undefined' ? globalThis : (typeof window !== 'undefined' ? window : undefined);
+// if (!G || !G.console) return;
+// G.console[method]...
+// TODO:: 2) use .includes() instead of .indexOf() !== -1 for better readability (line 115)
+// TODO:: 3) use for...of loop instead of .forEach() for better performance/readability (line 190) for (const method of CONSOLE_METHODS)
+// TODO:: 4) extract error stringification logic to separate method to avoid duplication (lines 98, 128)
+// TODO:: 5) improve %c style directive parsing logic for better accuracy and edge cases
+// TODO:: 6) add type guards for console method access to improve type safety
+// TODO:: 7) Store original console methods and implement restore() to revert overrides — allows safe teardown, prevents double-wrapping, and avoids global side-effects.
