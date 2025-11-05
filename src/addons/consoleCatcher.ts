@@ -188,7 +188,7 @@ export class ConsoleCatcher {
     this.isInitialized = true;
 
     CONSOLE_METHODS.forEach((method) => {
-      if (typeof globalThis.console[method] !== 'function') {
+      if (typeof window.console[method] !== 'function') {
         return;
       }
 
