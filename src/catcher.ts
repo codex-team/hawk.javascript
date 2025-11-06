@@ -101,7 +101,7 @@ export default class Catcher {
   /**
    * Console catcher instance
    */
-  private readonly consoleCatcher: ConsoleCatcher;
+  private readonly consoleCatcher: ConsoleCatcher | null = null;
 
   /**
    * Catcher constructor
@@ -129,7 +129,6 @@ export default class Catcher {
       settings.consoleTracking !== null && settings.consoleTracking !== undefined
         ? settings.consoleTracking
         : true;
-    this.consoleCatcher = ConsoleCatcher.getInstance();
 
     if (!this.token) {
       log(
@@ -156,6 +155,7 @@ export default class Catcher {
     });
 
     if (this.consoleTracking) {
+      this.consoleCatcher = ConsoleCatcher.getInstance();
       this.consoleCatcher.init();
     }
 
@@ -296,7 +296,7 @@ export default class Catcher {
      */
 
     if (this.consoleTracking) {
-      this.consoleCatcher.addErrorEvent(event);
+      this.consoleCatcher!.addErrorEvent(event);
     }
 
     /**
@@ -563,7 +563,7 @@ export default class Catcher {
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
     const getParams = this.getGetParams();
-    const consoleLogs = this.consoleTracking && this.consoleCatcher.getConsoleLogStack();
+    const consoleLogs = this.consoleTracking && this.consoleCatcher?.getConsoleLogStack();
 
     const addons: JavaScriptAddons = {
       window: {
