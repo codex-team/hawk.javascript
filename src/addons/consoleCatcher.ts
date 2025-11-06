@@ -196,8 +196,22 @@ export class ConsoleCatcher {
       const oldFunction = window.console[method].bind(window.console);
 
       window.console[method] = (...args: unknown[]): void => {
-        const stack = new Error().stack?.split('\n').slice(2)
-          .join('\n') || '';
+        const errorStack = new Error('Console log stack trace').stack;
+        const stackLines = errorStack?.split('\n') || [];
+
+        // Skip first line (Error message) and find first stack frame outside of consoleCatcher module
+        const consoleCatcherPattern = /consoleCatcher/i;
+        let userFrameIndex = 1; // Skip Error message line
+
+        for (let i = 1; i < stackLines.length; i++) {
+          if (!consoleCatcherPattern.test(stackLines[i])) {
+            userFrameIndex = i;
+            break;
+          }
+        }
+
+        const userStack = stackLines.slice(userFrameIndex).join('\n');
+        const fileLine = stackLines[userFrameIndex]?.trim() || '';
         const { message, styles } = this.formatConsoleArgs(args);
 
         const logEvent: ConsoleLogEvent = {
@@ -205,8 +219,8 @@ export class ConsoleCatcher {
           timestamp: new Date(),
           type: method,
           message,
-          stack,
-          fileLine: stack.split('\n')[0]?.trim(),
+          stack: userStack,
+          fileLine,
           styles,
         };
 
