@@ -112,7 +112,7 @@ export default class Catcher {
 
     this.token = settings.token;
     this.debug = settings.debug || false;
-    this.release = settings.release;
+    this.release = settings.release !== undefined ? String(settings.release) : undefined;
     this.setUser(settings.user || Catcher.getGeneratedUser());
     this.setContext(settings.context || undefined);
     this.beforeSend = settings.beforeSend;
@@ -445,7 +445,7 @@ export default class Catcher {
    * Release version
    */
   private getRelease(): HawkJavaScriptEvent['release'] {
-    return this.release || null;
+    return this.release !== undefined ? String(this.release) : null;
   }
 
   /**
