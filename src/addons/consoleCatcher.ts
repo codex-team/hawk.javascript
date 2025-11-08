@@ -141,6 +141,42 @@ export class ConsoleCatcher {
   }
 
   /**
+   * Extracts user code stack trace from the full stack trace.
+   *
+   * Dynamic stack frame identification:
+   * - Problem: Fixed slice(2) doesn't work reliably because the number of internal frames
+   *   varies based on code structure (arrow functions, class methods, TS→JS transforms, etc.).
+   * - Solution: Find the first stack frame that doesn't belong to consoleCatcher module.
+   *   This ensures DevTools will navigate to the user's code, not the interceptor's code.
+   *
+   * @param errorStack - Full stack trace string from Error.stack
+   * @returns Object with userStack (full stack from user code) and fileLine (first frame for DevTools link)
+   */
+  private extractUserStack(errorStack: string | undefined): {
+    userStack: string;
+    fileLine: string;
+  } {
+    const stackLines = errorStack?.split('\n') || [];
+    const consoleCatcherPattern = /consoleCatcher/i;
+    let userFrameIndex = 1; // Skip Error message line
+
+    // Find first frame that doesn't belong to consoleCatcher module
+    for (let i = 1; i < stackLines.length; i++) {
+      if (!consoleCatcherPattern.test(stackLines[i])) {
+        userFrameIndex = i;
+        break;
+      }
+    }
+
+    // Extract user code stack (everything from the first non-consoleCatcher frame)
+    const userStack = stackLines.slice(userFrameIndex).join('\n');
+    // First frame is used as fileLine - this is what DevTools shows as clickable link
+    const fileLine = stackLines[userFrameIndex]?.trim() || '';
+
+    return { userStack, fileLine };
+  }
+
+  /**
    * Adds a console log event to the output buffer
    *
    * @param logEvent - The console log event to be added to the output buffer
@@ -214,40 +250,9 @@ export class ConsoleCatcher {
        * 5. Forward the call to the native console (so output still appears in DevTools)
        */
       window.console[method] = (...args: unknown[]): void => {
-        // Capture full stack trace
+        // Capture full stack trace and extract user code stack
         const errorStack = new Error('Console log stack trace').stack;
-        const stackLines = errorStack?.split('\n') || [];
-
-        /**
-         * Dynamic stack frame identification.
-         *
-         * Problem: Fixed slice(2) doesn't work reliably because the number of internal frames
-         * varies based on code structure (arrow functions, class methods, TS→JS transforms, etc.).
-         *
-         * Solution: Find the first stack frame that doesn't belong to consoleCatcher module.
-         * This ensures DevTools will navigate to the user's code, not the interceptor's code.
-         *
-         * Process:
-         * 1. Skip the first line (Error message: "Error: Console log stack trace")
-         * 2. Iterate through stack frames
-         * 3. Find first frame that doesn't contain "consoleCatcher" in its path
-         * 4. Use that frame as fileLine (clickable link in DevTools)
-         * 5. Use all subsequent frames as the full stack trace
-         */
-        const consoleCatcherPattern = /consoleCatcher/i;
-        let userFrameIndex = 1; // Skip Error message line
-
-        for (let i = 1; i < stackLines.length; i++) {
-          if (!consoleCatcherPattern.test(stackLines[i])) {
-            userFrameIndex = i;
-            break;
-          }
-        }
-
-        // Extract user code stack (everything from the first non-consoleCatcher frame)
-        const userStack = stackLines.slice(userFrameIndex).join('\n');
-        // First frame is used as fileLine - this is what DevTools shows as clickable link
-        const fileLine = stackLines[userFrameIndex]?.trim() || '';
+        const { userStack, fileLine } = this.extractUserStack(errorStack);
         const { message, styles } = this.formatConsoleArgs(args);
 
         const logEvent: ConsoleLogEvent = {
