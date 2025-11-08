@@ -15,7 +15,11 @@ const MAX_LOGS = 20;
 const CONSOLE_METHODS: string[] = ['log', 'warn', 'error', 'info', 'debug'];
 
 /**
- * Console catcher class for intercepting and capturing console logs
+ * Console catcher class for intercepting and capturing console logs.
+ *
+ * This singleton class wraps native console methods to capture all console output with accurate
+ * stack traces. When developers click on console messages in DevTools, they are taken to the
+ * original call site in their code, not to the interceptor's code.
  */
 export class ConsoleCatcher {
   /**
@@ -178,7 +182,10 @@ export class ConsoleCatcher {
   }
 
   /**
-   * Initializes the console interceptor by overriding default console methods
+   * Initializes the console interceptor by overriding default console methods.
+   *
+   * Wraps native console methods to intercept all calls, capture their context, and generate
+   * accurate stack traces that point to the original call site (not the interceptor).
    */
   // eslint-disable-next-line @typescript-eslint/member-ordering
   public init(): void {
@@ -193,13 +200,40 @@ export class ConsoleCatcher {
         return;
       }
 
+      // Store original function to forward calls after interception
       const oldFunction = window.console[method].bind(window.console);
 
+      /**
+       * Override console method to intercept all calls.
+       *
+       * For each intercepted call, we:
+       * 1. Generate a stack trace to find the original call site
+       * 2. Format the console arguments into a structured message
+       * 3. Create a ConsoleLogEvent with metadata
+       * 4. Store it in the buffer
+       * 5. Forward the call to the native console (so output still appears in DevTools)
+       */
       window.console[method] = (...args: unknown[]): void => {
+        // Capture full stack trace
         const errorStack = new Error('Console log stack trace').stack;
         const stackLines = errorStack?.split('\n') || [];
 
-        // Skip first line (Error message) and find first stack frame outside of consoleCatcher module
+        /**
+         * Dynamic stack frame identification.
+         *
+         * Problem: Fixed slice(2) doesn't work reliably because the number of internal frames
+         * varies based on code structure (arrow functions, class methods, TS→JS transforms, etc.).
+         *
+         * Solution: Find the first stack frame that doesn't belong to consoleCatcher module.
+         * This ensures DevTools will navigate to the user's code, not the interceptor's code.
+         *
+         * Process:
+         * 1. Skip the first line (Error message: "Error: Console log stack trace")
+         * 2. Iterate through stack frames
+         * 3. Find first frame that doesn't contain "consoleCatcher" in its path
+         * 4. Use that frame as fileLine (clickable link in DevTools)
+         * 5. Use all subsequent frames as the full stack trace
+         */
         const consoleCatcherPattern = /consoleCatcher/i;
         let userFrameIndex = 1; // Skip Error message line
 
@@ -210,7 +244,9 @@ export class ConsoleCatcher {
           }
         }
 
+        // Extract user code stack (everything from the first non-consoleCatcher frame)
         const userStack = stackLines.slice(userFrameIndex).join('\n');
+        // First frame is used as fileLine - this is what DevTools shows as clickable link
         const fileLine = stackLines[userFrameIndex]?.trim() || '';
         const { message, styles } = this.formatConsoleArgs(args);
 
@@ -225,6 +261,7 @@ export class ConsoleCatcher {
         };
 
         this.addToConsoleOutput(logEvent);
+        // Forward to native console so output still appears in DevTools
         oldFunction(...args);
       };
     });
