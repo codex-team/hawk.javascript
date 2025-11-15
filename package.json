@@ -47,7 +47,7 @@
     "vue": "^2"
   },
   "dependencies": {
-    "@hawk.so/types": "^0.1.35",
+    "@hawk.so/types": "^0.1.36",
     "error-stack-parser": "^2.1.4",
     "vite-plugin-dts": "^4.2.4"
   }
