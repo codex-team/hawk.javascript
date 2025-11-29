@@ -64,7 +64,7 @@ export interface HawkInitialSettings {
 
   /**
    * This Method allows you to filter any data you don't want sending to Hawk.
-   * 
+   *
    * Return `false` to prevent the event from being sent to Hawk.
    */
   beforeSend?(event: HawkJavaScriptEvent): HawkJavaScriptEvent | false;
@@ -80,4 +80,11 @@ export interface HawkInitialSettings {
    * Console log handler
    */
   consoleTracking?: boolean;
+
+  /**
+   * Track only errors from files marked with HAWK:tracked marker.
+   * If enabled, only errors from files containing this marker will be sent.
+   * Default is false (all errors are tracked).
+   */
+  trackOnlyMarkedFiles?: boolean;
 }

@@ -2,6 +2,7 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './utils/log';
 import StackParser from './modules/stackParser';
+import fetchTimer from './modules/fetchTimer';
 import type { CatcherMessage, HawkInitialSettings } from './types';
 import { VueIntegration } from './integrations/vue';
 import { id } from './utils/id';
@@ -104,6 +105,11 @@ export default class Catcher {
   private readonly consoleCatcher: ConsoleCatcher | null = null;
 
   /**
+   * Track only errors from files marked with HAWK:tracked marker
+   */
+  private readonly trackOnlyMarkedFiles: boolean;
+
+  /**
    * Catcher constructor
    *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
@@ -129,6 +135,7 @@ export default class Catcher {
       settings.consoleTracking !== null && settings.consoleTracking !== undefined
         ? settings.consoleTracking
         : true;
+    this.trackOnlyMarkedFiles = settings.trackOnlyMarkedFiles || false;
 
     if (!this.token) {
       log(
@@ -343,6 +350,19 @@ export default class Catcher {
         markErrorAsProcessed(error);
       }
 
+      /**
+       * Check if we should filter by tracking marker
+       */
+      if (this.trackOnlyMarkedFiles) {
+        const hasMarker = await this.checkTrackingMarker(error);
+        if (!hasMarker) {
+          /**
+           * Error is not from a marked file, skip it
+           */
+          return;
+        }
+      }
+
       const errorFormatted = await this.prepareErrorFormatted(error, context);
 
       /**
@@ -475,6 +495,67 @@ export default class Catcher {
       return integrationId;
     } catch {
       throw new Error('Invalid integration token.');
+    }
+  }
+
+  /**
+   * Check if error comes from a file marked with HAWK:tracked marker
+   *
+   * @param error - error to check
+   * @returns true if at least one file in stack trace contains the marker, false otherwise
+   */
+  private async checkTrackingMarker(error: Error | string): Promise<boolean> {
+    const notAnError = !(error instanceof Error);
+
+    /**
+     * If error is not an Error instance, we can't check stack trace
+     */
+    if (notAnError) {
+      return false;
+    }
+
+    try {
+      const backtrace = await this.stackParser.parse(error as Error);
+
+      if (!backtrace || backtrace.length === 0) {
+        return false;
+      }
+
+      /**
+       * Check each file in the stack trace
+       */
+      const marker = '/*! HAWK:tracked */';
+      const markerCheckPromises = backtrace.map(async (frame) => {
+        if (!frame.file) {
+          return false;
+        }
+
+        try {
+          /**
+           * Use fetchTimer to load file with timeout (same as StackParser does)
+           */
+          const response = await fetchTimer(frame.file, 2000);
+          const fileContent = await response.text();
+          return fileContent.includes(marker);
+        } catch {
+          /**
+           * If we can't load the file, skip it
+           */
+          return false;
+        }
+      });
+
+      const results = await Promise.all(markerCheckPromises);
+      /**
+       * Return true if at least one file contains the marker
+       */
+      return results.some(hasMarker => hasMarker === true);
+    } catch {
+      /**
+       * If we can't parse the stack trace, allow the error to be sent
+       * (fail open - better to send too many than miss important errors)
+       */
+      return true;
     }
   }
 
