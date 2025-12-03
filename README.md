@@ -197,7 +197,7 @@ With this flag turned on, Hawk will:
 Typical usage is to add a special marker comment into the bundles you actually want to track, for example:
 
 ```js
-// @hawk:track
+// /*! HAWK:tracked */
 // rest of your bundled app
 ```
 

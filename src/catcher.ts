@@ -355,6 +355,7 @@ export default class Catcher {
        */
       if (this.trackOnlyMarkedFiles) {
         const hasMarker = await this.checkTrackingMarker(error);
+
         if (!hasMarker) {
           /**
            * Error is not from a marked file, skip it
@@ -502,7 +503,7 @@ export default class Catcher {
    * Check if error comes from a file marked with HAWK:tracked marker
    *
    * @param error - error to check
-   * @returns true if at least one file in stack trace contains the marker, false otherwise
+   * @returns {boolean} true if at least one file in stack trace contains the marker, false otherwise
    */
   private async checkTrackingMarker(error: Error | string): Promise<boolean> {
     const notAnError = !(error instanceof Error);
@@ -536,6 +537,7 @@ export default class Catcher {
            */
           const response = await fetchTimer(frame.file, 2000);
           const fileContent = await response.text();
+
           return fileContent.includes(marker);
         } catch {
           /**
@@ -549,6 +551,7 @@ export default class Catcher {
       /**
        * Return true if at least one file contains the marker
        */
+
       return results.some(hasMarker => hasMarker === true);
     } catch {
       /**
