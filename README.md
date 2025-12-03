@@ -88,6 +88,7 @@ Initialization settings:
 | `disableGlobalErrorsHandling` | boolean | optional | Do not initialize global errors handling |
 | `disableVueErrorHandler` | boolean | optional | Do not initialize Vue errors handling |
 | `consoleTracking` | boolean | optional | Initialize console logs tracking |
+| `trackOnlyMarkedFiles` | boolean | optional | If `true`, send only errors whose stack frames reference files marked for tracking (see [Tracking only marked files](#tracking-only-marked-files)) |
 | `beforeSend` | function(event) => event | optional | This Method allows you to filter any data you don't want sending to Hawk |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
@@ -174,6 +175,33 @@ window.hawk = new HawkCatcher({
   }
 })
 ```
+
+## Tracking only marked files
+
+Sometimes you want Hawk to ignore errors coming from "foreign" code (third‑party bundles, other apps on the same domain, legacy scripts, etc.).
+To do that, enable the `trackOnlyMarkedFiles` option:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  trackOnlyMarkedFiles: true,
+});
+```
+
+With this flag turned on, Hawk will:
+
+- **Inspect stack trace frames** for each error inside `formatAndSend()`.
+- **Call an internal `checkTrackingMarker()`** for each file in the stack trace.
+- **Drop the error** if none of the frames refer to a file that contains the tracking marker comment.
+
+Typical usage is to add a special marker comment into the bundles you actually want to track, for example:
+
+```js
+// @hawk:track
+// rest of your bundled app
+```
+
+Only files that contain this marker (or whatever marker your build inserts) will be treated as "ours" when `trackOnlyMarkedFiles` is enabled, everything else will be filtered out.
 
 ## Dismiss error
 
