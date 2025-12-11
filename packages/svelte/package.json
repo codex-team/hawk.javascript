@@ -1,0 +1,14 @@
+{
+  "name": "@hawk.so/svelte",
+  "version": "1.0.0",
+  "description": "Svelte/SvelteKit integration for hawk.javascript SDK",
+  "main": "./dist/hawk-svelte.umd.js",
+  "module": "./dist/hawk-svelte.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@hawk.so/javascript": "file:../.."
+  }
+}

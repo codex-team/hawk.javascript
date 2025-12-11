@@ -316,6 +316,13 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@hawk.so/javascript@file:.":
+  version "3.2.11"
+  dependencies:
+    "@hawk.so/types" "^0.1.36"
+    error-stack-parser "^2.1.4"
+    vite-plugin-dts "^4.2.4"
+
 "@hawk.so/types@^0.1.36":
   version "0.1.36"
   resolved "https://registry.yarnpkg.com/@hawk.so/types/-/types-0.1.36.tgz#234b0e4c81bf5f50b1208910d45fc4ffb62e8ae1"
