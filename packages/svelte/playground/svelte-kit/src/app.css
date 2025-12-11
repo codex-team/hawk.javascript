@@ -1,0 +1,377 @@
+/* Hawk.so Example Styles */
+@import url('https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap');
+
+:root {
+	--bg-primary: #2f3341;
+	--bg-secondary: #242732;
+	--bg-input: rgba(36, 39, 50, 0.68);
+	--text-primary: #dbe6ff;
+	--text-secondary: rgba(219, 230, 255, 0.6);
+	--border-color: rgba(219, 230, 255, 0.1);
+	--button-primary: #4979e4;
+	--button-primary-hover: #4869d2;
+	--border-input: rgba(0, 0, 0, 0.18);
+}
+
+body {
+	font-family: Roboto, system-ui, sans-serif;
+	margin: 0;
+	padding: 0;
+	background: var(--bg-primary);
+	color: var(--text-primary);
+	font-size: 13px;
+}
+
+header {
+	padding: 30px;
+	background: var(--bg-secondary);
+}
+
+h1 {
+	font-weight: bold;
+	font-size: 20px;
+	margin: 0 0 15px;
+	color: var(--text-primary);
+}
+
+h2 {
+	font-weight: 500;
+	margin: 0 0 10px;
+	font-size: 13px;
+	color: var(--text-secondary);
+	letter-spacing: 0.24px;
+	text-align: left;
+	text-transform: uppercase;
+}
+
+h2 small {
+	text-transform: none;
+	font-size: 14px;
+	opacity: 0.6;
+	font-weight: normal;
+	margin-left: 15px;
+}
+
+a {
+	color: inherit;
+	text-decoration: underline;
+}
+
+a:hover {
+	color: var(--button-primary);
+}
+
+section {
+	padding: 15px;
+	border: 1px solid var(--border-color);
+	border-radius: 4px;
+	margin: 15px;
+}
+
+button {
+	display: inline-block;
+	padding: 8px 20px;
+	border: 0;
+	border-radius: 5px;
+	background: var(--button-primary);
+	color: var(--text-primary);
+	font-weight: 500;
+	font-size: 14px;
+	cursor: pointer;
+	font-family: inherit;
+}
+
+button:hover {
+	background: var(--button-primary-hover);
+}
+
+button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+label {
+	display: block;
+	margin-bottom: 10px;
+	font-size: 15px;
+}
+
+input,
+select,
+textarea {
+	background: var(--bg-input);
+	border: 1px solid var(--border-input);
+	border-radius: 3px;
+	padding: 10px 15px;
+	font-size: 15px;
+	color: inherit;
+	font-family: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+	outline: none;
+	border-color: var(--button-primary);
+}
+
+code {
+	background: var(--bg-secondary);
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+	font-size: 0.9em;
+}
+
+pre {
+	background: var(--bg-secondary);
+	padding: 15px;
+	border-radius: 4px;
+	overflow-x: auto;
+}
+
+pre code {
+	background: none;
+	padding: 0;
+}
+
+/* Navigation styles */
+nav {
+	padding: 15px 30px;
+	background: var(--bg-secondary);
+	border-bottom: 1px solid var(--border-color);
+}
+
+nav a {
+	margin-right: 20px;
+	text-decoration: none;
+	color: var(--text-primary);
+	font-weight: 500;
+}
+
+nav a:hover {
+	color: var(--button-primary);
+}
+
+/* Card/Grid styles for error tests */
+.test-card {
+	display: block;
+	padding: 20px;
+	border: 2px solid var(--border-color);
+	border-radius: 8px;
+	text-decoration: none;
+	color: inherit;
+	transition: all 0.2s ease;
+	background: var(--bg-secondary);
+}
+
+.test-card:hover {
+	border-color: var(--button-primary);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.test-card h3 {
+	margin: 0 0 10px 0;
+	color: var(--text-primary);
+	font-size: 16px;
+	font-weight: 500;
+}
+
+.test-card p {
+	margin: 0;
+	color: var(--text-secondary);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* Alert/Notice boxes */
+.alert {
+	padding: 15px;
+	border-left: 4px solid;
+	border-radius: 4px;
+	margin: 15px 0;
+}
+
+.alert-info {
+	background: rgba(73, 121, 228, 0.15);
+	border-color: var(--button-primary);
+	color: var(--text-primary);
+}
+
+.alert-warning {
+	background: rgba(255, 193, 7, 0.15);
+	border-color: #ffc107;
+	color: #ffd54f;
+}
+
+.alert-error {
+	background: rgba(244, 67, 54, 0.15);
+	border-color: #f44336;
+	color: #ff8a80;
+}
+
+.alert-success {
+	background: rgba(76, 175, 80, 0.15);
+	border-color: #4caf50;
+	color: #81c784;
+}
+
+/* Container */
+.container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 20px;
+}
+
+/* Grid system */
+.grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 15px;
+}
+
+/* Utility classes */
+.text-center {
+	text-align: center;
+}
+
+.mt-1 { margin-top: 10px; }
+.mt-2 { margin-top: 20px; }
+.mb-1 { margin-bottom: 10px; }
+.mb-2 { margin-bottom: 20px; }
+.p-1 { padding: 10px; }
+.p-2 { padding: 20px; }
+
+/* Error test page styles */
+.error-page {
+	padding: 2rem;
+}
+
+.error-description {
+	margin: 1rem 0;
+}
+
+.error-trigger {
+	margin: 2rem 0;
+}
+
+.error-note {
+	margin: 2rem 0;
+	padding: 1rem;
+	background: rgba(73, 121, 228, 0.15);
+	border-left: 4px solid var(--button-primary);
+	border-radius: 4px;
+}
+
+.error-boundary-container {
+	margin: 2rem 0;
+	padding: 1rem;
+	border: 2px solid var(--button-primary);
+	border-radius: 4px;
+}
+
+.error-boundary-message {
+	padding: 1.5rem;
+	background: rgba(244, 67, 54, 0.15);
+	border-left: 4px solid #f44336;
+	border-radius: 4px;
+}
+
+.error-boundary-message h3 {
+	margin: 0 0 0.5rem 0;
+	color: #ff8a80;
+}
+
+.error-boundary-message p {
+	margin: 0.5rem 0;
+	color: var(--text-primary);
+}
+
+.error-success-message {
+	padding: 1rem;
+	background: rgba(76, 175, 80, 0.15);
+	border-left: 4px solid #4caf50;
+	border-radius: 4px;
+	margin-top: 1rem;
+}
+
+.error-success-message p {
+	margin: 0.5rem 0;
+	color: var(--text-primary);
+}
+
+.error-success-message strong {
+	color: #81c784;
+}
+
+.form-group {
+	margin-bottom: 1rem;
+}
+
+.form-error {
+	padding: 1rem;
+	background: rgba(244, 67, 54, 0.15);
+	color: var(--text-primary);
+	border-left: 4px solid #f44336;
+	border-radius: 4px;
+	margin-bottom: 1rem;
+}
+
+.form-error strong {
+	color: #ff8a80;
+}
+
+.form-success {
+	padding: 1rem;
+	background: rgba(76, 175, 80, 0.15);
+	color: var(--text-primary);
+	border-left: 4px solid #4caf50;
+	border-radius: 4px;
+	margin-bottom: 1rem;
+}
+
+.form-success strong {
+	color: #81c784;
+}
+
+.form-input {
+	padding: 0.5rem;
+	font-size: 1rem;
+	width: 300px;
+	margin-right: 0.5rem;
+}
+
+.form-input-error {
+	border-color: #f44336;
+}
+
+.button-primary {
+	padding: 1rem 2rem;
+	font-size: 1.2rem;
+	background: #f44336;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.button-submit {
+	padding: 0.5rem 1rem;
+	font-size: 1rem;
+	background: #2196f3;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.button-reset {
+	margin-top: 1rem;
+	padding: 0.5rem 1rem;
+	background: #2196f3;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}

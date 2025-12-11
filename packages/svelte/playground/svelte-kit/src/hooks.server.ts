@@ -1,0 +1,18 @@
+import type { HandleServerError } from '@sveltejs/kit';
+
+export const handleError: HandleServerError = async ({ error, event, status, message }) => {
+	console.error('🔴 [Server handleError] Caught error:', {
+		error,
+		status,
+		message,
+		route: event.route.id,
+		url: event.url.pathname
+	});
+
+	// Return sanitized error to client
+	return {
+		message: message || 'An unexpected server error occurred',
+		code: (error as any)?.code ?? 'UNKNOWN_ERROR',
+		route: event.route.id
+	};
+};
