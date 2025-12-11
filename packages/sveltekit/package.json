@@ -1,0 +1,28 @@
+{
+  "name": "@hawk.so/sveltekit",
+  "version": "1.0.0",
+  "description": "SvelteKit integration for Hawk Error Tracker",
+  "main": "./dist/hawk-sveltekit.umd.js",
+  "module": "./dist/hawk-sveltekit.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "vite build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codex-team/hawk.javascript.git",
+    "directory": "packages/sveltekit"
+  },
+  "author": {
+    "name": "CodeX",
+    "email": "team@codex.so"
+  },
+  "license": "AGPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/codex-team/hawk.javascript/issues"
+  },
+  "homepage": "https://github.com/codex-team/hawk.javascript#readme",
+  "dependencies": {
+    "@hawk.so/javascript": "^3.0.0"
+  }
+}
