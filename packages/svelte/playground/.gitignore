@@ -1,0 +1,23 @@
+# Dependencies
+node_modules
+
+# Build output
+.output
+.vercel
+.netlify
+.wrangler
+.svelte-kit
+build
+dist
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+
+# Environment
+.env
+.env.example
+!.env.example
