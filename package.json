@@ -5,7 +5,9 @@
   "version": "0.0.0",
   "packageManager": "yarn@4.12.0",
   "workspaces": [
-    "packages/*"
+    "packages/javascript",
+    "packages/sveltekit",
+    "packages/sveltekit/playground"
   ],
   "scripts": {
     "dev": "yarn workspace @hawk.so/javascript dev",
