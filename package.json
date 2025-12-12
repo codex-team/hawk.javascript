@@ -2,6 +2,10 @@
   "name": "@hawk.so/javascript",
   "type": "commonjs",
   "version": "3.2.11",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "description": "JavaScript errors tracking for Hawk.so",
   "files": [
     "dist"
