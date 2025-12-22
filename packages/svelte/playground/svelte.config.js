@@ -1,12 +1,24 @@
-import adapter from '@sveltejs/adapter-auto';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+/**
+ * SvelteKit configuration file
+ *
+ * This file configures the SvelteKit application build process and runtime behavior.
+ * @see {@link https://kit.svelte.dev/docs/configuration}
+ */
 
-/** @type {import('@sveltejs/kit').Config} */
+import {vitePreprocess} from '@sveltejs/vite-plugin-svelte';
+
+/**
+ * SvelteKit configuration object
+ * @type {import('@sveltejs/kit').Config}
+ */
 const config = {
-	preprocess: vitePreprocess(),
-	kit: {
-		adapter: adapter()
-	}
+  /**
+   * Preprocessor configuration
+   *
+   * Uses Vite's preprocessor to handle TypeScript, PostCSS, and other transformations
+   * before the Svelte compiler processes the components.
+   */
+  preprocess: vitePreprocess(),
 };
 
 export default config;
