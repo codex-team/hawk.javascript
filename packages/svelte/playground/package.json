@@ -1,5 +1,6 @@
 {
   "name": "hawk-svelte-playground",
+  "private": true,
   "version": "1.0.0",
   "description": "SvelteKit playground for testing Hawk.so error handling integration",
   "type": "module",
@@ -7,6 +8,9 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview"
+  },
+  "dependencies": {
+    "@hawk.so/javascript": "*"
   },
   "devDependencies": {
     "@sveltejs/kit": "^2.48.5",
