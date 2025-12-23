@@ -10,6 +10,7 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/hawk.mjs",
       "require": "./dist/hawk.umd.js"

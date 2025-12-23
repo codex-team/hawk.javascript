@@ -5,9 +5,13 @@
   "type": "module",
   "description": "SvelteKit playground for testing Hawk error handling integration",
   "scripts": {
+    "postinstall": "svelte-kit sync",
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview"
+  },
+  "dependencies": {
+    "@hawk.so/sveltekit": "workspace:^"
   },
   "devDependencies": {
     "@sveltejs/kit": "^2.48.5",

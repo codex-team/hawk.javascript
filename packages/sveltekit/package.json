@@ -5,6 +5,13 @@
   "main": "./dist/hawk-sveltekit.umd.js",
   "module": "./dist/hawk-sveltekit.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "import": "./dist/hawk-sveltekit.mjs",
+      "require": "./dist/hawk-sveltekit.umd.js"
+    }
+  },
   "scripts": {
     "build": "vite build"
   },
