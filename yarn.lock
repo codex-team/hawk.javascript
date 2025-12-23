@@ -487,6 +487,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@hawk.so/sveltekit-playground@workspace:packages/sveltekit/playground"
   dependencies:
+    "@hawk.so/sveltekit": "npm:^1.0.0"
     "@sveltejs/kit": "npm:^2.48.5"
     "@sveltejs/vite-plugin-svelte": "npm:^6.2.1"
     eslint-plugin-svelte: "npm:^3.13.1"
@@ -495,7 +496,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@hawk.so/sveltekit@workspace:packages/sveltekit":
+"@hawk.so/sveltekit@npm:^1.0.0, @hawk.so/sveltekit@workspace:packages/sveltekit":
   version: 0.0.0-use.local
   resolution: "@hawk.so/sveltekit@workspace:packages/sveltekit"
   dependencies:
