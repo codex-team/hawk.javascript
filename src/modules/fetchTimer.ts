@@ -25,9 +25,18 @@ export default function fetchTimer(url: string, ms: number): Promise<any> {
     log('Request is too long, aborting...', 'log', url);
   }, ms);
 
-  return fetchPromise.then((response) => {
-    clearTimeout(timeoutId);
+  return fetchPromise
+    .then((response) => {
+      clearTimeout(timeoutId);
 
-    return response;
-  });
+      return response;
+    })
+    .catch((error) => {
+      clearTimeout(timeoutId);
+
+      /**
+       * Re-throw the error so it can be handled by the caller
+       */
+      throw error;
+    });
 }
