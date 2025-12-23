@@ -132,7 +132,18 @@ export default class StackParser {
        * Wait for maximum 2 sec to skip loading big files.
        */
       this.sourceFilesCache[fileName] = fetchTimer(fileName, 2000)
-        .then((response) => response.text());
+        .then((response) => response.text())
+        .catch((error) => {
+          /**
+           * Remove failed promise from cache to allow retry
+           */
+          delete this.sourceFilesCache[fileName];
+
+          /**
+           * Re-throw error so it can be caught by try-catch
+           */
+          throw error;
+        });
 
       /**
        * Dealloc cache when it collects more that 10 files
@@ -146,7 +157,12 @@ export default class StackParser {
 
       return await this.sourceFilesCache[fileName];
     } catch (error) {
+      /**
+       * Ensure failed promise is removed from cache
+       */
+      delete this.sourceFilesCache[fileName];
       // log('Can not load source file. Skipping...');
+
       return null;
     }
   }
