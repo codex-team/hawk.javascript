@@ -57,6 +57,28 @@ Global browser error handlers that catch unhandled errors:
 
 **Caught by Hawk Catcher.**
 
+### Error Boundaries (🟢)
+
+Svelte `<svelte:boundary>` catches errors during:
+
+- Component rendering (synchronous errors in component body)
+- Component initialization
+
+Example usage:
+
+```svelte
+<svelte:boundary onerror={handleBoundaryError} {failed}>
+  <ErrorProneComponent />
+
+  {#snippet failed(error, reset)}
+    <p>Error: {error.message}</p>
+    <button onclick={reset}>Reset</button>
+  {/snippet}
+</svelte:boundary>
+```
+
+**Not caught by Hawk Catcher.**
+
 ## Error Test Pages
 
 The playground includes test pages to demonstrate each error catching mechanism:
@@ -70,3 +92,10 @@ The playground includes test pages to demonstrate each error catching mechanism:
 2. **Promise Rejection** (`/errors/promise-rejection`)
    - Demonstrates unhandled Promise rejection
    - Caught by window event listener `unhandledrejection`
+
+### Error Boundaries (🟢) - Not caught by Hawk
+
+1. **Boundary Error** (`/errors/boundary`)
+   - Demonstrates svelte boundary feature
+   - Caught by `<svelte:boundary>`
+
