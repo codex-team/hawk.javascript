@@ -64,6 +64,23 @@ SvelteKit's client-side error hook catches errors during:
 - Page load functions (`+page.ts`, `+layout.ts`)
 - Server load function errors that reach the client
 
+### Error Boundaries (🟢)
+
+Svelte `<svelte:boundary>` catches errors during:
+
+- Component rendering (synchronous errors in component body)
+- Component initialization
+
+Example usage:
+
+```svelte
+<svelte:boundary onerror={handleBoundaryError} failed={fallback}>
+  <ErrorProneComponent />
+</svelte:boundary>
+```
+
+**Note:** error boundaries will be caught using Hawk Catcher.
+
 ## Error Test Pages
 
 The playground includes test pages to demonstrate each error catching mechanism:
@@ -77,3 +94,16 @@ The playground includes test pages to demonstrate each error catching mechanism:
 2. **Promise Rejection** (`/errors/promise-rejection`)
    - Demonstrates unhandled Promise rejection
    - Caught by `window.unhandledrejection`
+
+### handleError Client Hook (🟡)
+
+3. **Load Function Error** (`/errors/load-function`)
+   - Demonstrates error thrown in page load function
+   - Caught by `handleError` hook
+
+### Error Boundaries (🟢)
+
+4. **Component Render Error** (`/errors/component-render`)
+   - Demonstrates error during component rendering
+   - Caught by `<svelte:boundary>`
+

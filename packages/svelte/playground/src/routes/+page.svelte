@@ -28,6 +28,14 @@
       href: '/errors/load-function',
       category: 'handleError Client Hook (🟡)'
     },
+
+    // Error Boundaries
+    {
+      title: 'Component Rendering Error',
+      description: 'Error thrown during component render',
+      href: '/errors/component-render',
+      category: 'Error Boundaries (🟢)'
+    },
   ];
 
   const categories = Array.from(new Set(errorTests.map(t => t.category)));
@@ -50,6 +58,7 @@
         <ul>
           <li>🔴 = Caught by global <code>window.error</code> or <code>window.unhandledrejection</code></li>
           <li>🟡 = Caught by <code>handleError</code> hook</li>
+          <li>🟢 = Caught by <code>&lt;svelte:boundary&gt;</code></li>
         </ul>
       </li>
       <li>Each test demonstrates where errors are caught in the SvelteKit error handling hierarchy</li>
