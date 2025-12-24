@@ -57,6 +57,13 @@ Global browser error handlers that catch unhandled errors:
 
 **Note:** global errors will be caught using Hawk Catcher.
 
+### handleError Client Hook (🟡)
+
+SvelteKit's client-side error hook catches errors during:
+
+- Page load functions (`+page.ts`, `+layout.ts`)
+- Server load function errors that reach the client
+
 ## Error Test Pages
 
 The playground includes test pages to demonstrate each error catching mechanism:

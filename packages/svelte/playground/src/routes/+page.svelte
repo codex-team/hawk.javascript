@@ -20,6 +20,14 @@
       href: '/errors/promise-rejection',
       category: 'Global Error Handlers (🔴)'
     },
+
+    // handleError client Hook
+    {
+      title: 'Load Function Error',
+      description: 'Error thrown in page load function',
+      href: '/errors/load-function',
+      category: 'handleError Client Hook (🟡)'
+    },
   ];
 
   const categories = Array.from(new Set(errorTests.map(t => t.category)));
@@ -41,6 +49,7 @@
       <li>Look for colored emoji markers:
         <ul>
           <li>🔴 = Caught by global <code>window.error</code> or <code>window.unhandledrejection</code></li>
+          <li>🟡 = Caught by <code>handleError</code> hook</li>
         </ul>
       </li>
       <li>Each test demonstrates where errors are caught in the SvelteKit error handling hierarchy</li>

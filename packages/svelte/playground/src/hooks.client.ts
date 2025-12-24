@@ -1,4 +1,5 @@
 import HawkCatcher from '@hawk.so/javascript';
+import type {HandleClientError} from '@sveltejs/kit';
 
 if (import.meta.env.VITE_HAWK_TOKEN) {
   new HawkCatcher({
@@ -22,3 +23,19 @@ window.addEventListener('unhandledrejection', (event) => {
     promise: event.promise
   });
 });
+
+export const handleError: HandleClientError = ({error, event, status, message}) => {
+  console.error('🟡 [handleError] Caught error:', {
+    error,
+    event: {
+      url: event.url.pathname,
+      route: event.route?.id
+    },
+    status,
+    message
+  });
+
+  return {
+    message: message || 'An error occurred'
+  };
+};
