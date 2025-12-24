@@ -20,6 +20,14 @@
       href: '/errors/promise-rejection',
       category: 'Global Error Handlers (🟡)'
     },
+
+    // Error Boundaries
+    {
+      title: 'Boundary Error',
+      description: 'Error caught by svelte:boundary',
+      href: '/errors/boundary',
+      category: 'Error Boundaries (🟢)'
+    },
   ];
 
   const categories = Array.from(new Set(errorTests.map(t => t.category)));
@@ -41,6 +49,7 @@
       <li>Look for colored emoji markers:
         <ul>
           <li>🟡 = Caught by global <code>window.error</code> or <code>window.unhandledrejection</code></li>
+          <li>🟢 = Caught by <code>&lt;svelte:boundary&gt;</code></li>
         </ul>
       </li>
       <li>Each test demonstrates where errors are caught in the SvelteKit error handling hierarchy</li>
