@@ -1,7 +1,6 @@
 import type { StackFrame } from 'error-stack-parser';
 import ErrorStackParser from 'error-stack-parser';
 import type { BacktraceFrame, SourceCodeLine } from '@hawk.so/types';
-import log from '../utils/log';
 import fetchTimer from './fetchTimer';
 
 /**
@@ -26,7 +25,7 @@ export default class StackParser {
       const sourceCode = await this.extractSourceCode(frame);
       const file = frame.fileName !== null && frame.fileName !== undefined ? frame.fileName : '';
       const line = frame.lineNumber !== null && frame.lineNumber !== undefined ? frame.lineNumber : 0;
-      
+
       return {
         file,
         line,
@@ -132,7 +131,18 @@ export default class StackParser {
        * Wait for maximum 2 sec to skip loading big files.
        */
       this.sourceFilesCache[fileName] = fetchTimer(fileName, 2000)
-        .then((response) => response.text());
+        .then((response) => response.text())
+        .catch((error) => {
+          /**
+           * Remove failed promise from cache to allow retry
+           */
+          delete this.sourceFilesCache[fileName];
+
+          /**
+           * Re-throw error so it can be caught by try-catch
+           */
+          throw error;
+        });
 
       /**
        * Dealloc cache when it collects more that 10 files
@@ -146,7 +156,10 @@ export default class StackParser {
 
       return await this.sourceFilesCache[fileName];
     } catch (error) {
-      log('Can not load source file. Skipping...');
+      /**
+       * Ensure failed promise is removed from cache
+       */
+      delete this.sourceFilesCache[fileName];      // log('Can not load source file. Skipping...');
 
       return null;
     }

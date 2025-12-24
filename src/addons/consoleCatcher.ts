@@ -173,7 +173,8 @@ export class ConsoleCatcher {
     // First frame is used as fileLine - this is what DevTools shows as clickable link
     const fileLine = stackLines[userFrameIndex]?.trim() || '';
 
-    return { userStack, fileLine };
+    return { userStack,
+      fileLine };
   }
 
   /**
@@ -248,6 +249,8 @@ export class ConsoleCatcher {
        * 3. Create a ConsoleLogEvent with metadata
        * 4. Store it in the buffer
        * 5. Forward the call to the native console (so output still appears in DevTools)
+       *
+       * @param {...any} args
        */
       window.console[method] = (...args: unknown[]): void => {
         // Capture full stack trace and extract user code stack
