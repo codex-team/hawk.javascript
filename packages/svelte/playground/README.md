@@ -5,6 +5,8 @@ Test playground for Hawk Error Tracker integration with SvelteKit and Svelte.
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+- [Error Handling](#error-handling)
+- [Error Test Pages](#error-test-pages)
 
 ## Getting Started
 
@@ -43,3 +45,28 @@ Hawk automatically registers global error handlers for:
 
 **Note:** HawkCatcher is browser-only and cannot run on the server (uses `localStorage`, `window`, etc.). Server-side
 errors are not tracked automatically.
+
+## Error Handling
+
+### Global Error Handlers (🔴)
+
+Global browser error handlers that catch unhandled errors:
+
+- **`window.error`**
+- **`window.unhandledrejection`**
+
+**Note:** global errors will be caught using Hawk Catcher.
+
+## Error Test Pages
+
+The playground includes test pages to demonstrate each error catching mechanism:
+
+### Global Error Handlers (🔴)
+
+1. **Runtime Error** (`/errors/runtime-error`)
+   - Demonstrates synchronous error in event handler
+   - Caught by `window.error`
+
+2. **Promise Rejection** (`/errors/promise-rejection`)
+   - Demonstrates unhandled Promise rejection
+   - Caught by `window.unhandledrejection`
