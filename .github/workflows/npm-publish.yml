@@ -17,7 +17,7 @@ jobs:
       - run: yarn
       - run: yarn lint-test
       - run: yarn build
-      - run: yarn publish --access=public
+      - run: yarn workspace @hawk.so/javascript publish --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   notify:
@@ -28,6 +28,8 @@ jobs:
       - name: Get package info
         id: package
         uses: codex-team/action-nodejs-package-info@v1
+        with:
+          path: packages/javascript
       - name: Send a message
         uses: codex-team/action-codexbot-notify@v1
         with:
