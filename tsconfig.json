@@ -1,23 +1,13 @@
 {
-  "compilerOptions" : {
+  "compilerOptions": {
     "strict": false,
     "strictNullChecks": true,
     "sourceMap": true,
     "target": "es2015",
     "declaration": true,
-    "outDir": "dist",
-    "rootDir": "src",
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "lib": ["dom", "es2017", "es2018"],
-    "baseUrl": ".",
-    "paths": {
-      "@/types": ["src/types"]
-    },
     "allowSyntheticDefaultImports": true
-  },
-  "include": [
-    "src/**/*",
-    "src/types/*"
-  ],
+  }
 }

@@ -1,5 +1,5 @@
 import path from 'path';
-import dts from 'vite-plugin-dts'
+import dts from 'vite-plugin-dts';
 import { defineConfig } from 'vite';
 
 import license from 'rollup-plugin-license';
@@ -11,6 +11,7 @@ const VERSION = pkg.version;
 
 /**
  * Trick to use Vite server.open option on macOS
+ *
  * @see https://github.com/facebook/create-react-app/pull/1690#issuecomment-283518768
  */
 process.env.BROWSER = 'open';
@@ -55,7 +56,7 @@ export default defineConfig(() => {
 
     resolve: {
       alias: {
-        '@/types': path.resolve(__dirname, './types'),
+        '@/types': path.resolve(__dirname, './src/types'),
       },
     },
 
@@ -69,5 +70,5 @@ export default defineConfig(() => {
         tsconfigPath: './tsconfig.json',
       }),
     ],
-  }
+  };
 });

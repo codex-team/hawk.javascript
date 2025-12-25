@@ -1,41 +1,22 @@
 {
-  "name": "@hawk.so/javascript",
-  "type": "commonjs",
-  "version": "3.2.12",
-  "description": "JavaScript errors tracking for Hawk.so",
-  "files": [
-    "dist"
+  "private": true,
+  "name": "hawk.javascript",
+  "type": "module",
+  "version": "0.0.0",
+  "workspaces": [
+    "packages/*"
   ],
-  "main": "./dist/hawk.umd.js",
-  "module": "./dist/hawk.mjs",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/hawk.mjs",
-      "require": "./dist/hawk.umd.js"
-    }
-  },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "stats": "size-limit > stats.txt",
-    "lint": "eslint -c ./.eslintrc.js src/ --ext .ts,.js --fix",
-    "lint-test": "eslint -c ./.eslintrc.js src/ --ext .ts,.js"
+    "dev": "yarn workspace @hawk.so/javascript dev",
+    "build": "yarn workspace @hawk.so/javascript build",
+    "stats": "yarn workspace @hawk.so/javascript stats",
+    "lint": "eslint -c ./.eslintrc.js packages/*/src --ext .ts,.js --fix",
+    "lint-test": "eslint -c ./.eslintrc.js packages/*/src --ext .ts,.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codex-team/hawk.javascript.git"
   },
-  "author": {
-    "name": "CodeX",
-    "email": "team@codex.so"
-  },
-  "license": "AGPL-3.0-only",
-  "bugs": {
-    "url": "https://github.com/codex-team/hawk.javascript/issues"
-  },
-  "homepage": "https://github.com/codex-team/hawk.javascript#readme",
   "devDependencies": {
     "@size-limit/preset-small-lib": "^11.1.6",
     "eslint": "^7.24.0",
@@ -43,12 +24,6 @@
     "rollup-plugin-license": "^3.5.3",
     "size-limit": "^11.1.6",
     "typescript": "^5.6.3",
-    "vite": "^5.4.9",
-    "vue": "^2"
-  },
-  "dependencies": {
-    "@hawk.so/types": "^0.1.36",
-    "error-stack-parser": "^2.1.4",
-    "vite-plugin-dts": "^4.2.4"
+    "vite": "^5.4.9"
   }
 }

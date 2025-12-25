@@ -1,6 +1,6 @@
 module.exports = [
   {
-    path: "dist/hawk.js",
+    path: "dist/hawk.umd.js",
     name: "hawk browser"
   }
 ];
