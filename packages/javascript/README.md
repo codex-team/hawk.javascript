@@ -2,6 +2,19 @@
 
 Error tracking for JavaScript/TypeScript applications.
 
+## Features
+
+- 🦅 Automatic error catching
+- 💎 Manual error and logs sending
+- 🙂 Attaching user information
+- 📦 Attaching additional context
+- 🛡️ Sensitive data filtering
+- 🌟 Source maps consuming
+- 💬 Console logs tracking
+- <img src="https://cdn.svglogos.dev/logos/vue.svg" width="16" height="16"> &nbsp;Vue support
+- <img src="https://cdn.svglogos.dev/logos/react.svg" width="16" height="16">  &nbsp;React support
+
+
 ## Installation
 
 We recommend adding Hawk script to page above others to prevent missing any errors.
