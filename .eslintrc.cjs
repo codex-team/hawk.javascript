@@ -6,6 +6,7 @@ module.exports = {
     'node_modules/',
     'package.json',
     'tsconfig.json',
+    'packages/*/dist/',
   ],
   env: {
     browser: true,
