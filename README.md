@@ -21,6 +21,7 @@ Error tracking for JavaScript/TypeScript applications.
 ## Packages
 
 - **[@hawk.so/javascript](./packages/javascript)** - Core JavaScript/TypeScript error tracking SDK
+- **[@hawk.so/sveltekit](packages/sveltekit)** - Hawk integration for SvelteKit apps
 
 ## License
 
