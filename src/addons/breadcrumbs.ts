@@ -1,6 +1,5 @@
 /**
  * @file Breadcrumbs module - captures chronological trail of events before an error
- * Similar to Sentry breadcrumbs: https://docs.sentry.io/product/issues/issue-details/breadcrumbs/
  */
 import type { Breadcrumb, BreadcrumbLevel, BreadcrumbType, Json } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
@@ -46,12 +45,14 @@ export interface BreadcrumbHint {
 export interface BreadcrumbsOptions {
   /**
    * Maximum number of breadcrumbs to store (FIFO)
+   *
    * @default 15
    */
   maxBreadcrumbs?: number;
 
   /**
    * Maximum length for string values (will be trimmed)
+   *
    * @default 1024
    */
   maxValueLength?: number;
@@ -65,18 +66,21 @@ export interface BreadcrumbsOptions {
 
   /**
    * Enable automatic fetch/XHR breadcrumbs
+   *
    * @default true
    */
   trackFetch?: boolean;
 
   /**
    * Enable automatic navigation breadcrumbs (history API)
+   *
    * @default true
    */
   trackNavigation?: boolean;
 
   /**
    * Enable automatic UI click breadcrumbs
+   *
    * @default false
    */
   trackClicks?: boolean;
@@ -160,6 +164,8 @@ export class BreadcrumbManager {
 
   /**
    * Initialize breadcrumbs with options and start auto-capture
+   *
+   * @param options
    */
   public init(options: BreadcrumbsOptions = {}): void {
     if (this.isInitialized) {
@@ -177,7 +183,9 @@ export class BreadcrumbManager {
 
     this.isInitialized = true;
 
-    // Setup auto-capture handlers
+    /**
+     * Setup auto-capture handlers
+     */
     if (this.options.trackFetch) {
       this.wrapFetch();
       this.wrapXHR();
@@ -194,26 +202,38 @@ export class BreadcrumbManager {
 
   /**
    * Add a breadcrumb to the buffer
+   *
+   * @param breadcrumb
+   * @param hint
    */
   public addBreadcrumb(breadcrumb: Omit<Breadcrumb, 'timestamp'> & { timestamp?: Breadcrumb['timestamp'] }, hint?: BreadcrumbHint): void {
-    // Ensure timestamp
+    /**
+     * Ensure timestamp
+     */
     const bc: Breadcrumb = {
       ...breadcrumb,
       timestamp: breadcrumb.timestamp ?? Date.now(),
     };
 
-    // Apply beforeBreadcrumb hook
+    /**
+     * Apply beforeBreadcrumb hook
+     */
     if (this.options.beforeBreadcrumb) {
       const result = this.options.beforeBreadcrumb(bc, hint);
 
       if (result === null) {
-        return; // Discard breadcrumb
+        /**
+         * Discard breadcrumb
+         */
+        return;
       }
 
       Object.assign(bc, result);
     }
 
-    // Sanitize and trim data
+    /**
+     * Sanitize and trim data
+     */
     if (bc.data) {
       bc.data = this.sanitizeData(bc.data);
     }
@@ -222,7 +242,9 @@ export class BreadcrumbManager {
       bc.message = this.trimString(bc.message, this.options.maxValueLength);
     }
 
-    // Add to buffer (FIFO)
+    /**
+     * Add to buffer (FIFO)
+     */
     if (this.breadcrumbs.length >= this.options.maxBreadcrumbs) {
       this.breadcrumbs.shift();
     }
@@ -234,7 +256,7 @@ export class BreadcrumbManager {
    * Get current breadcrumbs snapshot (oldest to newest)
    */
   public getBreadcrumbs(): Breadcrumb[] {
-    return [...this.breadcrumbs];
+    return [ ...this.breadcrumbs ];
   }
 
   /**
@@ -246,6 +268,8 @@ export class BreadcrumbManager {
 
   /**
    * Sanitize and trim breadcrumb data object
+   *
+   * @param data
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private sanitizeData(data: Record<string, any>): Record<string, Json> {
@@ -264,6 +288,9 @@ export class BreadcrumbManager {
 
   /**
    * Trim string to max length
+   *
+   * @param str
+   * @param maxLength
    */
   private trimString(str: string, maxLength: number): string {
     if (str.length > maxLength) {
@@ -351,7 +378,9 @@ export class BreadcrumbManager {
     this.originalXHROpen = XMLHttpRequest.prototype.open;
     this.originalXHRSend = XMLHttpRequest.prototype.send;
 
-    // Store request info on the XHR instance
+    /**
+     * Store request info on the XHR instance
+     */
     interface XHRWithBreadcrumb extends XMLHttpRequest {
       __hawk_method?: string;
       __hawk_url?: string;
@@ -393,7 +422,9 @@ export class BreadcrumbManager {
         }
       };
 
-      // Add listener without overwriting existing one
+      /**
+       * Add listener without overwriting existing one
+       */
       this.addEventListener('readystatechange', onReadyStateChange);
 
       return manager.originalXHRSend!.call(this, body);
@@ -428,7 +459,9 @@ export class BreadcrumbManager {
       });
     };
 
-    // Wrap pushState
+    /**
+     * Wrap pushState
+     */
     this.originalPushState = history.pushState;
     history.pushState = function (...args) {
       const result = manager.originalPushState!.apply(this, args);
@@ -438,7 +471,9 @@ export class BreadcrumbManager {
       return result;
     };
 
-    // Wrap replaceState
+    /**
+     * Wrap replaceState
+     */
     this.originalReplaceState = history.replaceState;
     history.replaceState = function (...args) {
       const result = manager.originalReplaceState!.apply(this, args);
@@ -448,7 +483,9 @@ export class BreadcrumbManager {
       return result;
     };
 
-    // Listen for popstate (back/forward)
+    /**
+     * Listen for popstate (back/forward)
+     */
     window.addEventListener('popstate', () => {
       createNavigationBreadcrumb(window.location.href);
     });
@@ -467,16 +504,21 @@ export class BreadcrumbManager {
         return;
       }
 
-      // Build a simple selector
+      /**
+       * Build a simple selector
+       */
       let selector = target.tagName.toLowerCase();
 
       if (target.id) {
         selector += `#${target.id}`;
       } else if (target.className && typeof target.className === 'string') {
-        selector += `.${target.className.split(' ').filter(Boolean).join('.')}`;
+        selector += `.${target.className.split(' ').filter(Boolean)
+          .join('.')}`;
       }
 
-      // Get text content (limited)
+      /**
+       * Get text content (limited)
+       */
       const text = (target.textContent || target.innerText || '').trim().substring(0, 50);
 
       manager.addBreadcrumb({
@@ -501,14 +543,18 @@ export class BreadcrumbManager {
    * Destroy the manager and restore original functions
    */
   public destroy(): void {
-    // Restore fetch
+    /**
+     * Restore fetch
+     */
     if (this.originalFetch) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).fetch = this.originalFetch;
       this.originalFetch = null;
     }
 
-    // Restore XHR
+    /**
+     * Restore XHR
+     */
     if (this.originalXHROpen) {
       XMLHttpRequest.prototype.open = this.originalXHROpen;
       this.originalXHROpen = null;
@@ -519,7 +565,9 @@ export class BreadcrumbManager {
       this.originalXHRSend = null;
     }
 
-    // Restore history
+    /**
+     * Restore history
+     */
     if (this.originalPushState) {
       history.pushState = this.originalPushState;
       this.originalPushState = null;
@@ -530,7 +578,9 @@ export class BreadcrumbManager {
       this.originalReplaceState = null;
     }
 
-    // Remove click handler
+    /**
+     * Remove click handler
+     */
     if (this.clickHandler) {
       document.removeEventListener('click', this.clickHandler, { capture: true });
       this.clickHandler = null;
@@ -544,6 +594,9 @@ export class BreadcrumbManager {
 
 /**
  * Helper function to create a breadcrumb object
+ *
+ * @param message
+ * @param options
  */
 export function createBreadcrumb(
   message: string,

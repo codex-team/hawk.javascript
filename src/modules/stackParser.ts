@@ -26,7 +26,7 @@ export default class StackParser {
       const sourceCode = await this.extractSourceCode(frame);
       const file = frame.fileName !== null && frame.fileName !== undefined ? frame.fileName : '';
       const line = frame.lineNumber !== null && frame.lineNumber !== undefined ? frame.lineNumber : 0;
-      
+
       return {
         file,
         line,

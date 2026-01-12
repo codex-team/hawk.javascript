@@ -84,24 +84,28 @@ export interface HawkInitialSettings {
 
   /**
    * Maximum number of breadcrumbs to store (FIFO)
+   *
    * @default 15
    */
   maxBreadcrumbs?: number;
 
   /**
    * Enable automatic fetch/XHR breadcrumbs
+   *
    * @default true
    */
   trackFetch?: boolean;
 
   /**
    * Enable automatic navigation breadcrumbs (history API)
+   *
    * @default true
    */
   trackNavigation?: boolean;
 
   /**
    * Enable automatic UI click breadcrumbs
+   *
    * @default false
    */
   trackClicks?: boolean;
