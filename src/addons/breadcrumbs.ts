@@ -308,12 +308,13 @@ export class BreadcrumbManager {
       return;
     }
 
-    this.originalFetch = fetch;
+    const originalFetch = window.fetch.bind(window);
+    this.originalFetch = originalFetch;
 
     const manager = this;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).fetch = async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
       const startTime = Date.now();
       const method = init?.method || 'GET';
       const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
@@ -321,7 +322,7 @@ export class BreadcrumbManager {
       let response: Response;
 
       try {
-        response = await manager.originalFetch!.call(window, input, init);
+        response = await originalFetch(input, init);
 
         const duration = Date.now() - startTime;
 
@@ -374,9 +375,11 @@ export class BreadcrumbManager {
     }
 
     const manager = this;
+    const originalOpen = XMLHttpRequest.prototype.open;
+    const originalSend = XMLHttpRequest.prototype.send;
 
-    this.originalXHROpen = XMLHttpRequest.prototype.open;
-    this.originalXHRSend = XMLHttpRequest.prototype.send;
+    this.originalXHROpen = originalOpen;
+    this.originalXHRSend = originalSend;
 
     /**
      * Store request info on the XHR instance
@@ -392,7 +395,7 @@ export class BreadcrumbManager {
       this.__hawk_url = typeof url === 'string' ? url : url.href;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return manager.originalXHROpen!.apply(this, [method, url, ...args] as any);
+      return originalOpen.apply(this, [method, url, ...args] as any);
     };
 
     XMLHttpRequest.prototype.send = function (this: XHRWithBreadcrumb, body?: Document | XMLHttpRequestBodyInit | null) {
@@ -427,7 +430,7 @@ export class BreadcrumbManager {
        */
       this.addEventListener('readystatechange', onReadyStateChange);
 
-      return manager.originalXHRSend!.call(this, body);
+      return originalSend.call(this, body);
     };
   }
 

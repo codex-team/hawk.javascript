@@ -123,3 +123,65 @@ buttonSetContext.addEventListener('click', () => {
 
   window.hawk.setContext(context);
 });
+
+/**
+ * Breadcrumbs Management
+ */
+const buttonAddBreadcrumb = document.getElementById('btn-add-breadcrumb');
+const buttonGetBreadcrumbs = document.getElementById('btn-get-breadcrumbs');
+const buttonClearBreadcrumbs = document.getElementById('btn-clear-breadcrumbs');
+const buttonTestFetch = document.getElementById('btn-test-fetch-breadcrumb');
+const breadcrumbsOutput = document.getElementById('breadcrumbs-output');
+
+buttonAddBreadcrumb.addEventListener('click', () => {
+  const message = document.getElementById('breadcrumbMessage').value;
+  const type = document.getElementById('breadcrumbType').value;
+  const level = document.getElementById('breadcrumbLevel').value;
+  const category = document.getElementById('breadcrumbCategory').value;
+
+  if (!message.trim()) {
+    alert('Breadcrumb message is required');
+    return;
+  }
+
+  window.hawk.addBreadcrumb({
+    message,
+    type,
+    level,
+    ...(category.trim() && { category }),
+    data: {
+      timestamp: new Date().toISOString(),
+      custom: 'manual breadcrumb',
+    },
+  });
+
+  breadcrumbsOutput.textContent = `✓ Breadcrumb added: ${message}`;
+});
+
+buttonGetBreadcrumbs.addEventListener('click', () => {
+  const breadcrumbs = window.hawk.getBreadcrumbs();
+
+  if (breadcrumbs.length === 0) {
+    breadcrumbsOutput.textContent = 'No breadcrumbs yet';
+    return;
+  }
+
+  breadcrumbsOutput.textContent = JSON.stringify(breadcrumbs, null, 2);
+});
+
+buttonClearBreadcrumbs.addEventListener('click', () => {
+  window.hawk.clearBreadcrumbs();
+  breadcrumbsOutput.textContent = '✓ Breadcrumbs cleared';
+});
+
+buttonTestFetch.addEventListener('click', async () => {
+  breadcrumbsOutput.textContent = 'Testing fetch breadcrumb...';
+
+  try {
+    const response = await fetch('https://api.github.com/zen');
+    const text = await response.text();
+    breadcrumbsOutput.textContent = `✓ Fetch completed (${response.status}): "${text}". Check breadcrumbs!`;
+  } catch (error) {
+    breadcrumbsOutput.textContent = `✗ Fetch failed: ${error.message}`;
+  }
+});
