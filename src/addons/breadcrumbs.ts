@@ -271,10 +271,8 @@ export class BreadcrumbManager {
    *
    * @param data
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private sanitizeData(data: Record<string, any>): Record<string, Json> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sanitized = Sanitizer.sanitize(data) as Record<string, any>;
+  private sanitizeData(data: Record<string, unknown>): Record<string, Json> {
+    const sanitized = Sanitizer.sanitize(data) as Record<string, unknown>;
 
     // Trim string values
     for (const key in sanitized) {
@@ -313,7 +311,6 @@ export class BreadcrumbManager {
 
     const manager = this;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
       const startTime = Date.now();
       const method = init?.method || 'GET';
@@ -394,8 +391,7 @@ export class BreadcrumbManager {
       this.__hawk_method = method;
       this.__hawk_url = typeof url === 'string' ? url : url.href;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return originalOpen.apply(this, [method, url, ...args] as any);
+      return originalOpen.apply(this, [method, url, ...args] as Parameters<typeof originalOpen>);
     };
 
     XMLHttpRequest.prototype.send = function (this: XHRWithBreadcrumb, body?: Document | XMLHttpRequestBodyInit | null) {
@@ -550,8 +546,7 @@ export class BreadcrumbManager {
      * Restore fetch
      */
     if (this.originalFetch) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).fetch = this.originalFetch;
+      window.fetch = this.originalFetch;
       this.originalFetch = null;
     }
 
