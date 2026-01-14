@@ -165,7 +165,7 @@ export class BreadcrumbManager {
   /**
    * Initialize breadcrumbs with options and start auto-capture
    *
-   * @param options
+   * @param options - Configuration options for breadcrumbs
    */
   public init(options: BreadcrumbsOptions = {}): void {
     if (this.isInitialized) {
@@ -203,8 +203,8 @@ export class BreadcrumbManager {
   /**
    * Add a breadcrumb to the buffer
    *
-   * @param breadcrumb
-   * @param hint
+   * @param breadcrumb - The breadcrumb data to add
+   * @param hint - Optional hint object with original event data
    */
   public addBreadcrumb(breadcrumb: Omit<Breadcrumb, 'timestamp'> & { timestamp?: Breadcrumb['timestamp'] }, hint?: BreadcrumbHint): void {
     /**
@@ -267,279 +267,6 @@ export class BreadcrumbManager {
   }
 
   /**
-   * Sanitize and trim breadcrumb data object
-   *
-   * @param data
-   */
-  private sanitizeData(data: Record<string, unknown>): Record<string, Json> {
-    const sanitized = Sanitizer.sanitize(data) as Record<string, unknown>;
-
-    // Trim string values
-    for (const key in sanitized) {
-      if (typeof sanitized[key] === 'string') {
-        sanitized[key] = this.trimString(sanitized[key], this.options.maxValueLength);
-      }
-    }
-
-    return sanitized as Record<string, Json>;
-  }
-
-  /**
-   * Trim string to max length
-   *
-   * @param str
-   * @param maxLength
-   */
-  private trimString(str: string, maxLength: number): string {
-    if (str.length > maxLength) {
-      return str.substring(0, maxLength) + '…';
-    }
-
-    return str;
-  }
-
-  /**
-   * Wrap fetch API to capture HTTP breadcrumbs
-   */
-  private wrapFetch(): void {
-    if (typeof fetch === 'undefined') {
-      return;
-    }
-
-    const originalFetch = window.fetch.bind(window);
-
-    this.originalFetch = originalFetch;
-
-    const manager = this;
-
-    window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-      const startTime = Date.now();
-      const method = init?.method || 'GET';
-      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-
-      let response: Response;
-
-      try {
-        response = await originalFetch(input, init);
-
-        const duration = Date.now() - startTime;
-
-        manager.addBreadcrumb({
-          type: 'request',
-          category: 'fetch',
-          message: `${method} ${url} ${response.status}`,
-          level: response.ok ? 'info' : 'error',
-          data: {
-            url,
-            method,
-            status_code: response.status,
-            duration_ms: duration,
-          },
-        }, {
-          input,
-          response,
-        });
-
-        return response;
-      } catch (error) {
-        const duration = Date.now() - startTime;
-
-        manager.addBreadcrumb({
-          type: 'request',
-          category: 'fetch',
-          message: `${method} ${url} failed`,
-          level: 'error',
-          data: {
-            url,
-            method,
-            duration_ms: duration,
-            error: error instanceof Error ? error.message : String(error),
-          },
-        }, {
-          input,
-        });
-
-        throw error;
-      }
-    };
-  }
-
-  /**
-   * Wrap XMLHttpRequest to capture XHR breadcrumbs
-   */
-  private wrapXHR(): void {
-    if (typeof XMLHttpRequest === 'undefined') {
-      return;
-    }
-
-    const manager = this;
-    const originalOpen = XMLHttpRequest.prototype.open;
-    const originalSend = XMLHttpRequest.prototype.send;
-
-    this.originalXHROpen = originalOpen;
-    this.originalXHRSend = originalSend;
-
-    /**
-     * Store request info on the XHR instance
-     */
-    interface XHRWithBreadcrumb extends XMLHttpRequest {
-      __hawk_method?: string;
-      __hawk_url?: string;
-      __hawk_start?: number;
-    }
-
-    XMLHttpRequest.prototype.open = function (this: XHRWithBreadcrumb, method: string, url: string | URL, ...args: unknown[]) {
-      this.__hawk_method = method;
-      this.__hawk_url = typeof url === 'string' ? url : url.href;
-
-      return originalOpen.apply(this, [method, url, ...args] as Parameters<typeof originalOpen>);
-    };
-
-    XMLHttpRequest.prototype.send = function (this: XHRWithBreadcrumb, body?: Document | XMLHttpRequestBodyInit | null) {
-      this.__hawk_start = Date.now();
-
-      const onReadyStateChange = (): void => {
-        if (this.readyState === XMLHttpRequest.DONE) {
-          const duration = Date.now() - (this.__hawk_start || Date.now());
-          const method = this.__hawk_method || 'GET';
-          const url = this.__hawk_url || '';
-          const status = this.status;
-
-          manager.addBreadcrumb({
-            type: 'request',
-            category: 'xhr',
-            message: `${method} ${url} ${status}`,
-            level: status >= 200 && status < 400 ? 'info' : 'error',
-            data: {
-              url,
-              method,
-              status_code: status,
-              duration_ms: duration,
-            },
-          }, {
-            xhr: this,
-          });
-        }
-      };
-
-      /**
-       * Add listener without overwriting existing one
-       */
-      this.addEventListener('readystatechange', onReadyStateChange);
-
-      return originalSend.call(this, body);
-    };
-  }
-
-  /**
-   * Wrap History API to capture navigation breadcrumbs
-   */
-  private wrapHistory(): void {
-    if (typeof history === 'undefined') {
-      return;
-    }
-
-    const manager = this;
-    let lastUrl = window.location.href;
-
-    const createNavigationBreadcrumb = (to: string): void => {
-      const from = lastUrl;
-
-      lastUrl = to;
-
-      manager.addBreadcrumb({
-        type: 'navigation',
-        category: 'navigation',
-        message: `Navigated to ${to}`,
-        level: 'info',
-        data: {
-          from,
-          to,
-        },
-      });
-    };
-
-    /**
-     * Wrap pushState
-     */
-    this.originalPushState = history.pushState;
-    history.pushState = function (...args) {
-      const result = manager.originalPushState!.apply(this, args);
-
-      createNavigationBreadcrumb(window.location.href);
-
-      return result;
-    };
-
-    /**
-     * Wrap replaceState
-     */
-    this.originalReplaceState = history.replaceState;
-    history.replaceState = function (...args) {
-      const result = manager.originalReplaceState!.apply(this, args);
-
-      createNavigationBreadcrumb(window.location.href);
-
-      return result;
-    };
-
-    /**
-     * Listen for popstate (back/forward)
-     */
-    window.addEventListener('popstate', () => {
-      createNavigationBreadcrumb(window.location.href);
-    });
-  }
-
-  /**
-   * Setup click event tracking for UI breadcrumbs
-   */
-  private setupClickTracking(): void {
-    const manager = this;
-
-    this.clickHandler = (event: MouseEvent): void => {
-      const target = event.target as HTMLElement;
-
-      if (!target) {
-        return;
-      }
-
-      /**
-       * Build a simple selector
-       */
-      let selector = target.tagName.toLowerCase();
-
-      if (target.id) {
-        selector += `#${target.id}`;
-      } else if (target.className && typeof target.className === 'string') {
-        selector += `.${target.className.split(' ').filter(Boolean)
-          .join('.')}`;
-      }
-
-      /**
-       * Get text content (limited)
-       */
-      const text = (target.textContent || target.innerText || '').trim().substring(0, 50);
-
-      manager.addBreadcrumb({
-        type: 'ui',
-        category: 'ui.click',
-        message: `Click on ${selector}`,
-        level: 'info',
-        data: {
-          selector,
-          text: text || undefined,
-          tagName: target.tagName,
-        },
-      }, {
-        event,
-      });
-    };
-
-    document.addEventListener('click', this.clickHandler, { capture: true });
-  }
-
-  /**
    * Destroy the manager and restore original functions
    */
   public destroy(): void {
@@ -589,13 +316,298 @@ export class BreadcrumbManager {
     this.isInitialized = false;
     BreadcrumbManager.instance = null;
   }
+
+  /**
+   * Sanitize and trim breadcrumb data object
+   *
+   * @param data - The data object to sanitize
+   */
+  private sanitizeData(data: Record<string, unknown>): Record<string, Json> {
+    const sanitized = Sanitizer.sanitize(data) as Record<string, unknown>;
+
+    // Trim string values
+    for (const key in sanitized) {
+      if (typeof sanitized[key] === 'string') {
+        sanitized[key] = this.trimString(sanitized[key], this.options.maxValueLength);
+      }
+    }
+
+    return sanitized as Record<string, Json>;
+  }
+
+  /**
+   * Trim string to max length
+   *
+   * @param str - The string to trim
+   * @param maxLength - Maximum allowed length
+   */
+  private trimString(str: string, maxLength: number): string {
+    if (str.length > maxLength) {
+      return str.substring(0, maxLength) + '…';
+    }
+
+    return str;
+  }
+
+  /**
+   * Wrap fetch API to capture HTTP breadcrumbs
+   */
+  private wrapFetch(): void {
+    if (typeof fetch === 'undefined') {
+      return;
+    }
+
+    const originalFetch = window.fetch.bind(window);
+
+    this.originalFetch = originalFetch;
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const manager = this;
+
+    window.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+      const startTime = Date.now();
+      const method = init?.method || 'GET';
+      let url: string;
+
+      if (typeof input === 'string') {
+        url = input;
+      } else if (input instanceof URL) {
+        url = input.href;
+      } else {
+        url = input.url;
+      }
+
+      let response: Response;
+
+      try {
+        response = await originalFetch(input, init);
+
+        const duration = Date.now() - startTime;
+
+        manager.addBreadcrumb({
+          type: 'request',
+          category: 'fetch',
+          message: `${method} ${url} ${response.status}`,
+          level: response.ok ? 'info' : 'error',
+          data: {
+            url: url as unknown as Json,
+            method: method as unknown as Json,
+            statusCode: response.status as unknown as Json,
+            durationMs: duration as unknown as Json,
+          },
+        }, {
+          input,
+          response,
+        });
+
+        return response;
+      } catch (error) {
+        const duration = Date.now() - startTime;
+
+        manager.addBreadcrumb({
+          type: 'request',
+          category: 'fetch',
+          message: `${method} ${url} failed`,
+          level: 'error',
+          data: {
+            url: url as unknown as Json,
+            method: method as unknown as Json,
+            durationMs: duration as unknown as Json,
+            error: (error instanceof Error ? error.message : String(error)) as unknown as Json,
+          },
+        }, {
+          input,
+        });
+
+        throw error;
+      }
+    };
+  }
+
+  /**
+   * Wrap XMLHttpRequest to capture XHR breadcrumbs
+   */
+  private wrapXHR(): void {
+    if (typeof XMLHttpRequest === 'undefined') {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const manager = this;
+    const originalOpen = XMLHttpRequest.prototype.open;
+    const originalSend = XMLHttpRequest.prototype.send;
+
+    this.originalXHROpen = originalOpen;
+    this.originalXHRSend = originalSend;
+
+    /**
+     * Store request info on the XHR instance
+     */
+    interface XHRWithBreadcrumb extends XMLHttpRequest {
+      hawkMethod?: string;
+      hawkUrl?: string;
+      hawkStart?: number;
+    }
+
+    XMLHttpRequest.prototype.open = function (this: XHRWithBreadcrumb, method: string, url: string | URL, ...args: unknown[]) {
+      this.hawkMethod = method;
+      this.hawkUrl = typeof url === 'string' ? url : url.href;
+
+      return originalOpen.apply(this, [method, url, ...args] as Parameters<typeof originalOpen>);
+    };
+
+    XMLHttpRequest.prototype.send = function (this: XHRWithBreadcrumb, body?: Document | XMLHttpRequestBodyInit | null) {
+      this.hawkStart = Date.now();
+
+      const onReadyStateChange = (): void => {
+        if (this.readyState === XMLHttpRequest.DONE) {
+          const duration = Date.now() - (this.hawkStart || Date.now());
+          const method = this.hawkMethod || 'GET';
+          const url = this.hawkUrl || '';
+          const status = this.status;
+
+          manager.addBreadcrumb({
+            type: 'request',
+            category: 'xhr',
+            message: `${method} ${url} ${status}`,
+            level: status >= 200 && status < 400 ? 'info' : 'error',
+            data: {
+              url: url as unknown as Json,
+              method: method as unknown as Json,
+              statusCode: status as unknown as Json,
+              durationMs: duration as unknown as Json,
+            },
+          }, {
+            xhr: this,
+          });
+        }
+      };
+
+      /**
+       * Add listener without overwriting existing one
+       */
+      this.addEventListener('readystatechange', onReadyStateChange);
+
+      return originalSend.call(this, body);
+    };
+  }
+
+  /**
+   * Wrap History API to capture navigation breadcrumbs
+   */
+  private wrapHistory(): void {
+    if (typeof history === 'undefined') {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const manager = this;
+    let lastUrl = window.location.href;
+
+    const createNavigationBreadcrumb = (to: string): void => {
+      const from = lastUrl;
+
+      lastUrl = to;
+
+      manager.addBreadcrumb({
+        type: 'navigation',
+        category: 'navigation',
+        message: `Navigated to ${to}`,
+        level: 'info',
+        data: {
+          from: from as unknown as Json,
+          to: to as unknown as Json,
+        },
+      });
+    };
+
+    /**
+     * Wrap pushState
+     */
+    this.originalPushState = history.pushState;
+    history.pushState = function (...args) {
+      const result = manager.originalPushState!.apply(this, args);
+
+      createNavigationBreadcrumb(window.location.href);
+
+      return result;
+    };
+
+    /**
+     * Wrap replaceState
+     */
+    this.originalReplaceState = history.replaceState;
+    history.replaceState = function (...args) {
+      const result = manager.originalReplaceState!.apply(this, args);
+
+      createNavigationBreadcrumb(window.location.href);
+
+      return result;
+    };
+
+    /**
+     * Listen for popstate (back/forward)
+     */
+    window.addEventListener('popstate', () => {
+      createNavigationBreadcrumb(window.location.href);
+    });
+  }
+
+  /**
+   * Setup click event tracking for UI breadcrumbs
+   */
+  private setupClickTracking(): void {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const manager = this;
+
+    this.clickHandler = (event: MouseEvent): void => {
+      const target = event.target as HTMLElement;
+
+      if (!target) {
+        return;
+      }
+
+      /**
+       * Build a simple selector
+       */
+      let selector = target.tagName.toLowerCase();
+
+      if (target.id) {
+        selector += `#${target.id}`;
+      } else if (target.className && typeof target.className === 'string') {
+        selector += `.${target.className.split(' ').filter(Boolean)
+          .join('.')}`;
+      }
+
+      /**
+       * Get text content (limited)
+       */
+      const text = (target.textContent || target.innerText || '').trim().substring(0, 50);
+
+      manager.addBreadcrumb({
+        type: 'ui',
+        category: 'ui.click',
+        message: `Click on ${selector}`,
+        level: 'info',
+        data: {
+          selector: selector as unknown as Json,
+          text: (text || undefined) as unknown as Json,
+          tagName: target.tagName as unknown as Json,
+        },
+      }, {
+        event,
+      });
+    };
+
+    document.addEventListener('click', this.clickHandler, { capture: true });
+  }
 }
 
 /**
  * Helper function to create a breadcrumb object
  *
- * @param message
- * @param options
+ * @param message - The breadcrumb message
+ * @param options - Optional breadcrumb configuration
  */
 export function createBreadcrumb(
   message: string,
