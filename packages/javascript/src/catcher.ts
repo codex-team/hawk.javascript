@@ -10,13 +10,15 @@ import type {
   EventContext,
   JavaScriptAddons,
   VueIntegrationAddons,
-  Json, EncodedIntegrationToken, DecodedIntegrationToken
+  Json, EncodedIntegrationToken, DecodedIntegrationToken,
+  Breadcrumb
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
+import { BreadcrumbManager, type BreadcrumbHint } from './addons/breadcrumbs';
 import { validateUser, validateContext } from './utils/validation';
 
 /**
@@ -104,6 +106,11 @@ export default class Catcher {
   private readonly consoleCatcher: ConsoleCatcher | null = null;
 
   /**
+   * Breadcrumb manager instance
+   */
+  private readonly breadcrumbManager: BreadcrumbManager | null = null;
+
+  /**
    * Catcher constructor
    *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
@@ -158,6 +165,18 @@ export default class Catcher {
       this.consoleCatcher = ConsoleCatcher.getInstance();
       this.consoleCatcher.init();
     }
+
+    /**
+     * Initialize breadcrumbs
+     */
+    this.breadcrumbManager = BreadcrumbManager.getInstance();
+    this.breadcrumbManager.init({
+      maxBreadcrumbs: settings.maxBreadcrumbs,
+      trackFetch: settings.trackFetch,
+      trackNavigation: settings.trackNavigation,
+      trackClicks: settings.trackClicks,
+      beforeBreadcrumb: settings.beforeBreadcrumb,
+    });
 
     /**
      * Set global handlers
@@ -265,6 +284,43 @@ export default class Catcher {
   }
 
   /**
+   * Add a breadcrumb manually
+   * Breadcrumbs are chronological trail of events leading up to an error
+   *
+   * @param breadcrumb - Breadcrumb data (timestamp is auto-generated if not provided)
+   * @param hint - Optional hint object with additional context
+   *
+   * @example
+   * hawk.addBreadcrumb({
+   *   type: 'user',
+   *   category: 'auth',
+   *   message: 'User logged in',
+   *   level: 'info',
+   *   data: { userId: '123' }
+   * });
+   */
+  public addBreadcrumb(
+    breadcrumb: Omit<Breadcrumb, 'timestamp'> & { timestamp?: Breadcrumb['timestamp'] },
+    hint?: BreadcrumbHint
+  ): void {
+    this.breadcrumbManager?.addBreadcrumb(breadcrumb, hint);
+  }
+
+  /**
+   * Get current breadcrumbs (oldest to newest)
+   */
+  public getBreadcrumbs(): Breadcrumb[] {
+    return this.breadcrumbManager?.getBreadcrumbs() ?? [];
+  }
+
+  /**
+   * Clear all breadcrumbs
+   */
+  public clearBreadcrumbs(): void {
+    this.breadcrumbManager?.clearBreadcrumbs();
+  }
+
+  /**
    * Update the context data that will be sent with all events
    *
    * @param context - New context data
@@ -313,6 +369,27 @@ export default class Catcher {
      */
     if (event instanceof ErrorEvent && error === undefined) {
       error = (event as ErrorEvent).message;
+    }
+
+    /**
+     * Add error as breadcrumb before sending
+     */
+    if (this.breadcrumbManager) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorType = error instanceof Error ? error.name : 'Error';
+
+      this.breadcrumbManager.addBreadcrumb({
+        type: 'error',
+        category: 'error',
+        message: errorMessage,
+        level: 'error',
+        data: {
+          type: errorType,
+          ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
+        },
+      }, {
+        event: event instanceof ErrorEvent ? event : undefined,
+      });
     }
 
     void this.formatAndSend(error);
@@ -388,6 +465,7 @@ export default class Catcher {
       title: this.getTitle(error),
       type: this.getType(error),
       release: this.getRelease(),
+      breadcrumbs: this.getBreadcrumbsForEvent(),
       context: this.getContext(context),
       user: this.getUser(),
       addons: this.getAddons(error),
@@ -502,6 +580,15 @@ export default class Catcher {
    */
   private getUser(): HawkJavaScriptEvent['user'] {
     return this.user || null;
+  }
+
+  /**
+   * Get breadcrumbs for event payload
+   */
+  private getBreadcrumbsForEvent(): HawkJavaScriptEvent['breadcrumbs'] {
+    const breadcrumbs = this.breadcrumbManager?.getBreadcrumbs();
+
+    return breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs : null;
   }
 
   /**

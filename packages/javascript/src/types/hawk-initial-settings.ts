@@ -1,5 +1,6 @@
-import type { EventContext, AffectedUser } from '@hawk.so/types';
+import type { EventContext, AffectedUser, Breadcrumb } from '@hawk.so/types';
 import type { HawkJavaScriptEvent } from './event';
+import type { BreadcrumbHint } from '../addons/breadcrumbs';
 
 /**
  * JS Catcher initial settings
@@ -80,4 +81,39 @@ export interface HawkInitialSettings {
    * Console log handler
    */
   consoleTracking?: boolean;
+
+  /**
+   * Maximum number of breadcrumbs to store (FIFO)
+   *
+   * @default 15
+   */
+  maxBreadcrumbs?: number;
+
+  /**
+   * Enable automatic fetch/XHR breadcrumbs
+   *
+   * @default true
+   */
+  trackFetch?: boolean;
+
+  /**
+   * Enable automatic navigation breadcrumbs (history API)
+   *
+   * @default true
+   */
+  trackNavigation?: boolean;
+
+  /**
+   * Enable automatic UI click breadcrumbs
+   *
+   * @default false
+   */
+  trackClicks?: boolean;
+
+  /**
+   * Hook called before each breadcrumb is stored
+   * Return null to discard the breadcrumb
+   * Return modified breadcrumb to store it (useful for PII filtering)
+   */
+  beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | null;
 }

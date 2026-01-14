@@ -174,6 +174,40 @@
       <br /><br />
       <button id="btn-set-context">Set Context</button>
     </section>
+    <section>
+      <h2>Breadcrumbs Management</h2>
+      <label for="breadcrumbMessage">Breadcrumb Message</label>
+      <input type="text" id="breadcrumbMessage" placeholder="User performed action" />
+      <br /><br />
+      <label for="breadcrumbType">Type</label>
+      <select id="breadcrumbType">
+        <option value="default">default</option>
+        <option value="request">request</option>
+        <option value="ui">ui</option>
+        <option value="navigation">navigation</option>
+        <option value="logic">logic</option>
+        <option value="error">error</option>
+      </select>
+      <br /><br />
+      <label for="breadcrumbLevel">Level</label>
+      <select id="breadcrumbLevel">
+        <option value="info">info</option>
+        <option value="debug">debug</option>
+        <option value="warning">warning</option>
+        <option value="error">error</option>
+        <option value="fatal">fatal</option>
+      </select>
+      <br /><br />
+      <label for="breadcrumbCategory">Category (optional)</label>
+      <input type="text" id="breadcrumbCategory" placeholder="ui.click" />
+      <br /><br />
+      <button id="btn-add-breadcrumb">Add Breadcrumb</button>
+      <button id="btn-get-breadcrumbs">Get Breadcrumbs</button>
+      <button id="btn-clear-breadcrumbs">Clear Breadcrumbs</button>
+      <br /><br />
+      <button id="btn-test-fetch-breadcrumb">Test Fetch Breadcrumb</button>
+      <div id="breadcrumbs-output" style="margin-top: 15px; padding: 10px; background: rgba(36, 39, 50, 0.68); border-radius: 3px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; font-size: 12px;"></div>
+    </section>
     <script src="https://unpkg.com/vue@2"></script>
     <section>
       <h2>Test Vue integration: $root</h2>
