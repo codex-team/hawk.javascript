@@ -130,7 +130,6 @@ buttonSetContext.addEventListener('click', () => {
 const buttonAddBreadcrumb = document.getElementById('btn-add-breadcrumb');
 const buttonGetBreadcrumbs = document.getElementById('btn-get-breadcrumbs');
 const buttonClearBreadcrumbs = document.getElementById('btn-clear-breadcrumbs');
-const buttonTestFetch = document.getElementById('btn-test-fetch-breadcrumb');
 const breadcrumbsOutput = document.getElementById('breadcrumbs-output');
 
 buttonAddBreadcrumb.addEventListener('click', () => {
@@ -174,14 +173,223 @@ buttonClearBreadcrumbs.addEventListener('click', () => {
   breadcrumbsOutput.textContent = '✓ Breadcrumbs cleared';
 });
 
-buttonTestFetch.addEventListener('click', async () => {
-  breadcrumbsOutput.textContent = 'Testing fetch breadcrumb...';
+/**
+ * Test All Breadcrumb Types
+ */
+const buttonTestDefault = document.getElementById('btn-test-default');
+const buttonTestRequest = document.getElementById('btn-test-request');
+const buttonTestUI = document.getElementById('btn-test-ui');
+const buttonTestNavigation = document.getElementById('btn-test-navigation');
+const buttonTestLogic = document.getElementById('btn-test-logic');
+const buttonTestError = document.getElementById('btn-test-error');
+const buttonTestAllTypes = document.getElementById('btn-test-all-types');
+
+// Test Default breadcrumb
+buttonTestDefault.addEventListener('click', () => {
+  window.hawk.addBreadcrumb({
+    type: 'default',
+    level: 'info',
+    category: 'user.action',
+    message: 'User clicked on default event button',
+    data: {
+      action: 'button_click',
+      context: 'breadcrumb_testing',
+    },
+  });
+  breadcrumbsOutput.textContent = '✓ Default breadcrumb added';
+});
+
+// Test Request breadcrumb (automatic via fetch)
+buttonTestRequest.addEventListener('click', async () => {
+  breadcrumbsOutput.textContent = 'Testing request breadcrumb...';
 
   try {
     const response = await fetch('https://api.github.com/zen');
     const text = await response.text();
-    breadcrumbsOutput.textContent = `✓ Fetch completed (${response.status}): "${text}". Check breadcrumbs!`;
+    breadcrumbsOutput.textContent = `✓ Request breadcrumb added (${response.status}): "${text}"`;
   } catch (error) {
-    breadcrumbsOutput.textContent = `✗ Fetch failed: ${error.message}`;
+    breadcrumbsOutput.textContent = `✗ Request failed: ${error.message}`;
   }
+});
+
+// Test UI breadcrumb
+buttonTestUI.addEventListener('click', () => {
+  window.hawk.addBreadcrumb({
+    type: 'ui',
+    level: 'info',
+    category: 'ui.click',
+    message: 'Click on test button#btn-test-ui',
+    data: {
+      selector: 'button#btn-test-ui',
+      text: '👆 UI Click',
+      tagName: 'BUTTON',
+      coordinates: {
+        x: 100,
+        y: 200,
+      },
+    },
+  });
+  breadcrumbsOutput.textContent = '✓ UI Click breadcrumb added';
+});
+
+// Test Navigation breadcrumb
+buttonTestNavigation.addEventListener('click', () => {
+  const currentUrl = window.location.href;
+  const testUrl = currentUrl.split('#')[0] + '#breadcrumb-test-' + Date.now();
+
+  window.hawk.addBreadcrumb({
+    type: 'navigation',
+    level: 'info',
+    category: 'navigation',
+    message: `Navigated to ${testUrl}`,
+    data: {
+      from: currentUrl,
+      to: testUrl,
+      method: 'hash_change',
+    },
+  });
+
+  // Actually change the hash to trigger real navigation breadcrumb too
+  window.location.hash = 'breadcrumb-test-' + Date.now();
+
+  breadcrumbsOutput.textContent = '✓ Navigation breadcrumb added';
+});
+
+// Test Logic breadcrumb
+buttonTestLogic.addEventListener('click', () => {
+  // Simulate some logic operations
+  const startTime = performance.now();
+
+  /**
+   * Complex calculation for testing
+   *
+   * @param {number} n - Number of iterations
+   * @returns {number} Calculation result
+   */
+  function complexCalculation(n) {
+    let result = 0;
+
+    for (let i = 0; i < n; i++) {
+      result += Math.sqrt(i);
+    }
+
+    return result;
+  }
+
+  const result = complexCalculation(10000);
+  const duration = performance.now() - startTime;
+
+  window.hawk.addBreadcrumb({
+    type: 'logic',
+    level: 'debug',
+    category: 'calculation.complex',
+    message: 'Performed complex calculation',
+    data: {
+      operation: 'complexCalculation',
+      iterations: 10000,
+      result: result,
+      durationMs: duration.toFixed(2),
+    },
+  });
+
+  breadcrumbsOutput.textContent = `✓ Logic breadcrumb added (${duration.toFixed(2)}ms)`;
+});
+
+// Test Error breadcrumb
+buttonTestError.addEventListener('click', () => {
+  try {
+    // Intentionally cause an error but catch it
+    JSON.parse('invalid json {{{');
+  } catch (error) {
+    window.hawk.addBreadcrumb({
+      type: 'error',
+      level: 'error',
+      category: 'json.parse',
+      message: `JSON parse error: ${error.message}`,
+      data: {
+        error: error.name,
+        message: error.message,
+        input: 'invalid json {{{',
+      },
+    });
+
+    breadcrumbsOutput.textContent = `✓ Error breadcrumb added: ${error.message}`;
+  }
+});
+
+// Test All Types in sequence
+buttonTestAllTypes.addEventListener('click', async () => {
+  breadcrumbsOutput.textContent = 'Running all breadcrumb types...';
+
+  // 1. Default
+  window.hawk.addBreadcrumb({
+    type: 'default',
+    level: 'info',
+    message: 'Sequence started',
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 200));
+
+  // 2. Logic
+  window.hawk.addBreadcrumb({
+    type: 'logic',
+    level: 'debug',
+    category: 'sequence.step',
+    message: 'Processing step 1',
+    data: {
+      step: 1,
+    },
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 200));
+
+  // 3. UI
+  window.hawk.addBreadcrumb({
+    type: 'ui',
+    level: 'info',
+    category: 'ui.interaction',
+    message: 'User initiated sequence',
+    data: {
+      action: 'sequence_test',
+    },
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 200));
+
+  // 4. Request
+  try {
+    await fetch('https://api.github.com/zen');
+  } catch (error) {
+    // Fetch will be captured automatically
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 200));
+
+  // 5. Navigation
+  window.hawk.addBreadcrumb({
+    type: 'navigation',
+    level: 'info',
+    message: 'Internal route change',
+    data: {
+      route: '/test',
+    },
+  });
+
+  await new Promise(resolve => setTimeout(resolve, 200));
+
+  // 6. Error
+  try {
+    throw new Error('Test error in sequence');
+  } catch (error) {
+    window.hawk.addBreadcrumb({
+      type: 'error',
+      level: 'warning',
+      message: `Caught error: ${error.message}`,
+      data: {
+        error: error.name,
+      },
+    });
+  }
+
+  breadcrumbsOutput.textContent = '✓ All breadcrumb types added! Check "Get Breadcrumbs"';
 });
