@@ -161,6 +161,11 @@ export class BreadcrumbManager {
   private clickHandler: ((event: MouseEvent) => void) | null = null;
 
   /**
+   * Popstate event handler reference (for removal)
+   */
+  private popstateHandler: (() => void) | null = null;
+
+  /**
    * Private constructor to enforce singleton pattern
    */
   private constructor() {
@@ -332,6 +337,14 @@ export class BreadcrumbManager {
       this.clickHandler = null;
     }
 
+    /**
+     * Remove popstate handler
+     */
+    if (this.popstateHandler) {
+      window.removeEventListener('popstate', this.popstateHandler);
+      this.popstateHandler = null;
+    }
+
     this.clearBreadcrumbs();
     this.isInitialized = false;
     BreadcrumbManager.instance = null;
@@ -466,6 +479,7 @@ export class BreadcrumbManager {
       hawkMethod?: string;
       hawkUrl?: string;
       hawkStart?: number;
+      hawkListenerAdded?: boolean;
     }
 
     XMLHttpRequest.prototype.open = function (this: XHRWithBreadcrumb, method: string, url: string | URL, ...args: unknown[]) {
@@ -503,9 +517,12 @@ export class BreadcrumbManager {
       };
 
       /**
-       * Add listener without overwriting existing one
+       * Add listener only once per XHR instance to prevent duplicates
        */
-      this.addEventListener('readystatechange', onReadyStateChange);
+      if (!this.hawkListenerAdded) {
+        this.addEventListener('readystatechange', onReadyStateChange);
+        this.hawkListenerAdded = true;
+      }
 
       return originalSend.call(this, body);
     };
@@ -567,9 +584,11 @@ export class BreadcrumbManager {
     /**
      * Listen for popstate (back/forward)
      */
-    window.addEventListener('popstate', () => {
+    this.popstateHandler = (): void => {
       createNavigationBreadcrumb(window.location.href);
-    });
+    };
+
+    window.addEventListener('popstate', this.popstateHandler);
   }
 
   /**
@@ -603,7 +622,7 @@ export class BreadcrumbManager {
         level: 'info',
         data: {
           selector,
-          text: text || undefined,
+          text,
           tagName: target.tagName,
         },
       }, {
