@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/codex-team/hawk.javascript#readme",
   "dependencies": {
-    "@hawk.so/types": "^0.1.38",
+    "@hawk.so/types": "0.5.1",
     "error-stack-parser": "^2.1.4"
   },
   "devDependencies": {
