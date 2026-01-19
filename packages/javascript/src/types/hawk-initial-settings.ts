@@ -1,6 +1,6 @@
 import type { EventContext, AffectedUser, Breadcrumb } from '@hawk.so/types';
 import type { HawkJavaScriptEvent } from './event';
-import type { BreadcrumbHint, BreadcrumbsOptions } from '../addons/breadcrumbs';
+import type { BreadcrumbsOptions } from '../addons/breadcrumbs';
 
 /**
  * JS Catcher initial settings

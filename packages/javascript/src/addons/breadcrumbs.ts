@@ -88,6 +88,12 @@ export interface BreadcrumbsOptions {
 }
 
 /**
+ * Breadcrumb input type - breadcrumb data with optional timestamp
+ * (timestamp will be auto-generated if not provided)
+ */
+export type BreadcrumbInput = Omit<Breadcrumb, 'timestamp'> & { timestamp?: Breadcrumb['timestamp'] };
+
+/**
  * Internal breadcrumbs options - all fields except 'beforeBreadcrumb' are required
  * (they have default values and are always set during init)
  */
@@ -220,7 +226,7 @@ export class BreadcrumbManager {
    * @param breadcrumb - The breadcrumb data to add
    * @param hint - Optional hint object with original event data
    */
-  public addBreadcrumb(breadcrumb: Omit<Breadcrumb, 'timestamp'> & { timestamp?: Breadcrumb['timestamp'] }, hint?: BreadcrumbHint): void {
+  public addBreadcrumb(breadcrumb: BreadcrumbInput, hint?: BreadcrumbHint): void {
     /**
      * Ensure timestamp
      */
@@ -407,7 +413,7 @@ export class BreadcrumbManager {
             method,
             statusCode: response.status,
             durationMs: duration,
-          } as unknown as Breadcrumb['data'],
+          },
         }, {
           input,
           response,
@@ -423,10 +429,10 @@ export class BreadcrumbManager {
           message: `${method} ${url} failed`,
           level: 'error',
           data: {
-            url: url as unknown as Json,
-            method: method as unknown as Json,
-            durationMs: duration as unknown as Json,
-            error: (error instanceof Error ? error.message : String(error)) as unknown as Json,
+            url,
+            method,
+            durationMs: duration,
+            error: error instanceof Error ? error.message : String(error),
           },
         }, {
           input,
@@ -485,10 +491,10 @@ export class BreadcrumbManager {
             message: `${status} ${method} ${url}`,
             level: status >= 200 && status < 400 ? 'info' : 'error',
             data: {
-              url: url as unknown as Json,
-              method: method as unknown as Json,
-              statusCode: status as unknown as Json,
-              durationMs: duration as unknown as Json,
+              url,
+              method,
+              statusCode: status,
+              durationMs: duration,
             },
           }, {
             xhr: this,
@@ -596,9 +602,9 @@ export class BreadcrumbManager {
         message: `Click on ${selector}`,
         level: 'info',
         data: {
-          selector: selector as unknown as Json,
-          text: (text || undefined) as unknown as Json,
-          tagName: target.tagName as unknown as Json,
+          selector,
+          text: text || undefined,
+          tagName: target.tagName,
         },
       }, {
         event,

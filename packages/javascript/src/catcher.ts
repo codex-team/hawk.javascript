@@ -18,8 +18,17 @@ import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
-import { BreadcrumbManager, type BreadcrumbHint } from './addons/breadcrumbs';
+import { BreadcrumbManager, type BreadcrumbHint, type BreadcrumbInput } from './addons/breadcrumbs';
 import { validateUser, validateContext } from './utils/validation';
+
+/**
+ * Breadcrumbs API interface
+ */
+interface BreadcrumbsAPI {
+  add: (breadcrumb: BreadcrumbInput, hint?: BreadcrumbHint) => void;
+  get: () => Breadcrumb[];
+  clear: () => void;
+}
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -293,11 +302,7 @@ export default class Catcher {
    *   data: { userId: '123' }
    * });
    */
-  public get breadcrumbs(): {
-    add: (breadcrumb: Omit<Breadcrumb, 'timestamp'> & { timestamp?: Breadcrumb['timestamp'] }, hint?: BreadcrumbHint) => void;
-    get: () => Breadcrumb[];
-    clear: () => void;
-  } {
+  public get breadcrumbs(): BreadcrumbsAPI {
     return {
       add: (breadcrumb, hint) => this.breadcrumbManager?.addBreadcrumb(breadcrumb, hint),
       get: () => this.breadcrumbManager?.getBreadcrumbs() ?? [],
