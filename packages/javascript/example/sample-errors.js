@@ -27,7 +27,9 @@ buttonRealError.addEventListener('click', realErrorSample);
 const buttonPromiseRejection = document.getElementById('btn-promise-rejection');
 
 buttonPromiseRejection.addEventListener('click', function promiseRejectionSample() {
-  // Promise.reject('This is a sample rejected promise');
+  /**
+   * Promise.reject('This is a sample rejected promise');
+   */
   Promise.resolve()
     .then(realErrorSample)
     .then(() => {});
@@ -184,7 +186,9 @@ const buttonTestLogic = document.getElementById('btn-test-logic');
 const buttonTestError = document.getElementById('btn-test-error');
 const buttonTestAllTypes = document.getElementById('btn-test-all-types');
 
-// Test Default breadcrumb
+/**
+ * Test Default breadcrumb
+ */
 buttonTestDefault.addEventListener('click', () => {
   window.hawk.addBreadcrumb({
     type: 'default',
@@ -199,7 +203,9 @@ buttonTestDefault.addEventListener('click', () => {
   breadcrumbsOutput.textContent = '✓ Default breadcrumb added';
 });
 
-// Test Request breadcrumb (automatic via fetch)
+/**
+ * Test Request breadcrumb (automatic via fetch)
+ */
 buttonTestRequest.addEventListener('click', async () => {
   breadcrumbsOutput.textContent = 'Testing request breadcrumb...';
 
@@ -212,7 +218,9 @@ buttonTestRequest.addEventListener('click', async () => {
   }
 });
 
-// Test UI breadcrumb
+/**
+ * Test UI breadcrumb
+ */
 buttonTestUI.addEventListener('click', () => {
   window.hawk.addBreadcrumb({
     type: 'ui',
@@ -232,7 +240,9 @@ buttonTestUI.addEventListener('click', () => {
   breadcrumbsOutput.textContent = '✓ UI Click breadcrumb added';
 });
 
-// Test Navigation breadcrumb
+/**
+ * Test Navigation breadcrumb
+ */
 buttonTestNavigation.addEventListener('click', () => {
   const currentUrl = window.location.href;
   const testUrl = currentUrl.split('#')[0] + '#breadcrumb-test-' + Date.now();
@@ -249,15 +259,21 @@ buttonTestNavigation.addEventListener('click', () => {
     },
   });
 
-  // Actually change the hash to trigger real navigation breadcrumb too
+  /**
+   * Actually change the hash to trigger real navigation breadcrumb too
+   */
   window.location.hash = 'breadcrumb-test-' + Date.now();
 
   breadcrumbsOutput.textContent = '✓ Navigation breadcrumb added';
 });
 
-// Test Logic breadcrumb
+/**
+ * Test Logic breadcrumb
+ */
 buttonTestLogic.addEventListener('click', () => {
-  // Simulate some logic operations
+  /**
+   * Simulate some logic operations
+   */
   const startTime = performance.now();
 
   /**
@@ -295,10 +311,14 @@ buttonTestLogic.addEventListener('click', () => {
   breadcrumbsOutput.textContent = `✓ Logic breadcrumb added (${duration.toFixed(2)}ms)`;
 });
 
-// Test Error breadcrumb
+/**
+ * Test Error breadcrumb
+ */
 buttonTestError.addEventListener('click', () => {
   try {
-    // Intentionally cause an error but catch it
+    /**
+     * Intentionally cause an error but catch it
+     */
     JSON.parse('invalid json {{{');
   } catch (error) {
     window.hawk.addBreadcrumb({
@@ -317,11 +337,15 @@ buttonTestError.addEventListener('click', () => {
   }
 });
 
-// Test All Types in sequence
+/**
+ * Test All Types in sequence
+ */
 buttonTestAllTypes.addEventListener('click', async () => {
   breadcrumbsOutput.textContent = 'Running all breadcrumb types...';
 
-  // 1. Default
+  /**
+   * 1. Default
+   */
   window.hawk.addBreadcrumb({
     type: 'default',
     level: 'info',
@@ -330,7 +354,9 @@ buttonTestAllTypes.addEventListener('click', async () => {
 
   await new Promise(resolve => setTimeout(resolve, 200));
 
-  // 2. Logic
+  /**
+   * 2. Logic
+   */
   window.hawk.addBreadcrumb({
     type: 'logic',
     level: 'debug',
@@ -343,7 +369,9 @@ buttonTestAllTypes.addEventListener('click', async () => {
 
   await new Promise(resolve => setTimeout(resolve, 200));
 
-  // 3. UI
+  /**
+   * 3. UI
+   */
   window.hawk.addBreadcrumb({
     type: 'ui',
     level: 'info',
@@ -356,16 +384,22 @@ buttonTestAllTypes.addEventListener('click', async () => {
 
   await new Promise(resolve => setTimeout(resolve, 200));
 
-  // 4. Request
+  /**
+   * 4. Request
+   */
   try {
     await fetch('https://api.github.com/zen');
   } catch (error) {
-    // Fetch will be captured automatically
+    /**
+     * Fetch will be captured automatically
+     */
   }
 
   await new Promise(resolve => setTimeout(resolve, 200));
 
-  // 5. Navigation
+  /**
+   * 5. Navigation
+   */
   window.hawk.addBreadcrumb({
     type: 'navigation',
     level: 'info',
@@ -377,7 +411,9 @@ buttonTestAllTypes.addEventListener('click', async () => {
 
   await new Promise(resolve => setTimeout(resolve, 200));
 
-  // 6. Error
+  /**
+   * 6. Error
+   */
   try {
     throw new Error('Test error in sequence');
   } catch (error) {
