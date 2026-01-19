@@ -1,4 +1,4 @@
-import type { EventContext, AffectedUser, Breadcrumb } from '@hawk.so/types';
+import type { EventContext, AffectedUser } from '@hawk.so/types';
 import type { HawkJavaScriptEvent } from './event';
 import type { BreadcrumbsOptions } from '../addons/breadcrumbs';
 

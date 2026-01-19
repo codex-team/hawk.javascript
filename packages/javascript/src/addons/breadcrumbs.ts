@@ -630,7 +630,8 @@ export class BreadcrumbManager {
       });
     };
 
-    document.addEventListener('click', this.clickHandler, { capture: true, passive: true });
+    document.addEventListener('click', this.clickHandler, { capture: true,
+      passive: true });
   }
 }
 

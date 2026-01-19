@@ -10,7 +10,8 @@ export function buildElementSelector(element: HTMLElement): string {
   if (element.id) {
     selector += `#${element.id}`;
   } else if (element.className && typeof element.className === 'string') {
-    selector += `.${element.className.split(' ').filter(Boolean).join('.')}`;
+    selector += `.${element.className.split(' ').filter(Boolean)
+      .join('.')}`;
   }
 
   return selector;
