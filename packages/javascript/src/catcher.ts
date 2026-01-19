@@ -108,7 +108,7 @@ export default class Catcher {
   /**
    * Breadcrumb manager instance
    */
-  private readonly breadcrumbManager: BreadcrumbManager | null = null;
+  private readonly breadcrumbManager: BreadcrumbManager | null;
 
   /**
    * Catcher constructor
@@ -169,14 +169,12 @@ export default class Catcher {
     /**
      * Initialize breadcrumbs
      */
-    this.breadcrumbManager = BreadcrumbManager.getInstance();
-    this.breadcrumbManager.init({
-      maxBreadcrumbs: settings.maxBreadcrumbs,
-      trackFetch: settings.trackFetch,
-      trackNavigation: settings.trackNavigation,
-      trackClicks: settings.trackClicks,
-      beforeBreadcrumb: settings.beforeBreadcrumb,
-    });
+    if (settings.breadcrumbs !== false) {
+      this.breadcrumbManager = BreadcrumbManager.getInstance();
+      this.breadcrumbManager.init(settings.breadcrumbs ?? {});
+    } else {
+      this.breadcrumbManager = null;
+    }
 
     /**
      * Set global handlers
@@ -284,14 +282,10 @@ export default class Catcher {
   }
 
   /**
-   * Add a breadcrumb manually
-   * Breadcrumbs are chronological trail of events leading up to an error
-   *
-   * @param breadcrumb - Breadcrumb data (timestamp is auto-generated if not provided)
-   * @param hint - Optional hint object with additional context
+   * Breadcrumbs API - provides convenient access to breadcrumb methods
    *
    * @example
-   * hawk.addBreadcrumb({
+   * hawk.breadcrumbs.add({
    *   type: 'user',
    *   category: 'auth',
    *   message: 'User logged in',
@@ -299,25 +293,16 @@ export default class Catcher {
    *   data: { userId: '123' }
    * });
    */
-  public addBreadcrumb(
-    breadcrumb: Omit<Breadcrumb, 'timestamp'> & { timestamp?: Breadcrumb['timestamp'] },
-    hint?: BreadcrumbHint
-  ): void {
-    this.breadcrumbManager?.addBreadcrumb(breadcrumb, hint);
-  }
-
-  /**
-   * Get current breadcrumbs (oldest to newest)
-   */
-  public getBreadcrumbs(): Breadcrumb[] {
-    return this.breadcrumbManager?.getBreadcrumbs() ?? [];
-  }
-
-  /**
-   * Clear all breadcrumbs
-   */
-  public clearBreadcrumbs(): void {
-    this.breadcrumbManager?.clearBreadcrumbs();
+  public get breadcrumbs(): {
+    add: (breadcrumb: Omit<Breadcrumb, 'timestamp'> & { timestamp?: Breadcrumb['timestamp'] }, hint?: BreadcrumbHint) => void;
+    get: () => Breadcrumb[];
+    clear: () => void;
+  } {
+    return {
+      add: (breadcrumb, hint) => this.breadcrumbManager?.addBreadcrumb(breadcrumb, hint),
+      get: () => this.breadcrumbManager?.getBreadcrumbs() ?? [],
+      clear: () => this.breadcrumbManager?.clearBreadcrumbs(),
+    };
   }
 
   /**
@@ -369,27 +354,6 @@ export default class Catcher {
      */
     if (event instanceof ErrorEvent && error === undefined) {
       error = (event as ErrorEvent).message;
-    }
-
-    /**
-     * Add error as breadcrumb before sending
-     */
-    if (this.breadcrumbManager) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorType = error instanceof Error ? error.name : 'Error';
-
-      this.breadcrumbManager.addBreadcrumb({
-        type: 'error',
-        category: 'error',
-        message: errorMessage,
-        level: 'error',
-        data: {
-          type: errorType,
-          ...(error instanceof Error && error.stack ? { stack: error.stack } : {}),
-        },
-      }, {
-        event: event instanceof ErrorEvent ? event : undefined,
-      });
     }
 
     void this.formatAndSend(error);

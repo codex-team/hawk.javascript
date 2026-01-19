@@ -1,8 +1,9 @@
 /**
  * @file Breadcrumbs module - captures chronological trail of events before an error
  */
-import type { Breadcrumb, BreadcrumbLevel, BreadcrumbType, Json } from '@hawk.so/types';
+import type { Breadcrumb, BreadcrumbLevel, BreadcrumbType, Json, JsonNode } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
+import { buildElementSelector } from '../utils/selector';
 
 /**
  * Default maximum number of breadcrumbs to store
@@ -87,6 +88,19 @@ export interface BreadcrumbsOptions {
 }
 
 /**
+ * Internal breadcrumbs options - all fields except 'beforeBreadcrumb' are required
+ * (they have default values and are always set during init)
+ */
+interface InternalBreadcrumbsOptions {
+  maxBreadcrumbs: number;
+  maxValueLength: number;
+  trackFetch: boolean;
+  trackNavigation: boolean;
+  trackClicks: boolean;
+  beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | null;
+}
+
+/**
  * BreadcrumbManager - singleton that manages breadcrumb collection and storage
  */
 export class BreadcrumbManager {
@@ -101,9 +115,9 @@ export class BreadcrumbManager {
   private readonly breadcrumbs: Breadcrumb[] = [];
 
   /**
-   * Configuration options
+   * Configuration options - all fields are guaranteed to be set (except optional beforeBreadcrumb)
    */
-  private options: Required<Omit<BreadcrumbsOptions, 'beforeBreadcrumb'>> & Pick<BreadcrumbsOptions, 'beforeBreadcrumb'>;
+  private options: InternalBreadcrumbsOptions;
 
   /**
    * Initialization flag
@@ -187,7 +201,7 @@ export class BreadcrumbManager {
      * Setup auto-capture handlers
      */
     if (this.options.trackFetch) {
-      this.wrapFetch();
+      this.monkeypatchFetch();
       this.wrapXHR();
     }
 
@@ -322,17 +336,16 @@ export class BreadcrumbManager {
    *
    * @param data - The data object to sanitize
    */
-  private sanitizeData(data: Record<string, unknown>): Record<string, Json> {
+  private sanitizeData(data: Record<string, unknown>): Record<string, JsonNode> {
     const sanitized = Sanitizer.sanitize(data) as Record<string, unknown>;
 
-    // Trim string values
     for (const key in sanitized) {
       if (typeof sanitized[key] === 'string') {
-        sanitized[key] = this.trimString(sanitized[key], this.options.maxValueLength);
+        sanitized[key] = this.trimString(sanitized[key] as string, this.options.maxValueLength);
       }
     }
 
-    return sanitized as Record<string, Json>;
+    return sanitized as Record<string, JsonNode>;
   }
 
   /**
@@ -350,9 +363,9 @@ export class BreadcrumbManager {
   }
 
   /**
-   * Wrap fetch API to capture HTTP breadcrumbs
+   * Monkeypatch fetch API to capture HTTP breadcrumbs
    */
-  private wrapFetch(): void {
+  private monkeypatchFetch(): void {
     if (typeof fetch === 'undefined') {
       return;
     }
@@ -390,11 +403,11 @@ export class BreadcrumbManager {
           message: `${method} ${url} ${response.status}`,
           level: response.ok ? 'info' : 'error',
           data: {
-            url: url as unknown as Json,
-            method: method as unknown as Json,
-            statusCode: response.status as unknown as Json,
-            durationMs: duration as unknown as Json,
-          },
+            url,
+            method,
+            statusCode: response.status,
+            durationMs: duration,
+          } as unknown as Breadcrumb['data'],
         }, {
           input,
           response,
@@ -469,7 +482,7 @@ export class BreadcrumbManager {
           manager.addBreadcrumb({
             type: 'request',
             category: 'xhr',
-            message: `${method} ${url} ${status}`,
+            message: `${status} ${method} ${url}`,
             level: status >= 200 && status < 400 ? 'info' : 'error',
             data: {
               url: url as unknown as Json,
@@ -515,8 +528,8 @@ export class BreadcrumbManager {
         message: `Navigated to ${to}`,
         level: 'info',
         data: {
-          from: from as unknown as Json,
-          to: to as unknown as Json,
+          from,
+          to,
         },
       });
     };
@@ -570,14 +583,7 @@ export class BreadcrumbManager {
       /**
        * Build a simple selector
        */
-      let selector = target.tagName.toLowerCase();
-
-      if (target.id) {
-        selector += `#${target.id}`;
-      } else if (target.className && typeof target.className === 'string') {
-        selector += `.${target.className.split(' ').filter(Boolean)
-          .join('.')}`;
-      }
+      const selector = buildElementSelector(target);
 
       /**
        * Get text content (limited)
@@ -599,7 +605,7 @@ export class BreadcrumbManager {
       });
     };
 
-    document.addEventListener('click', this.clickHandler, { capture: true });
+    document.addEventListener('click', this.clickHandler, { capture: true, passive: true });
   }
 }
 
