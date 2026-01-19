@@ -303,7 +303,20 @@
         context: {
           rootContextSample: '12345',
         },
-        // trackClicks: true
+        // breadcrumbs: {
+        //   maxBreadcrumbs: 20,         // Maximum breadcrumbs to store (default: 15)
+        //   maxValueLength: 512,        // Max string length (default: 1024)
+        //   trackFetch: true,           // Track fetch/XHR requests (default: true)
+        //   trackNavigation: true,      // Track navigation events (default: true)
+        //   trackClicks: false,         // Track UI clicks (default: false)
+        //   beforeBreadcrumb: (breadcrumb, hint) => {
+        //     // Filter or modify breadcrumbs before storing
+        //     if (breadcrumb.category === 'fetch' && breadcrumb.data?.url?.includes('/sensitive')) {
+        //       return null; // Discard this breadcrumb
+        //     }
+        //     return breadcrumb;
+        //   }
+        // }
       });
     </script>
   </body>
