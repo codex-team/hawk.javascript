@@ -145,7 +145,7 @@ buttonAddBreadcrumb.addEventListener('click', () => {
     return;
   }
 
-  window.hawk.addBreadcrumb({
+  window.hawk.breadcrumbs.add({
     message,
     type,
     level,
@@ -160,7 +160,7 @@ buttonAddBreadcrumb.addEventListener('click', () => {
 });
 
 buttonGetBreadcrumbs.addEventListener('click', () => {
-  const breadcrumbs = window.hawk.getBreadcrumbs();
+  const breadcrumbs = window.hawk.breadcrumbs.get();
 
   if (breadcrumbs.length === 0) {
     breadcrumbsOutput.textContent = 'No breadcrumbs yet';
@@ -171,7 +171,7 @@ buttonGetBreadcrumbs.addEventListener('click', () => {
 });
 
 buttonClearBreadcrumbs.addEventListener('click', () => {
-  window.hawk.clearBreadcrumbs();
+  window.hawk.breadcrumbs.clear();
   breadcrumbsOutput.textContent = '✓ Breadcrumbs cleared';
 });
 
@@ -190,7 +190,7 @@ const buttonTestAllTypes = document.getElementById('btn-test-all-types');
  * Test Default breadcrumb
  */
 buttonTestDefault.addEventListener('click', () => {
-  window.hawk.addBreadcrumb({
+  window.hawk.breadcrumbs.add({
     type: 'default',
     level: 'info',
     category: 'user.action',
@@ -222,7 +222,7 @@ buttonTestRequest.addEventListener('click', async () => {
  * Test UI breadcrumb
  */
 buttonTestUI.addEventListener('click', () => {
-  window.hawk.addBreadcrumb({
+  window.hawk.breadcrumbs.add({
     type: 'ui',
     level: 'info',
     category: 'ui.click',
@@ -247,7 +247,7 @@ buttonTestNavigation.addEventListener('click', () => {
   const currentUrl = window.location.href;
   const testUrl = currentUrl.split('#')[0] + '#breadcrumb-test-' + Date.now();
 
-  window.hawk.addBreadcrumb({
+  window.hawk.breadcrumbs.add({
     type: 'navigation',
     level: 'info',
     category: 'navigation',
@@ -295,7 +295,7 @@ buttonTestLogic.addEventListener('click', () => {
   const result = complexCalculation(10000);
   const duration = performance.now() - startTime;
 
-  window.hawk.addBreadcrumb({
+  window.hawk.breadcrumbs.add({
     type: 'logic',
     level: 'debug',
     category: 'calculation.complex',
@@ -321,7 +321,7 @@ buttonTestError.addEventListener('click', () => {
      */
     JSON.parse('invalid json {{{');
   } catch (error) {
-    window.hawk.addBreadcrumb({
+    window.hawk.breadcrumbs.add({
       type: 'error',
       level: 'error',
       category: 'json.parse',
@@ -346,7 +346,7 @@ buttonTestAllTypes.addEventListener('click', async () => {
   /**
    * 1. Default
    */
-  window.hawk.addBreadcrumb({
+  window.hawk.breadcrumbs.add({
     type: 'default',
     level: 'info',
     message: 'Sequence started',
@@ -357,7 +357,7 @@ buttonTestAllTypes.addEventListener('click', async () => {
   /**
    * 2. Logic
    */
-  window.hawk.addBreadcrumb({
+  window.hawk.breadcrumbs.add({
     type: 'logic',
     level: 'debug',
     category: 'sequence.step',
@@ -372,7 +372,7 @@ buttonTestAllTypes.addEventListener('click', async () => {
   /**
    * 3. UI
    */
-  window.hawk.addBreadcrumb({
+  window.hawk.breadcrumbs.add({
     type: 'ui',
     level: 'info',
     category: 'ui.interaction',
@@ -400,7 +400,7 @@ buttonTestAllTypes.addEventListener('click', async () => {
   /**
    * 5. Navigation
    */
-  window.hawk.addBreadcrumb({
+  window.hawk.breadcrumbs.add({
     type: 'navigation',
     level: 'info',
     message: 'Internal route change',
@@ -417,7 +417,7 @@ buttonTestAllTypes.addEventListener('click', async () => {
   try {
     throw new Error('Test error in sequence');
   } catch (error) {
-    window.hawk.addBreadcrumb({
+    window.hawk.breadcrumbs.add({
       type: 'error',
       level: 'warning',
       message: `Caught error: ${error.message}`,

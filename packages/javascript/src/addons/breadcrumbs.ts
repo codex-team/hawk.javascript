@@ -194,6 +194,8 @@ export class BreadcrumbManager {
    */
   public init(options: BreadcrumbsOptions = {}): void {
     if (this.isInitialized) {
+      console.warn('[BreadcrumbManager] init has already been called; breadcrumb configuration is global and subsequent init options are ignored.');
+
       return;
     }
 
@@ -419,7 +421,7 @@ export class BreadcrumbManager {
         manager.addBreadcrumb({
           type: 'request',
           category: 'fetch',
-          message: `${method} ${url} ${response.status}`,
+          message: `${response.status} ${method} ${url}`,
           level: response.ok ? 'info' : 'error',
           data: {
             url,
@@ -630,7 +632,8 @@ export class BreadcrumbManager {
       });
     };
 
-    document.addEventListener('click', this.clickHandler, { capture: true,
+    document.addEventListener('click', this.clickHandler, {
+      capture: true,
       passive: true });
   }
 }
@@ -659,4 +662,3 @@ export function createBreadcrumb(
     data: options?.data,
   };
 }
-
