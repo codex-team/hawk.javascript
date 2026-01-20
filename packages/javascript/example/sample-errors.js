@@ -187,9 +187,12 @@ const buttonTestError = document.getElementById('btn-test-error');
 const buttonTestAllTypes = document.getElementById('btn-test-all-types');
 
 /**
- * Test Default breadcrumb
+ * Test Default breadcrumb (manual)
  */
 buttonTestDefault.addEventListener('click', () => {
+  /**
+   * Default breadcrumbs are always added manually via hawk.breadcrumbs.add()
+   */
   window.hawk.breadcrumbs.add({
     type: 'default',
     level: 'info',
@@ -200,7 +203,7 @@ buttonTestDefault.addEventListener('click', () => {
       context: 'breadcrumb_testing',
     },
   });
-  breadcrumbsOutput.textContent = '✓ Default breadcrumb added';
+  breadcrumbsOutput.textContent = '✓ Default breadcrumb added manually';
 });
 
 /**
@@ -219,56 +222,53 @@ buttonTestRequest.addEventListener('click', async () => {
 });
 
 /**
- * Test UI breadcrumb
+ * Test UI breadcrumb (automatic tracking)
  */
 buttonTestUI.addEventListener('click', () => {
-  window.hawk.breadcrumbs.add({
-    type: 'ui',
-    level: 'info',
-    category: 'ui.click',
-    message: 'Click on test button#btn-test-ui',
-    data: {
-      selector: 'button#btn-test-ui',
-      text: '👆 UI Click',
-      tagName: 'BUTTON',
-      coordinates: {
-        x: 100,
-        y: 200,
-      },
-    },
-  });
-  breadcrumbsOutput.textContent = '✓ UI Click breadcrumb added';
+  /**
+   * Create a test element and click it to trigger automatic UI breadcrumb
+   * BreadcrumbManager automatically captures click events when trackClicks: true
+   */
+  const testElement = document.createElement('button');
+
+  testElement.id = 'auto-click-test';
+  testElement.className = 'test-button';
+  testElement.textContent = 'Auto Test';
+  testElement.style.position = 'absolute';
+  testElement.style.opacity = '0';
+  testElement.style.pointerEvents = 'none';
+  document.body.appendChild(testElement);
+
+  /**
+   * Trigger a click event
+   */
+  testElement.click();
+
+  /**
+   * Clean up
+   */
+  setTimeout(() => {
+    document.body.removeChild(testElement);
+  }, 100);
+
+  breadcrumbsOutput.textContent = '✓ UI Click breadcrumb added automatically';
 });
 
 /**
- * Test Navigation breadcrumb
+ * Test Navigation breadcrumb (automatic tracking)
  */
 buttonTestNavigation.addEventListener('click', () => {
-  const currentUrl = window.location.href;
-  const testUrl = currentUrl.split('#')[0] + '#breadcrumb-test-' + Date.now();
-
-  window.hawk.breadcrumbs.add({
-    type: 'navigation',
-    level: 'info',
-    category: 'navigation',
-    message: `Navigated to ${testUrl}`,
-    data: {
-      from: currentUrl,
-      to: testUrl,
-      method: 'hash_change',
-    },
-  });
-
   /**
-   * Actually change the hash to trigger real navigation breadcrumb too
+   * Change the hash to trigger automatic navigation breadcrumb
+   * BreadcrumbManager automatically captures this event
    */
   window.location.hash = 'breadcrumb-test-' + Date.now();
 
-  breadcrumbsOutput.textContent = '✓ Navigation breadcrumb added';
+  breadcrumbsOutput.textContent = '✓ Navigation breadcrumb added automatically';
 });
 
 /**
- * Test Logic breadcrumb
+ * Test Logic breadcrumb (manual)
  */
 buttonTestLogic.addEventListener('click', () => {
   /**
@@ -295,6 +295,9 @@ buttonTestLogic.addEventListener('click', () => {
   const result = complexCalculation(10000);
   const duration = performance.now() - startTime;
 
+  /**
+   * Logic breadcrumbs are always added manually to track application flow
+   */
   window.hawk.breadcrumbs.add({
     type: 'logic',
     level: 'debug',
@@ -308,11 +311,11 @@ buttonTestLogic.addEventListener('click', () => {
     },
   });
 
-  breadcrumbsOutput.textContent = `✓ Logic breadcrumb added (${duration.toFixed(2)}ms)`;
+  breadcrumbsOutput.textContent = `✓ Logic breadcrumb added manually (${duration.toFixed(2)}ms)`;
 });
 
 /**
- * Test Error breadcrumb
+ * Test Error breadcrumb (manual)
  */
 buttonTestError.addEventListener('click', () => {
   try {
@@ -321,6 +324,10 @@ buttonTestError.addEventListener('click', () => {
      */
     JSON.parse('invalid json {{{');
   } catch (error) {
+    /**
+     * Caught errors can be manually added as breadcrumbs
+     * Uncaught errors are sent to Hawk automatically, not as breadcrumbs
+     */
     window.hawk.breadcrumbs.add({
       type: 'error',
       level: 'error',
@@ -333,7 +340,7 @@ buttonTestError.addEventListener('click', () => {
       },
     });
 
-    breadcrumbsOutput.textContent = `✓ Error breadcrumb added: ${error.message}`;
+    breadcrumbsOutput.textContent = `✓ Error breadcrumb added manually: ${error.message}`;
   }
 });
 
@@ -370,22 +377,22 @@ buttonTestAllTypes.addEventListener('click', async () => {
   await new Promise(resolve => setTimeout(resolve, 200));
 
   /**
-   * 3. UI
+   * 3. UI (automatic)
    */
-  window.hawk.breadcrumbs.add({
-    type: 'ui',
-    level: 'info',
-    category: 'ui.interaction',
-    message: 'User initiated sequence',
-    data: {
-      action: 'sequence_test',
-    },
-  });
+  const autoClickElement = document.createElement('button');
+
+  autoClickElement.id = 'sequence-auto-click';
+  autoClickElement.style.position = 'absolute';
+  autoClickElement.style.opacity = '0';
+  autoClickElement.style.pointerEvents = 'none';
+  document.body.appendChild(autoClickElement);
+  autoClickElement.click();
+  document.body.removeChild(autoClickElement);
 
   await new Promise(resolve => setTimeout(resolve, 200));
 
   /**
-   * 4. Request
+   * 4. Request (automatic)
    */
   try {
     await fetch('https://api.github.com/zen');
@@ -398,16 +405,9 @@ buttonTestAllTypes.addEventListener('click', async () => {
   await new Promise(resolve => setTimeout(resolve, 200));
 
   /**
-   * 5. Navigation
+   * 5. Navigation (automatic)
    */
-  window.hawk.breadcrumbs.add({
-    type: 'navigation',
-    level: 'info',
-    message: 'Internal route change',
-    data: {
-      route: '/test',
-    },
-  });
+  window.location.hash = 'sequence-test-' + Date.now();
 
   await new Promise(resolve => setTimeout(resolve, 200));
 

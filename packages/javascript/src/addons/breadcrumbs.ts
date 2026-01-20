@@ -270,13 +270,13 @@ export class BreadcrumbManager {
     }
 
     /**
-     * Add to buffer (FIFO)
+     * Add to buffer (FIFO - keep last N breadcrumbs)
      */
-    if (this.breadcrumbs.length >= this.options.maxBreadcrumbs) {
+    this.breadcrumbs.push(bc);
+
+    if (this.breadcrumbs.length > this.options.maxBreadcrumbs) {
       this.breadcrumbs.shift();
     }
-
-    this.breadcrumbs.push(bc);
   }
 
   /**
