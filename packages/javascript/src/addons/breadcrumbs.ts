@@ -4,6 +4,7 @@
 import type { Breadcrumb, BreadcrumbLevel, BreadcrumbType, Json, JsonNode } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
 import { buildElementSelector } from '../utils/selector';
+import log from '../utils/log';
 
 /**
  * Default maximum number of breadcrumbs to store
@@ -194,7 +195,7 @@ export class BreadcrumbManager {
    */
   public init(options: BreadcrumbsOptions = {}): void {
     if (this.isInitialized) {
-      console.warn('[BreadcrumbManager] init has already been called; breadcrumb configuration is global and subsequent init options are ignored.');
+      log('[BreadcrumbManager] init has already been called; breadcrumb configuration is global and subsequent init options are ignored.', 'warn');
 
       return;
     }
@@ -231,7 +232,8 @@ export class BreadcrumbManager {
    * Add a breadcrumb to the buffer
    *
    * @param breadcrumb - The breadcrumb data to add
-   * @param hint - Optional hint object with original event data
+   * @param hint - Optional hint object with original event data (Event, Response, XMLHttpRequest, etc.)
+   *               Used by beforeBreadcrumb callback to access original event context
    */
   public addBreadcrumb(breadcrumb: BreadcrumbInput, hint?: BreadcrumbHint): void {
     /**
@@ -353,20 +355,13 @@ export class BreadcrumbManager {
   }
 
   /**
-   * Sanitize and trim breadcrumb data object
+   * Sanitize breadcrumb data object
+   * Sanitizer already trims strings, so no additional trimming needed
    *
    * @param data - The data object to sanitize
    */
   private sanitizeData(data: Record<string, unknown>): Record<string, JsonNode> {
-    const sanitized = Sanitizer.sanitize(data) as Record<string, unknown>;
-
-    for (const key in sanitized) {
-      if (typeof sanitized[key] === 'string') {
-        sanitized[key] = this.trimString(sanitized[key] as string, this.options.maxValueLength);
-      }
-    }
-
-    return sanitized as Record<string, JsonNode>;
+    return Sanitizer.sanitize(data) as Record<string, JsonNode>;
   }
 
   /**
@@ -441,7 +436,7 @@ export class BreadcrumbManager {
         manager.addBreadcrumb({
           type: 'request',
           category: 'fetch',
-          message: `${method} ${url} failed`,
+          message: `[FAIL] ${method} ${url}`,
           level: 'error',
           data: {
             url,

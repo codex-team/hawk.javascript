@@ -39,6 +39,7 @@
     "error-stack-parser": "^2.1.4"
   },
   "devDependencies": {
+    "@hawk.so/types": "0.5.2",
     "vue": "^2",
     "vite-plugin-dts": "^4.2.4"
   }

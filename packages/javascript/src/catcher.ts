@@ -2,7 +2,7 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './utils/log';
 import StackParser from './modules/stackParser';
-import type { CatcherMessage, HawkInitialSettings } from './types';
+import type { CatcherMessage, HawkInitialSettings, BreadcrumbsAPI } from './types';
 import { VueIntegration } from './integrations/vue';
 import { id } from './utils/id';
 import type {
@@ -18,17 +18,8 @@ import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
-import { BreadcrumbManager, type BreadcrumbHint, type BreadcrumbInput } from './addons/breadcrumbs';
+import { BreadcrumbManager } from './addons/breadcrumbs';
 import { validateUser, validateContext } from './utils/validation';
-
-/**
- * Breadcrumbs API interface
- */
-interface BreadcrumbsAPI {
-  add: (breadcrumb: BreadcrumbInput, hint?: BreadcrumbHint) => void;
-  get: () => Breadcrumb[];
-  clear: () => void;
-}
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
