@@ -152,7 +152,7 @@ Breadcrumbs track user interactions and events leading up to an error, providing
 
 ### Default Configuration
 
-By default, breadcrumbs are enabled with tracking for fetch/XHR requests and navigation:
+By default, breadcrumbs are enabled with tracking for fetch/XHR requests, navigation, and UI clicks:
 
 ```js
 const hawk = new HawkCatcher({
@@ -184,7 +184,7 @@ const hawk = new HawkCatcher({
     maxValueLength: 512,        // Max string length (default: 1024)
     trackFetch: true,           // Track fetch/XHR requests (default: true)
     trackNavigation: true,      // Track navigation events (default: true)
-    trackClicks: false,         // Track UI clicks (default: false)
+    trackClicks: true,          // Track UI clicks (default: true)
     beforeBreadcrumb: (breadcrumb, hint) => {
       // Filter or modify breadcrumbs before storing
       if (breadcrumb.category === 'fetch' && breadcrumb.data?.url?.includes('/sensitive')) {
@@ -204,7 +204,7 @@ const hawk = new HawkCatcher({
 | `maxValueLength` | `number` | `1024` | Maximum length for string values in breadcrumb data. Longer strings will be trimmed with `…` suffix. |
 | `trackFetch` | `boolean` | `true` | Automatically track `fetch()` and `XMLHttpRequest` calls as breadcrumbs. Captures request URL, method, status code, and response time. |
 | `trackNavigation` | `boolean` | `true` | Automatically track navigation events (History API: `pushState`, `replaceState`, `popstate`). Captures route changes. |
-| `trackClicks` | `boolean` | `false` | Automatically track UI click events. Captures element selector, coordinates, and other click metadata. |
+| `trackClicks` | `boolean` | `true` | Automatically track UI click events. Captures element selector, coordinates, and other click metadata. |
 | `beforeBreadcrumb` | `function` | `undefined` | Hook called before each breadcrumb is stored. Receives `(breadcrumb, hint)` and can return modified breadcrumb, `null` to discard it, or the original breadcrumb. Useful for filtering sensitive data or PII. |
 
 ### Manual Breadcrumbs

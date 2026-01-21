@@ -83,7 +83,7 @@ export interface BreadcrumbsOptions {
   /**
    * Enable automatic UI click breadcrumbs
    *
-   * @default false
+   * @default true
    */
   trackClicks?: boolean;
 }
@@ -175,7 +175,7 @@ export class BreadcrumbManager {
       maxValueLength: DEFAULT_MAX_VALUE_LENGTH,
       trackFetch: true,
       trackNavigation: true,
-      trackClicks: false,
+      trackClicks: true,
     };
   }
 
@@ -206,7 +206,7 @@ export class BreadcrumbManager {
       beforeBreadcrumb: options.beforeBreadcrumb,
       trackFetch: options.trackFetch ?? true,
       trackNavigation: options.trackNavigation ?? true,
-      trackClicks: options.trackClicks ?? false,
+      trackClicks: options.trackClicks ?? true,
     };
 
     this.isInitialized = true;
