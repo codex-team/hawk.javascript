@@ -11,7 +11,6 @@ import type {
   JavaScriptAddons,
   VueIntegrationAddons,
   Json, EncodedIntegrationToken, DecodedIntegrationToken,
-  Breadcrumb
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
