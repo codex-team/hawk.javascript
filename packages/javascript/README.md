@@ -181,7 +181,6 @@ const hawk = new HawkCatcher({
   token: 'INTEGRATION_TOKEN',
   breadcrumbs: {
     maxBreadcrumbs: 20,         // Maximum breadcrumbs to store (default: 15)
-    maxValueLength: 512,        // Max string length (default: 1024)
     trackFetch: true,           // Track fetch/XHR requests (default: true)
     trackNavigation: true,      // Track navigation events (default: true)
     trackClicks: true,          // Track UI clicks (default: true)
@@ -201,7 +200,6 @@ const hawk = new HawkCatcher({
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `maxBreadcrumbs` | `number` | `15` | Maximum number of breadcrumbs to store. When the limit is reached, oldest breadcrumbs are removed (FIFO). |
-| `maxValueLength` | `number` | `1024` | Maximum length for string values in breadcrumb data. Longer strings will be trimmed with `…` suffix. |
 | `trackFetch` | `boolean` | `true` | Automatically track `fetch()` and `XMLHttpRequest` calls as breadcrumbs. Captures request URL, method, status code, and response time. |
 | `trackNavigation` | `boolean` | `true` | Automatically track navigation events (History API: `pushState`, `replaceState`, `popstate`). Captures route changes. |
 | `trackClicks` | `boolean` | `true` | Automatically track UI click events. Captures element selector, coordinates, and other click metadata. |

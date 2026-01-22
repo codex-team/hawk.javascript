@@ -12,11 +12,6 @@ import log from '../utils/log';
 const DEFAULT_MAX_BREADCRUMBS = 15;
 
 /**
- * Maximum length for string values in breadcrumb data
- */
-const DEFAULT_MAX_VALUE_LENGTH = 1024;
-
-/**
  * Hint object passed to beforeBreadcrumb callback
  */
 export interface BreadcrumbHint {
@@ -51,13 +46,6 @@ export interface BreadcrumbsOptions {
    * @default 15
    */
   maxBreadcrumbs?: number;
-
-  /**
-   * Maximum length for string values (will be trimmed)
-   *
-   * @default 1024
-   */
-  maxValueLength?: number;
 
   /**
    * Hook called before each breadcrumb is stored
@@ -100,7 +88,6 @@ export type BreadcrumbInput = Omit<Breadcrumb, 'timestamp'> & { timestamp?: Brea
  */
 interface InternalBreadcrumbsOptions {
   maxBreadcrumbs: number;
-  maxValueLength: number;
   trackFetch: boolean;
   trackNavigation: boolean;
   trackClicks: boolean;
@@ -172,7 +159,6 @@ export class BreadcrumbManager {
   private constructor() {
     this.options = {
       maxBreadcrumbs: DEFAULT_MAX_BREADCRUMBS,
-      maxValueLength: DEFAULT_MAX_VALUE_LENGTH,
       trackFetch: true,
       trackNavigation: true,
       trackClicks: true,
@@ -202,7 +188,6 @@ export class BreadcrumbManager {
 
     this.options = {
       maxBreadcrumbs: options.maxBreadcrumbs ?? DEFAULT_MAX_BREADCRUMBS,
-      maxValueLength: options.maxValueLength ?? DEFAULT_MAX_VALUE_LENGTH,
       beforeBreadcrumb: options.beforeBreadcrumb,
       trackFetch: options.trackFetch ?? true,
       trackNavigation: options.trackNavigation ?? true,
@@ -261,18 +246,18 @@ export class BreadcrumbManager {
     }
 
     /**
-     * Sanitize and trim data
+     * Sanitize data and message
      */
     if (bc.data) {
-      bc.data = this.sanitizeData(bc.data);
+      bc.data = Sanitizer.sanitize(bc.data) as Record<string, JsonNode>;
     }
 
     if (bc.message) {
-      bc.message = this.trimString(bc.message, this.options.maxValueLength);
+      bc.message = Sanitizer.sanitize(bc.message) as string;
     }
 
     /**
-     * Add to buffer (FIFO - keep last N breadcrumbs)
+     * Add to buffer (FIFO)
      */
     this.breadcrumbs.push(bc);
 
@@ -354,29 +339,6 @@ export class BreadcrumbManager {
     BreadcrumbManager.instance = null;
   }
 
-  /**
-   * Sanitize breadcrumb data object
-   * Sanitizer already trims strings, so no additional trimming needed
-   *
-   * @param data - The data object to sanitize
-   */
-  private sanitizeData(data: Record<string, unknown>): Record<string, JsonNode> {
-    return Sanitizer.sanitize(data) as Record<string, JsonNode>;
-  }
-
-  /**
-   * Trim string to max length
-   *
-   * @param str - The string to trim
-   * @param maxLength - Maximum allowed length
-   */
-  private trimString(str: string, maxLength: number): string {
-    if (str.length > maxLength) {
-      return str.substring(0, maxLength) + '…';
-    }
-
-    return str;
-  }
 
   /**
    * Monkeypatch fetch API to capture HTTP breadcrumbs
