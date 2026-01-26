@@ -15,8 +15,17 @@ export function buildElementSelector(element: HTMLElement, maxDepth: number = 3)
   }
 
   if (element.className) {
-    selector += `.${element.className.split(' ').filter(Boolean).join('.')}`;
-    return selector;
+    /**
+     * className can be a string, DOMTokenList, or SVGAnimatedString (e.g., in SVG elements)
+     * Convert to string safely before calling split()
+     * String() works for all types: string, DOMTokenList, SVGAnimatedString, etc.
+     */
+    const classNameStr = String(element.className);
+
+    if (classNameStr) {
+      selector += `.${classNameStr.split(' ').filter(Boolean).join('.')}`;
+      return selector;
+    }
   }
 
   /**
