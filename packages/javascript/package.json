@@ -1,6 +1,6 @@
 {
   "name": "@hawk.so/javascript",
-  "version": "3.2.13",
+  "version": "3.2.13-rc.2",
   "description": "JavaScript errors tracking for Hawk.so",
   "files": [
     "dist"
@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@hawk.so/types": "0.5.2",
-    "vue": "^2",
-    "vite-plugin-dts": "^4.2.4"
+    "vite-plugin-dts": "^4.2.4",
+    "vue": "^2"
   }
 }
