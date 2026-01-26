@@ -1,5 +1,6 @@
 import type { EventContext, AffectedUser } from '@hawk.so/types';
 import type { HawkJavaScriptEvent } from './event';
+import type { BreadcrumbsOptions } from '../addons/breadcrumbs';
 
 /**
  * JS Catcher initial settings
@@ -80,4 +81,13 @@ export interface HawkInitialSettings {
    * Console log handler
    */
   consoleTracking?: boolean;
+
+  /**
+   * Breadcrumbs configuration
+   * Pass false to disable breadcrumbs entirely
+   * Pass options object to configure breadcrumbs behavior
+   *
+   * @default enabled with default options
+   */
+  breadcrumbs?: false | BreadcrumbsOptions;
 }

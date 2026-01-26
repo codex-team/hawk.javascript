@@ -2,7 +2,7 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './utils/log';
 import StackParser from './modules/stackParser';
-import type { CatcherMessage, HawkInitialSettings } from './types';
+import type { CatcherMessage, HawkInitialSettings, BreadcrumbsAPI } from './types';
 import { VueIntegration } from './integrations/vue';
 import { id } from './utils/id';
 import type {
@@ -10,13 +10,14 @@ import type {
   EventContext,
   JavaScriptAddons,
   VueIntegrationAddons,
-  Json, EncodedIntegrationToken, DecodedIntegrationToken
+  Json, EncodedIntegrationToken, DecodedIntegrationToken,
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
+import { BreadcrumbManager } from './addons/breadcrumbs';
 import { validateUser, validateContext } from './utils/validation';
 
 /**
@@ -104,6 +105,11 @@ export default class Catcher {
   private readonly consoleCatcher: ConsoleCatcher | null = null;
 
   /**
+   * Breadcrumb manager instance
+   */
+  private readonly breadcrumbManager: BreadcrumbManager | null;
+
+  /**
    * Catcher constructor
    *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
@@ -157,6 +163,16 @@ export default class Catcher {
     if (this.consoleTracking) {
       this.consoleCatcher = ConsoleCatcher.getInstance();
       this.consoleCatcher.init();
+    }
+
+    /**
+     * Initialize breadcrumbs
+     */
+    if (settings.breadcrumbs !== false) {
+      this.breadcrumbManager = BreadcrumbManager.getInstance();
+      this.breadcrumbManager.init(settings.breadcrumbs ?? {});
+    } else {
+      this.breadcrumbManager = null;
     }
 
     /**
@@ -262,6 +278,26 @@ export default class Catcher {
    */
   public clearUser(): void {
     this.user = Catcher.getGeneratedUser();
+  }
+
+  /**
+   * Breadcrumbs API - provides convenient access to breadcrumb methods
+   *
+   * @example
+   * hawk.breadcrumbs.add({
+   *   type: 'user',
+   *   category: 'auth',
+   *   message: 'User logged in',
+   *   level: 'info',
+   *   data: { userId: '123' }
+   * });
+   */
+  public get breadcrumbs(): BreadcrumbsAPI {
+    return {
+      add: (breadcrumb, hint) => this.breadcrumbManager?.addBreadcrumb(breadcrumb, hint),
+      get: () => this.breadcrumbManager?.getBreadcrumbs() ?? [],
+      clear: () => this.breadcrumbManager?.clearBreadcrumbs(),
+    };
   }
 
   /**
@@ -388,6 +424,7 @@ export default class Catcher {
       title: this.getTitle(error),
       type: this.getType(error),
       release: this.getRelease(),
+      breadcrumbs: this.getBreadcrumbsForEvent(),
       context: this.getContext(context),
       user: this.getUser(),
       addons: this.getAddons(error),
@@ -502,6 +539,15 @@ export default class Catcher {
    */
   private getUser(): HawkJavaScriptEvent['user'] {
     return this.user || null;
+  }
+
+  /**
+   * Get breadcrumbs for event payload
+   */
+  private getBreadcrumbsForEvent(): HawkJavaScriptEvent['breadcrumbs'] {
+    const breadcrumbs = this.breadcrumbManager?.getBreadcrumbs();
+
+    return breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs : null;
   }
 
   /**

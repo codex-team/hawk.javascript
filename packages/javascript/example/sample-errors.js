@@ -27,7 +27,9 @@ buttonRealError.addEventListener('click', realErrorSample);
 const buttonPromiseRejection = document.getElementById('btn-promise-rejection');
 
 buttonPromiseRejection.addEventListener('click', function promiseRejectionSample() {
-  // Promise.reject('This is a sample rejected promise');
+  /**
+   * Promise.reject('This is a sample rejected promise');
+   */
   Promise.resolve()
     .then(realErrorSample)
     .then(() => {});

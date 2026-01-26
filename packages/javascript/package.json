@@ -1,6 +1,6 @@
 {
   "name": "@hawk.so/javascript",
-  "version": "3.2.12",
+  "version": "3.2.13",
   "description": "JavaScript errors tracking for Hawk.so",
   "files": [
     "dist"
@@ -18,7 +18,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "stats": "size-limit > stats.txt"
+    "stats": "size-limit > stats.txt",
+    "lint": "eslint --fix \"src/**/*.{js,ts}\""
   },
   "repository": {
     "type": "git",
@@ -35,11 +36,11 @@
   },
   "homepage": "https://github.com/codex-team/hawk.javascript#readme",
   "dependencies": {
-    "@hawk.so/types": "^0.1.36",
     "error-stack-parser": "^2.1.4"
   },
   "devDependencies": {
-    "vue": "^2",
-    "vite-plugin-dts": "^4.2.4"
+    "@hawk.so/types": "0.5.2",
+    "vite-plugin-dts": "^4.2.4",
+    "vue": "^2"
   }
 }

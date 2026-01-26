@@ -316,10 +316,26 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@hawk.so/javascript@^3.0.0":
+  version "3.2.12"
+  resolved "https://registry.yarnpkg.com/@hawk.so/javascript/-/javascript-3.2.12.tgz#9c654593d8166088dee992deb427621db2dfead1"
+  integrity sha512-1yeuIG47a3EG5QtwlOwF4TyOZZlU568qy6iOR9zlovAUkQTQBFa69UD2iuhnfmZFO96pXtOgu38uUMyGMw+QDw==
+  dependencies:
+    "@hawk.so/types" "^0.1.36"
+    error-stack-parser "^2.1.4"
+    vite-plugin-dts "^4.2.4"
+
+"@hawk.so/types@0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@hawk.so/types/-/types-0.5.2.tgz#504eabed7d510431411a3e39d8af008e76bb4f41"
+  integrity sha512-+7gkelP6P5VMxOLHjcWUlX8hx8OR0k0ag9EyrqvJxMF+hNW49udARNM+PU5R0MFgyyq2L4ltCy0c2BsUi9yPww==
+  dependencies:
+    bson "^7.0.0"
+
 "@hawk.so/types@^0.1.36":
-  version "0.1.36"
-  resolved "https://registry.yarnpkg.com/@hawk.so/types/-/types-0.1.36.tgz#234b0e4c81bf5f50b1208910d45fc4ffb62e8ae1"
-  integrity sha512-AjW4FZPMqlDoXk63ntkTGOC1tdbHuGXIhEbVtBvz8YC9A7qcuxenzfGtjwuW6B9tqyADMGehh+/d+uQbAX7w0Q==
+  version "0.1.38"
+  resolved "https://registry.yarnpkg.com/@hawk.so/types/-/types-0.1.38.tgz#b287f6d22025f53b6de7858c7c2eba1d8c52a00a"
+  integrity sha512-IaAiM+T8sc+twZiZcAd90AwE7rEZfmfN1gvo8d+Ax53dhQCMBU+c/+6L+Z7XdCGe696mPGWqJGY26S8mRUg3BA==
   dependencies:
     "@types/mongodb" "^3.5.34"
 
@@ -560,10 +576,11 @@
   integrity sha512-ebDJ9b0e702Yr7pWgB0jzm+CX4Srzz8RcXtLJDJB+BSccqMa36uyH/zUsSYao5+BD1ytv3k3rPYCq4mAE1hsXA==
 
 "@types/bson@*":
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/@types/bson/-/bson-4.0.3.tgz#30889d2ffde6262abbe38659364c631454999fbf"
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/@types/bson/-/bson-4.2.4.tgz#3bb08ab0de5dd07103fba355361814019ba2ae88"
+  integrity sha512-SG23E3JDH6y8qF20a4G9txLuUl+TCV16gxsKyntmGiJez2V9VBJr1Y8WxTBBD6OgBVcvspQ7sxgdNMkXFVcaEA==
   dependencies:
-    "@types/node" "*"
+    bson "*"
 
 "@types/color-name@^1.1.1":
   version "1.1.1"
@@ -585,15 +602,19 @@
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
 
 "@types/mongodb@^3.5.34":
-  version "3.6.11"
-  resolved "https://registry.yarnpkg.com/@types/mongodb/-/mongodb-3.6.11.tgz#918ecc4cbe6fa15d26c4fe12c00cf0d4c3cf421d"
+  version "3.6.20"
+  resolved "https://registry.yarnpkg.com/@types/mongodb/-/mongodb-3.6.20.tgz#b7c5c580644f6364002b649af1c06c3c0454e1d2"
+  integrity sha512-WcdpPJCakFzcWWD9juKoZbRtQxKIMYF/JIAM4JrNHrMcnJL6/a2NWjXxW7fo9hxboxxkg+icff8d7+WIEvKgYQ==
   dependencies:
     "@types/bson" "*"
     "@types/node" "*"
 
 "@types/node@*":
-  version "14.14.37"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.14.37.tgz#a3dd8da4eb84a996c36e331df98d82abd76b516e"
+  version "25.0.10"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-25.0.10.tgz#4864459c3c9459376b8b75fd051315071c8213e7"
+  integrity sha512-zWW5KPngR/yvakJgGOmZ5vTBemDoSqF3AcV/LrO5u5wTWyEAVVh+IT39G4gtyAkh3CtTZs8aX/yRM82OfzHJRg==
+  dependencies:
+    undici-types "~7.16.0"
 
 "@types/semver@^7.5.0":
   version "7.5.8"
@@ -985,6 +1006,11 @@ braces@^3.0.3:
   integrity sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==
   dependencies:
     fill-range "^7.1.1"
+
+bson@*, bson@^7.0.0:
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/bson/-/bson-7.1.1.tgz#19965d9138e1c4d88e4690414d91c84f217c84e8"
+  integrity sha512-TtJgBB+QyOlWjrbM+8bRgH84VM/xrDjyBFgSgGrfZF4xvt6gbEDtcswm27Tn9F9TWsjQybxT8b8VpCP/oJK4Dw==
 
 builtin-modules@^3.3.0:
   version "3.3.0"
@@ -2989,6 +3015,11 @@ unbox-primitive@^1.0.2:
     has-bigints "^1.0.2"
     has-symbols "^1.0.3"
     which-boxed-primitive "^1.0.2"
+
+undici-types@~7.16.0:
+  version "7.16.0"
+  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-7.16.0.tgz#ffccdff36aea4884cbfce9a750a0580224f58a46"
+  integrity sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==
 
 universalify@^0.1.0:
   version "0.1.2"

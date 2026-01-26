@@ -174,6 +174,50 @@
       <br /><br />
       <button id="btn-set-context">Set Context</button>
     </section>
+    <section>
+      <h2>Breadcrumbs Management</h2>
+      <label for="breadcrumbMessage">Breadcrumb Message</label>
+      <input type="text" id="breadcrumbMessage" placeholder="User performed action" />
+      <br /><br />
+      <label for="breadcrumbType">Type</label>
+      <select id="breadcrumbType">
+        <option value="default">default</option>
+        <option value="request">request</option>
+        <option value="ui">ui</option>
+        <option value="navigation">navigation</option>
+        <option value="logic">logic</option>
+        <option value="error">error</option>
+      </select>
+      <br /><br />
+      <label for="breadcrumbLevel">Level</label>
+      <select id="breadcrumbLevel">
+        <option value="info">info</option>
+        <option value="debug">debug</option>
+        <option value="warning">warning</option>
+        <option value="error">error</option>
+        <option value="fatal">fatal</option>
+      </select>
+      <br /><br />
+      <label for="breadcrumbCategory">Category (optional)</label>
+      <input type="text" id="breadcrumbCategory" placeholder="ui.click" />
+      <br /><br />
+      <button id="btn-add-breadcrumb">Add Breadcrumb</button>
+      <button id="btn-get-breadcrumbs">Get Breadcrumbs</button>
+      <button id="btn-clear-breadcrumbs">Clear Breadcrumbs</button>
+      <div id="breadcrumbs-output" style="margin-top: 15px; margin-bottom: 30px; padding: 10px; background: rgba(36, 39, 50, 0.68); border-radius: 3px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; font-size: 12px;"></div>
+      <h2>Test All Breadcrumb Types <small>Quick examples for each type</small></h2>
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+        <button id="btn-test-default">Default Event (Manual)</button>
+        <button id="btn-test-request">Request (Auto via Fetch)</button>
+        <button id="btn-test-ui">UI Click (Auto)</button>
+        <button id="btn-test-navigation">Navigation (Auto)</button>
+        <button id="btn-test-logic">Logic Operation (Manual)</button>
+        <button id="btn-test-error">Error Event (Manual)</button>
+      </div>
+      <div style="margin-top: 10px; display: flex; gap: 10px;">
+        <button id="btn-test-all-types" style="flex: 1; background: #2ecc71;">▶Run All Types Sequence</button>
+      </div>
+    </section>
     <script src="https://unpkg.com/vue@2"></script>
     <section>
       <h2>Test Vue integration: $root</h2>
@@ -248,6 +292,7 @@
       </script>
     </section>
     <script src="sample-errors.js"></script>
+    <script src="breadcrumbs-tests.js"></script>
     <script type="module">
       import HawkCatcher from '../src';
 
@@ -259,6 +304,19 @@
         context: {
           rootContextSample: '12345',
         },
+        // breadcrumbs: {
+        //   maxBreadcrumbs: 20,         // Maximum breadcrumbs to store (default: 15)
+        //   trackFetch: true,           // Track fetch/XHR requests (default: true)
+        //   trackNavigation: true,      // Track navigation events (default: true)
+        //   trackClicks: true,          // Track UI clicks (default: true)
+        //   beforeBreadcrumb: (breadcrumb, hint) => {
+        //     // Filter or modify breadcrumbs before storing
+        //     if (breadcrumb.category === 'fetch' && breadcrumb.data?.url?.includes('/sensitive')) {
+        //       return null; // Discard this breadcrumb
+        //     }
+        //     return breadcrumb;
+        //   }
+        // }
       });
     </script>
   </body>

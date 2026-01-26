@@ -88,6 +88,7 @@ Initialization settings:
 | `disableGlobalErrorsHandling` | boolean                                                   | optional     | Do not initialize global errors handling                                            |
 | `disableVueErrorHandler`      | boolean                                                   | optional     | Do not initialize Vue errors handling                                               |
 | `consoleTracking`             | boolean                                                   | optional     | Initialize console logs tracking                                                    |
+| `breadcrumbs`                 | false or BreadcrumbsOptions object                        | optional     | Configure breadcrumbs tracking (see below)                                          |
 | `beforeSend`                  | function(event) => event                                  | optional     | This Method allows you to filter any data you don't want sending to Hawk            |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
@@ -143,6 +144,92 @@ hawk.setContext({
   version: '2.1.0',
   environment: 'production',
 });
+```
+
+## Breadcrumbs
+
+Breadcrumbs track user interactions and events leading up to an error, providing context for debugging.
+
+### Default Configuration
+
+By default, breadcrumbs are enabled with tracking for fetch/XHR requests, navigation, and UI clicks:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN'
+  // breadcrumbs enabled by default
+});
+```
+
+### Disabling Breadcrumbs
+
+To disable breadcrumbs entirely:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  breadcrumbs: false
+});
+```
+
+### Custom Configuration
+
+Configure breadcrumbs tracking behavior:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  breadcrumbs: {
+    maxBreadcrumbs: 20,         // Maximum breadcrumbs to store (default: 15)
+    trackFetch: true,           // Track fetch/XHR requests (default: true)
+    trackNavigation: true,      // Track navigation events (default: true)
+    trackClicks: true,          // Track UI clicks (default: true)
+    beforeBreadcrumb: (breadcrumb, hint) => {
+      // Filter or modify breadcrumbs before storing
+      if (breadcrumb.category === 'fetch' && breadcrumb.data?.url?.includes('/sensitive')) {
+        return null; // Discard this breadcrumb
+      }
+      return breadcrumb;
+    }
+  }
+});
+```
+
+### Breadcrumbs Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `maxBreadcrumbs` | `number` | `15` | Maximum number of breadcrumbs to store. When the limit is reached, oldest breadcrumbs are removed (FIFO). |
+| `trackFetch` | `boolean` | `true` | Automatically track `fetch()` and `XMLHttpRequest` calls as breadcrumbs. Captures request URL, method, status code, and response time. |
+| `trackNavigation` | `boolean` | `true` | Automatically track navigation events (History API: `pushState`, `replaceState`, `popstate`). Captures route changes. |
+| `trackClicks` | `boolean` | `true` | Automatically track UI click events. Captures element selector, coordinates, and other click metadata. |
+| `beforeBreadcrumb` | `function` | `undefined` | Hook called before each breadcrumb is stored. Receives `(breadcrumb, hint)` and can return modified breadcrumb, `null` to discard it, or the original breadcrumb. Useful for filtering sensitive data or PII. |
+
+### Manual Breadcrumbs
+
+Add custom breadcrumbs manually:
+
+```js
+hawk.breadcrumbs.add({
+  type: 'logic',
+  category: 'auth',
+  message: 'User logged in',
+  level: 'info',
+  data: { userId: '123' }
+});
+```
+
+### Breadcrumb Methods
+
+```js
+// Add a breadcrumb
+hawk.breadcrumbs.add(breadcrumb, hint);
+
+// Get current breadcrumbs
+const breadcrumbs = hawk.breadcrumbs.get();
+
+// Clear all breadcrumbs
+hawk.breadcrumbs.clear();
 ```
 
 ## Source maps consuming
