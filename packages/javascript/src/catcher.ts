@@ -440,8 +440,10 @@ export default class Catcher {
 
       if (beforeSendResult === false) {
         throw new EventRejectedError('Event rejected by beforeSend method.');
-      } else {
+      } else if (typeof beforeSendResult === 'object' && beforeSendResult !== null) {
         payload = beforeSendResult;
+      } else if (beforeSendResult !== undefined) {
+        log('beforeSend must return event object or false. Received: ' + typeof beforeSendResult, 'warn');
       }
     }
 
