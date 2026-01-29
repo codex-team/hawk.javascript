@@ -30,7 +30,7 @@ export function validateUser(user: AffectedUser): boolean {
  * @param context
  */
 export function validateContext(context: EventContext | undefined): boolean {
-  if (!context || !Sanitizer.isObject(context)) {
+  if (context && !Sanitizer.isObject(context)) {
     log('validateContext: Context must be an object', 'warn');
 
     return false;

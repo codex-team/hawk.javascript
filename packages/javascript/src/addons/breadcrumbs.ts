@@ -403,6 +403,7 @@ export class BreadcrumbManager {
           data: {
             url,
             method,
+            statusCode: 0,
             durationMs: duration,
             error: error instanceof Error ? error.message : String(error),
           },
