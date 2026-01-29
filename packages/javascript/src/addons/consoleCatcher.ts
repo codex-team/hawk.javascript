@@ -3,6 +3,7 @@
  */
 import type { ConsoleLogEvent } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
+import { redactSensitiveKeys } from '../utils/sensitiveKeys';
 
 /**
  * Maximum number of console logs to store
@@ -72,7 +73,9 @@ export class ConsoleCatcher {
      */
     const sanitized = Sanitizer.sanitize(arg);
 
-    return JSON.stringify(sanitized);
+    const redacted = redactSensitiveKeys(sanitized);
+
+    return JSON.stringify(redacted);
   }
 
   /**
