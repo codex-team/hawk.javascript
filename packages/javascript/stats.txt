@@ -1,3 +1,0 @@
-  
-  Size: 6.76 kB with all dependencies, minified and brotlied
-  
