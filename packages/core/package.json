@@ -1,0 +1,40 @@
+{
+  "name": "@hawk.so/core",
+  "version": "1.0.0",
+  "description": "Core utilities for Hawk.so error tracking SDKs",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/hawk-core.umd.js",
+  "module": "./dist/hawk-core.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/hawk-core.mjs",
+      "require": "./dist/hawk-core.umd.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codex-team/hawk.javascript.git",
+    "directory": "packages/core"
+  },
+  "author": {
+    "name": "CodeX",
+    "email": "team@codex.so"
+  },
+  "license": "AGPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/codex-team/hawk.javascript/issues"
+  },
+  "homepage": "https://github.com/codex-team/hawk.javascript#readme",
+  "devDependencies": {
+    "@hawk.so/types": "0.5.2",
+    "vite": "^7.3.1",
+    "vite-plugin-dts": "^4.2.4"
+  }
+}
