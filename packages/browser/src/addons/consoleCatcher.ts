@@ -2,7 +2,7 @@
  * @file Module for intercepting console logs with stack trace capture
  */
 import type { ConsoleLogEvent } from '@hawk.so/types';
-import Sanitizer from '../modules/sanitizer';
+import { Sanitizer } from '@hawk.so/core';
 
 /**
  * Maximum number of console logs to store

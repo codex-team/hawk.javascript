@@ -1,12 +1,12 @@
 /**
- * Logger module
+ * Logger module (environment-agnostic)
  *
  * @example
  * log('We got an error', 'error')
  */
 
 /**
- * Allow to use global VERSION, that will be overwritten by Webpack
+ * Allow to use global VERSION, that will be overwritten by Vite
  */
 declare const VERSION: string;
 
@@ -20,7 +20,7 @@ declare const VERSION: string;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function log(msg: string, type = 'log', args?: any, style = 'color: inherit'): void {
-  if (!('console' in window) || !window.console[type]) {
+  if (typeof console === 'undefined' || typeof console[type] !== 'function') {
     return;
   }
 

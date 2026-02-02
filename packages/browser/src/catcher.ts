@@ -1,6 +1,5 @@
 import Socket from './modules/socket';
-import Sanitizer from './modules/sanitizer';
-import log from './utils/log';
+import { Sanitizer, isErrorProcessed, markErrorAsProcessed, validateUser, validateContext, log, EventRejectedError } from '@hawk.so/core';
 import StackParser from './modules/stackParser';
 import type { CatcherMessage, HawkInitialSettings, BreadcrumbsAPI } from './types';
 import { VueIntegration } from './integrations/vue';
@@ -13,12 +12,9 @@ import type {
   Json, EncodedIntegrationToken, DecodedIntegrationToken,
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from './types/integrations';
-import { EventRejectedError } from './errors';
 import type { HawkJavaScriptEvent } from './types';
-import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
-import { validateUser, validateContext } from './utils/validation';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack

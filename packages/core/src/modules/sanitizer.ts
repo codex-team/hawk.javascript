@@ -215,12 +215,12 @@ export default class Sanitizer {
   }
 
   /**
-   * Check if passed variable is an HTML Element
+   * Check if passed variable is an HTML Element (environment-agnostic)
    *
    * @param target - variable to check
    */
   private static isElement(target: any): boolean {
-    return target instanceof Element;
+    return typeof Element !== 'undefined' && target instanceof Element;
   }
 
   /**

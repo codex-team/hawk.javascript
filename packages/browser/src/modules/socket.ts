@@ -1,4 +1,4 @@
-import log from '../utils/log';
+import { log } from '@hawk.so/core';
 import type { CatcherMessage } from '@/types';
 
 /**
