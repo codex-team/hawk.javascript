@@ -5,12 +5,14 @@
   "version": "0.0.0",
   "packageManager": "yarn@4.12.0",
   "workspaces": [
-    "packages/*"
+    "packages/core",
+    "packages/browser",
+    "packages/sveltekit"
   ],
   "scripts": {
-    "dev": "yarn workspace @hawk.so/javascript dev",
-    "build": "yarn workspace @hawk.so/javascript build",
-    "stats": "yarn workspace @hawk.so/javascript stats",
+    "dev": "yarn workspace @hawk.so/browser dev",
+    "build": "yarn workspace @hawk.so/browser build",
+    "stats": "yarn workspace @hawk.so/browser stats",
     "lint": "eslint -c ./.eslintrc.cjs packages/*/src --ext .ts,.js --fix",
     "lint-test": "eslint -c ./.eslintrc.cjs packages/*/src --ext .ts,.js"
   },

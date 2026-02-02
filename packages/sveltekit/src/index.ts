@@ -4,5 +4,5 @@
  * SvelteKit integration for Hawk Error tracker
  */
 
-export * from '@hawk.so/javascript';
-export { default } from '@hawk.so/javascript';
+export * from '@hawk.so/browser';
+export { default } from '@hawk.so/browser';

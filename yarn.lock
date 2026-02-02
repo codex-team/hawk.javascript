@@ -471,10 +471,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hawk.so/javascript@npm:^3.0.0, @hawk.so/javascript@workspace:packages/javascript":
+"@hawk.so/browser@npm:^1.0.0, @hawk.so/browser@workspace:packages/browser":
   version: 0.0.0-use.local
-  resolution: "@hawk.so/javascript@workspace:packages/javascript"
+  resolution: "@hawk.so/browser@workspace:packages/browser"
   dependencies:
+    "@hawk.so/core": "npm:^1.0.0"
     "@hawk.so/types": "npm:0.5.2"
     error-stack-parser: "npm:^2.1.4"
     vite: "npm:^7.3.1"
@@ -483,11 +484,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@hawk.so/core@npm:^1.0.0, @hawk.so/core@workspace:packages/core":
+  version: 0.0.0-use.local
+  resolution: "@hawk.so/core@workspace:packages/core"
+  dependencies:
+    "@hawk.so/types": "npm:0.5.2"
+    vite: "npm:^7.3.1"
+    vite-plugin-dts: "npm:^4.2.4"
+  languageName: unknown
+  linkType: soft
+
 "@hawk.so/sveltekit@workspace:packages/sveltekit":
   version: 0.0.0-use.local
   resolution: "@hawk.so/sveltekit@workspace:packages/sveltekit"
   dependencies:
-    "@hawk.so/javascript": "npm:^3.0.0"
+    "@hawk.so/browser": "npm:^1.0.0"
     vite: "npm:^7.3.1"
     vite-plugin-dts: "npm:^4.2.4"
   languageName: unknown

@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/codex-team/hawk.javascript#readme",
   "dependencies": {
-    "@hawk.so/javascript": "^3.0.0"
+    "@hawk.so/browser": "^1.0.0"
   },
   "devDependencies": {
     "vite": "^7.3.1",
