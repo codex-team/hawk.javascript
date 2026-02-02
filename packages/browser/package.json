@@ -1,0 +1,48 @@
+{
+  "name": "@hawk.so/browser",
+  "version": "1.0.0",
+  "description": "Browser JavaScript errors tracking for Hawk.so",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/hawk-browser.umd.js",
+  "module": "./dist/hawk-browser.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/hawk-browser.mjs",
+      "require": "./dist/hawk-browser.umd.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "stats": "size-limit > stats.txt",
+    "lint": "eslint --fix \"src/**/*.{js,ts}\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codex-team/hawk.javascript.git",
+    "directory": "packages/browser"
+  },
+  "author": {
+    "name": "CodeX",
+    "email": "team@codex.so"
+  },
+  "license": "AGPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/codex-team/hawk.javascript/issues"
+  },
+  "homepage": "https://github.com/codex-team/hawk.javascript#readme",
+  "dependencies": {
+    "@hawk.so/core": "^1.0.0",
+    "error-stack-parser": "^2.1.4"
+  },
+  "devDependencies": {
+    "@hawk.so/types": "0.5.2",
+    "vite": "^7.3.1",
+    "vite-plugin-dts": "^4.2.4",
+    "vue": "^2"
+  }
+}
