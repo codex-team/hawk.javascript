@@ -1,0 +1,169 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+  --bg-primary: #2f3341;
+  --bg-secondary: #242732;
+  --text-primary: #dbe6ff;
+  --text-secondary: rgba(219, 230, 255, 0.6);
+  --border-color: rgba(219, 230, 255, 0.1);
+  --button-primary: #4979e4;
+  --button-primary-hover: #4869d2;
+}
+
+body {
+  font-family: Roboto, system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+header {
+  padding: 30px;
+  background: var(--bg-secondary);
+}
+
+h1 {
+  font-weight: bold;
+  font-size: 20px;
+  margin: 0 0 15px;
+  color: var(--text-primary);
+}
+
+h2 {
+  font-weight: 500;
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  letter-spacing: 0.24px;
+  text-transform: uppercase;
+}
+
+h3 {
+  margin: 0 0 10px 0;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+p {
+  margin: 0.5rem 0;
+  color: var(--text-primary);
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: var(--button-primary);
+}
+
+section {
+  padding: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin: 15px;
+}
+
+button {
+  display: inline-block;
+  padding: 8px 20px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--button-primary);
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button:hover {
+  background: var(--button-primary-hover);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+code {
+  background: var(--bg-secondary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+}
+
+.test-card {
+  display: block;
+  padding: 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+  background: var(--bg-secondary);
+}
+
+.test-card:hover {
+  border-color: var(--button-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.test-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+}
+
+.test-card p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.alert {
+  padding: 15px;
+  border-left: 4px solid;
+  border-radius: 4px;
+  margin: 15px 0;
+}
+
+.alert-warning {
+  background: rgba(255, 193, 7, 0.15);
+  border-color: #ffc107;
+  color: #ffd54f;
+}
+
+.error-fallback {
+  padding: 1.5rem;
+  background: rgba(244, 67, 54, 0.15);
+  border-left: 4px solid #f44336;
+  border-radius: 4px;
+}
+
+.error-fallback h3 {
+  margin: 0 0 0.5rem 0;
+  color: #ff8a80;
+}
+
+.error-fallback p {
+  margin: 0.5rem 0;
+}
