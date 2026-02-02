@@ -81,6 +81,12 @@ Example usage:
 
 **Not caught by Hawk Catcher.**
 
+### SSR Errors (🔴)
+
+Server-side errors in `load` functions are caught by `handleError` hook in `hooks.server.ts`.
+
+**Not caught by Hawk Catcher.**
+
 ## Error Test Pages
 
 The playground includes test pages to demonstrate each error catching mechanism:
@@ -101,3 +107,8 @@ The playground includes test pages to demonstrate each error catching mechanism:
    - Demonstrates svelte boundary feature
    - Caught by `<svelte:boundary>`
 
+### SSR Errors (🔴) - Not caught by Hawk
+
+1. **Server-side Error** (`/errors/server-error`)
+   - Demonstrates error in `load` function
+   - Caught by `handleError` in `hooks.server.ts`

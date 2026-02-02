@@ -28,6 +28,14 @@
       href: '/errors/boundary',
       category: 'Error Boundaries (🟢)'
     },
+
+    // SSR Errors
+    {
+      title: 'Server-side Error',
+      description: 'Error thrown in load function',
+      href: '/errors/server-error',
+      category: 'SSR Errors (🔴)'
+    },
   ];
 
   const categories = Array.from(new Set(errorTests.map(t => t.category)));
@@ -48,6 +56,7 @@
       <li>Open your browser's DevTools Console to see error logs</li>
       <li>Look for colored emoji markers:
         <ul>
+          <li>🔴 = SSR error (caught by <code>handleError</code> in hooks.server.ts)</li>
           <li>🟡 = Caught by global <code>window.error</code> or <code>window.unhandledrejection</code></li>
           <li>🟢 = Caught by <code>&lt;svelte:boundary&gt;</code></li>
         </ul>
