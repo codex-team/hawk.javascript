@@ -20,7 +20,7 @@ jobs:
       - run: yarn build:all
       - run: yarn workspace @hawk.so/javascript npm publish --access=public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   notify:
     needs: publish
     runs-on: ubuntu-latest
