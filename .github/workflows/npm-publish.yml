@@ -18,7 +18,7 @@ jobs:
       - run: yarn
       - run: yarn lint-test
       - run: yarn build:all
-      - run: yarn workspace @hawk.so/javascript publish --access=public
+      - run: yarn workspace @hawk.so/javascript npm publish --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   notify:
