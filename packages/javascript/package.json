@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@hawk.so/types": "0.5.2",
+    "vite": "^7.3.1",
     "vite-plugin-dts": "^4.2.4",
     "vue": "^2"
   }
