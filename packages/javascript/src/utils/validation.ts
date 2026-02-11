@@ -5,7 +5,7 @@ import Sanitizer from '../modules/sanitizer';
 /**
  * Validates user data - basic security checks
  *
- * @param user
+ * @param user - user data to validate
  */
 export function validateUser(user: AffectedUser): boolean {
   if (!user || !Sanitizer.isObject(user)) {
@@ -27,7 +27,7 @@ export function validateUser(user: AffectedUser): boolean {
 /**
  * Validates context data - basic security checks
  *
- * @param context
+ * @param context - context data to validate
  */
 export function validateContext(context: EventContext | undefined): boolean {
   if (context && !Sanitizer.isObject(context)) {
@@ -41,6 +41,7 @@ export function validateContext(context: EventContext | undefined): boolean {
 
 /**
  * Checks if value is a plain object (not array, Date, etc.)
+ *
  * @param value - value to check
  */
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -51,6 +52,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * Runtime check for required EventData fields.
  * Per @hawk.so/types EventData, `title` is the only non-optional field.
  * Additionally validates `backtrace` shape if present (must be an array).
+ *
  * @param payload - value to validate
  */
 export function isValidEventPayload(payload: unknown): payload is EventData<JavaScriptAddons> {
@@ -72,6 +74,7 @@ export function isValidEventPayload(payload: unknown): payload is EventData<Java
 /**
  * Runtime check that value is a valid Breadcrumb-like object.
  * Must be a plain object with a numeric timestamp.
+ *
  * @param breadcrumb - value to validate
  */
 export function isValidBreadcrumb(breadcrumb: unknown): breadcrumb is Breadcrumb {

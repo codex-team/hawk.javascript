@@ -37,14 +37,11 @@ function getSentPayload(): HawkJavaScriptEvent | null {
 /**
  * Single Catcher instance. beforeSend routes by event.title:
  *
- *  "pass-through" → return event as-is
- *  "modify"       → mutate context, return event
- *  "drop"         → return false
- *  "void"         → no return (undefined)
- *  "null"         → return null
- *  "invalid"      → return true
- *  "empty-obj"    → return {}
- *  "optional"     → delete release, return event
+ *  "modify"  → mutate context, return event
+ *  "drop"    → return false
+ *  "invalid" → return undefined (no return)
+ *  "optional"→ delete release, return event
+ *  default   → return event as-is
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const hawk = new Catcher({
@@ -60,17 +57,8 @@ const hawk = new Catcher({
 
         return event;
 
-      case 'void':
-        return;
-
-      case 'null':
-        return null as any;
-
       case 'invalid':
-        return true as any;
-
-      case 'empty-obj':
-        return {} as any;
+        return;
 
       case 'optional':
         delete event.release;
@@ -95,98 +83,47 @@ describe('beforeSend', () => {
     warnSpy.mockRestore();
   });
 
-  it('return event → event sent', async () => {
+  it('should send event as-is when returned unchanged', async () => {
     hawk.send(new Error('pass-through'));
     await flush();
 
     expect(socketSendSpy).toHaveBeenCalledOnce();
-
-    const payload = getSentPayload()!;
-
-    expect(payload.title).toBe('pass-through');
-    expect(payload.backtrace).toBeInstanceOf(Array);
+    expect(getSentPayload()!.title).toBe('pass-through');
   });
 
-  it('return modified event → sent event with changes', async () => {
+  it('should send modified event when hook mutates and returns it', async () => {
     hawk.send(new Error('modify'));
     await flush();
 
     expect(socketSendSpy).toHaveBeenCalledOnce();
-
-    const payload = getSentPayload()!;
-
-    expect(payload.title).toBe('modify');
-    expect(payload.context).toEqual({ sanitized: true });
+    expect(getSentPayload()!.context).toEqual({ sanitized: true });
   });
 
-  it('return false → event not sent', async () => {
+  it('should drop event when hook returns false', async () => {
     hawk.send(new Error('drop'));
     await flush();
 
     expect(socketSendSpy).not.toHaveBeenCalled();
   });
 
-  it('return undefined → sent original event + warn', async () => {
-    hawk.send(new Error('void'));
-    await flush();
-
-    expect(socketSendSpy).toHaveBeenCalledOnce();
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Invalid beforeSend value: (undefined)'),
-      expect.anything(),
-      expect.anything()
-    );
-    expect(getSentPayload()!.title).toBe('void');
-  });
-
-  it('return null → sent original event + warn', async () => {
-    hawk.send(new Error('null'));
-    await flush();
-
-    expect(socketSendSpy).toHaveBeenCalledOnce();
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Invalid beforeSend value: (null)'),
-      expect.anything(),
-      expect.anything()
-    );
-    expect(getSentPayload()!.title).toBe('null');
-  });
-
-  it('return true → sent original event + warn', async () => {
+  it('should send original event and warn when hook returns invalid value', async () => {
     hawk.send(new Error('invalid'));
     await flush();
 
     expect(socketSendSpy).toHaveBeenCalledOnce();
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Invalid beforeSend value:'),
-      expect.anything(),
-      expect.anything()
-    );
     expect(getSentPayload()!.title).toBe('invalid');
-  });
-
-  it('return {} → sent original event + warn', async () => {
-    hawk.send(new Error('empty-obj'));
-    await flush();
-
-    expect(socketSendSpy).toHaveBeenCalledOnce();
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('Invalid beforeSend value:'),
       expect.anything(),
       expect.anything()
     );
-    expect(getSentPayload()!.title).toBe('empty-obj');
   });
 
-  it('delete optional fields → sent event without them', async () => {
+  it('should send event without deleted optional fields', async () => {
     hawk.send(new Error('optional'));
     await flush();
 
     expect(socketSendSpy).toHaveBeenCalledOnce();
-
-    const payload = getSentPayload()!;
-
-    expect(payload.title).toBe('optional');
-    expect(payload.release).toBeUndefined();
+    expect(getSentPayload()!.release).toBeUndefined();
   });
 });

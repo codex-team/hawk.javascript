@@ -150,7 +150,7 @@ export class ConsoleCatcher {
    *   This ensures DevTools will navigate to the user's code, not the interceptor's code.
    *
    * @param errorStack - Full stack trace string from Error.stack
-   * @returns Object with userStack (full stack from user code) and fileLine (first frame for DevTools link)
+   * @returns {object} Object with userStack (full stack from user code) and fileLine (first frame for DevTools link)
    */
   private extractUserStack(errorStack: string | undefined): {
     userStack: string;
@@ -250,7 +250,7 @@ export class ConsoleCatcher {
        * 4. Store it in the buffer
        * 5. Forward the call to the native console (so output still appears in DevTools)
        *
-       * @param {...any} args
+       * @param args - console method arguments
        */
       window.console[method] = (...args: unknown[]): void => {
         // Capture full stack trace and extract user code stack

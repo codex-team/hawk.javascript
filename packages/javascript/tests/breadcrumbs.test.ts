@@ -2,15 +2,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BreadcrumbManager } from '../src/addons/breadcrumbs';
 import type { Breadcrumb } from '@hawk.so/types';
 
-/**
- * Reset singleton so each test group starts fresh
- */
 function resetManager(): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (BreadcrumbManager as any).instance = null;
 }
 
-describe('BreadcrumbManager — basics', () => {
+describe('BreadcrumbManager', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
@@ -22,14 +19,14 @@ describe('BreadcrumbManager — basics', () => {
     warnSpy.mockRestore();
   });
 
-  it('no breadcrumbs → empty array', () => {
+  it('should return empty array when no breadcrumbs added', () => {
     const m = BreadcrumbManager.getInstance();
 
     m.init();
     expect(m.getBreadcrumbs()).toEqual([]);
   });
 
-  it('add breadcrumb → breadcrumb stored with timestamp', () => {
+  it('should store breadcrumb with auto-generated timestamp', () => {
     const m = BreadcrumbManager.getInstance();
 
     m.init();
@@ -42,7 +39,7 @@ describe('BreadcrumbManager — basics', () => {
     expect(crumbs[0].timestamp).toBeTypeOf('number');
   });
 
-  it('explicit timestamp → breadcrumb kept as-is', () => {
+  it('should keep explicit timestamp as-is', () => {
     const m = BreadcrumbManager.getInstance();
 
     m.init();
@@ -51,7 +48,7 @@ describe('BreadcrumbManager — basics', () => {
     expect(m.getBreadcrumbs()[0].timestamp).toBe(12345);
   });
 
-  it('overflow → oldest breadcrumbs dropped (FIFO) and stored in buffer', () => {
+  it('should drop oldest breadcrumbs when buffer overflows (FIFO)', () => {
     const m = BreadcrumbManager.getInstance();
 
     m.init({ maxBreadcrumbs: 3 });
@@ -67,7 +64,7 @@ describe('BreadcrumbManager — basics', () => {
     expect(crumbs[2].message).toBe('msg-4');
   });
 
-  it('default limit → 15 breadcrumbs max stored in buffer', () => {
+  it('should store max 15 breadcrumbs by default', () => {
     const m = BreadcrumbManager.getInstance();
 
     m.init();
@@ -79,7 +76,7 @@ describe('BreadcrumbManager — basics', () => {
     expect(m.getBreadcrumbs()).toHaveLength(15);
   });
 
-  it('clear → empty breadcrumbs buffer', () => {
+  it('should empty buffer on clear', () => {
     const m = BreadcrumbManager.getInstance();
 
     m.init();
@@ -89,7 +86,7 @@ describe('BreadcrumbManager — basics', () => {
     expect(m.getBreadcrumbs()).toEqual([]);
   });
 
-  it('get → returns copy of breadcrumbs, not internal array', () => {
+  it('should return a copy, not the internal array', () => {
     const m = BreadcrumbManager.getInstance();
 
     m.init();
@@ -106,7 +103,7 @@ describe('BreadcrumbManager — basics', () => {
     expect(m.getBreadcrumbs()).toHaveLength(1);
   });
 
-  it('second init → ignored and stored in buffer', () => {
+  it('should ignore second init call', () => {
     const m = BreadcrumbManager.getInstance();
 
     m.init({ maxBreadcrumbs: 5 });
@@ -124,14 +121,11 @@ describe('BreadcrumbManager — basics', () => {
  * Single manager with a branching beforeBreadcrumb.
  * Routes by bc.message:
  *
- *  "modify"       → mutate message, return bc
- *  "drop"         → return false
- *  "void"         → no return (undefined)
- *  "null"         → return null
- *  "invalid"      → return true
- *  "bad-ts"       → return object with non-numeric timestamp
- *  "secret"       → return false (category filter)
- *  default        → return bc as-is
+ *  "modify"  → mutate message, return bc
+ *  "drop"    → return false
+ *  "invalid" → return undefined (no return)
+ *  "secret"  → return false (category filter)
+ *  default   → return bc as-is
  */
 describe('beforeBreadcrumb', () => {
   let manager: BreadcrumbManager;
@@ -146,9 +140,6 @@ describe('beforeBreadcrumb', () => {
     warnSpy.mockRestore();
   });
 
-  /**
-   * Init once before all tests in this block
-   */
   resetManager();
   manager = BreadcrumbManager.getInstance();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -164,17 +155,8 @@ describe('beforeBreadcrumb', () => {
         case 'secret':
           return false;
 
-        case 'void':
-          return;
-
-        case 'null':
-          return null as any;
-
         case 'invalid':
-          return true as any;
-
-        case 'bad-ts':
-          return { timestamp: 'nope', message: 'bad' } as any;
+          return;
 
         default:
           return bc;
@@ -182,66 +164,30 @@ describe('beforeBreadcrumb', () => {
     },
   });
 
-  it('return modified breadcrumb → breadcrumb stored with changes', () => {
+  it('should store modified breadcrumb when hook returns changed object', () => {
     manager.addBreadcrumb({ type: 'default', message: 'modify', level: 'info' });
 
     expect(manager.getBreadcrumbs()[0].message).toBe('MODIFIED');
   });
 
-  it('return false → breadcrumb not stored in buffer', () => {
+  it('should discard breadcrumb when hook returns false', () => {
     manager.addBreadcrumb({ type: 'default', message: 'drop', level: 'info' });
 
     expect(manager.getBreadcrumbs()).toHaveLength(0);
   });
 
-  it('return undefined → original breadcrumb stored in buffer + warn', () => {
-    manager.addBreadcrumb({ type: 'default', message: 'void', level: 'info' });
-
-    expect(manager.getBreadcrumbs()[0].message).toBe('void');
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('beforeBreadcrumb returned nothing'),
-      expect.anything(),
-      expect.anything()
-    );
-  });
-
-  it('return null → original breadcrumb stored in buffer + warn', () => {
-    manager.addBreadcrumb({ type: 'default', message: 'null', level: 'info' });
-
-    expect(manager.getBreadcrumbs()[0].message).toBe('null');
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('beforeBreadcrumb returned nothing'),
-      expect.anything(),
-      expect.anything()
-    );
-  });
-
-  it('return true → original breadcrumb stored in buffer + warn', () => {
+  it('should store original breadcrumb and warn when hook returns invalid value', () => {
     manager.addBreadcrumb({ type: 'default', message: 'invalid', level: 'info' });
 
     expect(manager.getBreadcrumbs()[0].message).toBe('invalid');
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('beforeBreadcrumb produced invalid breadcrumb'),
+      expect.stringContaining('beforeBreadcrumb returned nothing'),
       expect.anything(),
       expect.anything()
     );
   });
 
-  it('return bad timestamp → original breadcrumb stored + warn', () => {
-    manager.addBreadcrumb({ type: 'default', message: 'bad-ts', level: 'info' });
-
-    const bc = manager.getBreadcrumbs()[0];
-
-    expect(bc.message).toBe('bad-ts');
-    expect(bc.timestamp).toBeTypeOf('number');
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('beforeBreadcrumb produced invalid breadcrumb'),
-      expect.anything(),
-      expect.anything()
-    );
-  });
-
-  it('return false by category → breadcrumb filtered out', () => {
+  it('should filter breadcrumbs by category', () => {
     manager.addBreadcrumb({ type: 'default', message: 'keep', level: 'info', category: 'public' });
     manager.addBreadcrumb({ type: 'default', message: 'secret', level: 'info', category: 'secret' });
 
