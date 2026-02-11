@@ -76,7 +76,7 @@ export default class Catcher {
    * This Method allows developer to filter any data you don't want sending to Hawk.
    * - Return modified event — it will be sent instead of the original.
    * - Return `false` — the event will be dropped entirely.
-   * - Return nothing (`void` / `undefined` / `null`) — the original event is sent as-is (a warning is logged).
+   * - Any other value is invalid — the original event is sent as-is (a warning is logged).
    */
   private readonly beforeSend: undefined | ((event: HawkJavaScriptEvent) => HawkJavaScriptEvent | false | void);
 
@@ -441,35 +441,23 @@ export default class Catcher {
       const result = this.beforeSend(payload);
 
       /**
-       * Allow user to intentionally drop event by returning false
+       * false → drop event
        */
       if (result === false) {
         throw new EventRejectedError('Event rejected by beforeSend method.');
       }
 
       /**
-       * If user returned nothing (void/undefined/null) — warn and keep original payload
+       * Valid event payload → use it
        */
-      if (result === undefined || result === null) {
-        log(`Invalid beforeSend value: (${String(result)}). It should return event or false. Event is sent without changes.`, 'warn');
-      } else if (isValidEventPayload(result)) {
-        payload = result;
+      if (isValidEventPayload(result)) {
+        payload = result as HawkJavaScriptEvent;
       } else {
-        let received: string;
-
-        try {
-          received = JSON.stringify(result);
-        } catch {
-          try {
-            received = String(result);
-          } catch {
-            received = Object.prototype.toString.call(result);
-          }
-        }
-
+        /**
+         * Anything else is invalid — warn and send original
+         */
         log(
-          'beforeSend produced invalid payload (missing required fields), sending original. '
-          + `Received: ${received}`,
+          `Invalid beforeSend value: (${String(result)}). It should return event or false. Event is sent without changes.`,
           'warn'
         );
       }

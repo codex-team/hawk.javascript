@@ -199,7 +199,7 @@ describe('beforeBreadcrumb', () => {
 
     expect(manager.getBreadcrumbs()[0].message).toBe('void');
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[Hawk] beforeBreadcrumb returned nothing'),
+      expect.stringContaining('beforeBreadcrumb returned nothing'),
       expect.anything(),
       expect.anything()
     );
@@ -210,7 +210,7 @@ describe('beforeBreadcrumb', () => {
 
     expect(manager.getBreadcrumbs()[0].message).toBe('null');
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[Hawk] beforeBreadcrumb returned nothing'),
+      expect.stringContaining('beforeBreadcrumb returned nothing'),
       expect.anything(),
       expect.anything()
     );
@@ -221,7 +221,7 @@ describe('beforeBreadcrumb', () => {
 
     expect(manager.getBreadcrumbs()[0].message).toBe('invalid');
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[Hawk] beforeBreadcrumb produced invalid breadcrumb'),
+      expect.stringContaining('beforeBreadcrumb produced invalid breadcrumb'),
       expect.anything(),
       expect.anything()
     );
@@ -235,7 +235,7 @@ describe('beforeBreadcrumb', () => {
     expect(bc.message).toBe('bad-ts');
     expect(bc.timestamp).toBeTypeOf('number');
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[Hawk] beforeBreadcrumb produced invalid breadcrumb'),
+      expect.stringContaining('beforeBreadcrumb produced invalid breadcrumb'),
       expect.anything(),
       expect.anything()
     );

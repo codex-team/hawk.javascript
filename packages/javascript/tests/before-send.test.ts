@@ -132,7 +132,7 @@ describe('beforeSend', () => {
 
     expect(socketSendSpy).toHaveBeenCalledOnce();
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[Hawk] Invalid beforeSend value: (undefined)'),
+      expect.stringContaining('Invalid beforeSend value: (undefined)'),
       expect.anything(),
       expect.anything()
     );
@@ -145,7 +145,7 @@ describe('beforeSend', () => {
 
     expect(socketSendSpy).toHaveBeenCalledOnce();
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[Hawk] Invalid beforeSend value: (null)'),
+      expect.stringContaining('Invalid beforeSend value: (null)'),
       expect.anything(),
       expect.anything()
     );
@@ -158,7 +158,7 @@ describe('beforeSend', () => {
 
     expect(socketSendSpy).toHaveBeenCalledOnce();
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[Hawk] beforeSend produced invalid payload'),
+      expect.stringContaining('Invalid beforeSend value:'),
       expect.anything(),
       expect.anything()
     );
@@ -171,7 +171,7 @@ describe('beforeSend', () => {
 
     expect(socketSendSpy).toHaveBeenCalledOnce();
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('[Hawk] beforeSend produced invalid payload'),
+      expect.stringContaining('Invalid beforeSend value:'),
       expect.anything(),
       expect.anything()
     );

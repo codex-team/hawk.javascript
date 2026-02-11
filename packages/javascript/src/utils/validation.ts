@@ -75,13 +75,11 @@ export function isValidEventPayload(payload: unknown): payload is EventData<Java
  * @param breadcrumb - value to validate
  */
 export function isValidBreadcrumb(breadcrumb: unknown): breadcrumb is Breadcrumb {
-  if (typeof breadcrumb !== 'object' || breadcrumb === null || Array.isArray(breadcrumb)) {
+  if (!isPlainObject(breadcrumb)) {
     return false;
   }
 
-  const record = breadcrumb as Record<string, unknown>;
-
-  if (record.timestamp !== undefined && typeof record.timestamp !== 'number') {
+  if (breadcrumb.timestamp !== undefined && typeof breadcrumb.timestamp !== 'number') {
     return false;
   }
 
