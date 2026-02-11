@@ -10,16 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           registry-url: https://registry.npmjs.org/
+      - run: corepack enable
       - run: yarn
       - run: yarn lint-test
-      - run: yarn build
-      - run: yarn workspace @hawk.so/javascript publish --access=public
+      - run: yarn build:all
+      - run: yarn workspace @hawk.so/javascript npm publish --access=public
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   notify:
     needs: publish
     runs-on: ubuntu-latest
