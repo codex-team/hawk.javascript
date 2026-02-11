@@ -18,7 +18,7 @@ import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
-import { validateUser, validateContext } from './utils/validation';
+import { validateUser, validateContext, isValidEventPayload } from './utils/validation';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -73,10 +73,12 @@ export default class Catcher {
   private context: EventContext | undefined;
 
   /**
-   * This Method allows developer to filter any data you don't want sending to Hawk
-   * If method returns false, event will not be sent
+   * This Method allows developer to filter any data you don't want sending to Hawk.
+   * - Return modified event — it will be sent instead of the original.
+   * - Return `false` — the event will be dropped entirely.
+   * - Return nothing (`void` / `undefined` / `null`) — the original event is sent as-is (a warning is logged).
    */
-  private readonly beforeSend: undefined | ((event: HawkJavaScriptEvent) => HawkJavaScriptEvent | false);
+  private readonly beforeSend: undefined | ((event: HawkJavaScriptEvent) => HawkJavaScriptEvent | false | void);
 
   /**
    * Transport for dialog between Catcher and Collector
@@ -436,14 +438,40 @@ export default class Catcher {
      * Filter sensitive data
      */
     if (typeof this.beforeSend === 'function') {
-      const beforeSendResult = this.beforeSend(payload);
+      const result = this.beforeSend(payload);
 
-      if (beforeSendResult === false) {
+      /**
+       * Allow user to intentionally drop event by returning false
+       */
+      if (result === false) {
         throw new EventRejectedError('Event rejected by beforeSend method.');
-      } else if (typeof beforeSendResult === 'object' && beforeSendResult !== null) {
-        payload = beforeSendResult;
-      } else if (beforeSendResult !== undefined) {
-        log('beforeSend must return event object or false. Received: ' + typeof beforeSendResult, 'warn');
+      }
+
+      /**
+       * If user returned nothing (void/undefined/null) — warn and keep original payload
+       */
+      if (result === undefined || result === null) {
+        log(`[Hawk] Invalid beforeSend value: (${String(result)}). It should return event or false. Event is sent without changes.`, 'warn');
+      } else if (isValidEventPayload(result)) {
+        payload = result;
+      } else {
+        let received: string;
+
+        try {
+          received = JSON.stringify(result);
+        } catch {
+          try {
+            received = String(result);
+          } catch {
+            received = Object.prototype.toString.call(result);
+          }
+        }
+
+        log(
+          '[Hawk] beforeSend produced invalid payload (missing required fields), sending original. '
+          + `Received: ${received}`,
+          'warn'
+        );
       }
     }
 

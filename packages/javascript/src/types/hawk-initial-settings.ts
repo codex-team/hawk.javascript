@@ -65,10 +65,11 @@ export interface HawkInitialSettings {
 
   /**
    * This Method allows you to filter any data you don't want sending to Hawk.
-   *
-   * Return `false` to prevent the event from being sent to Hawk.
+   * - Return modified event — it will be sent instead of the original.
+   * - Return `false` — the event will be dropped entirely.
+   * - Return nothing (`void` / `undefined` / `null`) — the original event is sent as-is (a warning is logged).
    */
-  beforeSend?(event: HawkJavaScriptEvent): HawkJavaScriptEvent | false;
+  beforeSend?(event: HawkJavaScriptEvent): HawkJavaScriptEvent | false | void;
 
   /**
    * Disable Vue.js error handler

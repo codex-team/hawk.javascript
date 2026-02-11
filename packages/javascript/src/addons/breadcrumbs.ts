@@ -5,6 +5,7 @@ import type { Breadcrumb, BreadcrumbLevel, BreadcrumbType, Json, JsonNode } from
 import Sanitizer from '../modules/sanitizer';
 import { buildElementSelector } from '../utils/selector';
 import log from '../utils/log';
+import { isValidBreadcrumb } from '../utils/validation';
 
 /**
  * Default maximum number of breadcrumbs to store
@@ -48,11 +49,13 @@ export interface BreadcrumbsOptions {
   maxBreadcrumbs?: number;
 
   /**
-   * Hook called before each breadcrumb is stored
-   * Return null to discard the breadcrumb
-   * Return modified breadcrumb to store it
+   * Hook called before each breadcrumb is stored.
+   * - Return modified breadcrumb — it will be stored instead of the original.
+   * - Return `false` — the breadcrumb will be discarded.
+   * - Return nothing (`void` / `undefined` / `null`) — the original breadcrumb is stored as-is (a warning is logged).
+   * - If the hook returns an invalid value, a warning is logged and the original breadcrumb is stored.
    */
-  beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | null;
+  beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | false | void;
 
   /**
    * Enable automatic fetch/XHR breadcrumbs
@@ -91,7 +94,7 @@ interface InternalBreadcrumbsOptions {
   trackFetch: boolean;
   trackNavigation: boolean;
   trackClicks: boolean;
-  beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | null;
+  beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | false | void;
 }
 
 /**
@@ -235,14 +238,27 @@ export class BreadcrumbManager {
     if (this.options.beforeBreadcrumb) {
       const result = this.options.beforeBreadcrumb(bc, hint);
 
-      if (result === null) {
-        /**
-         * Discard breadcrumb
-         */
+      /**
+       * false means discard
+       */
+      if (result === false) {
         return;
       }
 
-      Object.assign(bc, result);
+      /**
+       * void/undefined/null — warn and keep original breadcrumb
+       */
+      if (result === undefined || result === null) {
+        log('[Hawk] beforeBreadcrumb returned nothing, storing original breadcrumb.', 'warn');
+      } else if (isValidBreadcrumb(result)) {
+        Object.assign(bc, result);
+      } else {
+        log(
+          '[Hawk] beforeBreadcrumb produced invalid breadcrumb (must be an object with numeric timestamp), storing original. '
+          + `Received: ${Object.prototype.toString.call(result)}`,
+          'warn'
+        );
+      }
     }
 
     /**
