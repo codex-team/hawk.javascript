@@ -438,8 +438,8 @@ export default class Catcher {
      * Filter sensitive data
      */
     if (typeof this.beforeSend === 'function') {
-      const eventClone = structuredClone(payload);
-      const result = this.beforeSend(eventClone);
+      const eventPayloadClone = structuredClone(payload);
+      const result = this.beforeSend(eventPayloadClone);
 
       /**
        * false → drop event
