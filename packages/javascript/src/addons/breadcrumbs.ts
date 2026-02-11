@@ -236,30 +236,29 @@ export class BreadcrumbManager {
      * Apply beforeBreadcrumb hook
      */
     if (this.options.beforeBreadcrumb) {
-      const original = structuredClone(bc);
-      const result = this.options.beforeBreadcrumb(bc, hint);
+      const breadcrumbClone = structuredClone(bc);
+      const modified = this.options.beforeBreadcrumb(breadcrumbClone, hint);
 
       /**
        * false means discard
        */
-      if (result === false) {
+      if (modified === false) {
         return;
       }
 
       /**
-       * Valid breadcrumb → use it
+       * Valid breadcrumb → apply changes from hook
        */
-      if (isValidBreadcrumb(result)) {
-        Object.assign(bc, result);
+      if (isValidBreadcrumb(modified)) {
+        Object.assign(bc, modified);
       } else {
         /**
-         * Anything else is invalid — warn and restore original
+         * Anything else is invalid — warn, bc stays untouched (hook only received a clone)
          */
         log(
-          `Invalid beforeBreadcrumb value. It should return breadcrumb or false. Breadcrumb is stored without changes.`,
+          'Invalid beforeBreadcrumb value. It should return breadcrumb or false. Breadcrumb is stored without changes.',
           'warn'
         );
-        Object.assign(bc, original);
       }
     }
 

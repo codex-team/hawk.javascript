@@ -438,30 +438,29 @@ export default class Catcher {
      * Filter sensitive data
      */
     if (typeof this.beforeSend === 'function') {
-      const original = structuredClone(payload);
-      const result = this.beforeSend(payload);
+      const eventClone = structuredClone(payload);
+      const modified = this.beforeSend(eventClone);
 
       /**
        * false → drop event
        */
-      if (result === false) {
+      if (modified === false) {
         throw new EventRejectedError('Event rejected by beforeSend method.');
       }
 
       /**
-       * Valid event payload → use it
+       * Valid event payload → use it instead of original
        */
-      if (isValidEventPayload(result)) {
-        payload = result as HawkJavaScriptEvent;
+      if (isValidEventPayload(modified)) {
+        payload = modified as HawkJavaScriptEvent;
       } else {
         /**
-         * Anything else is invalid — warn and send original
+         * Anything else is invalid — warn, payload stays untouched (hook only received a clone)
          */
         log(
-          `Invalid beforeSend value. It should return event or false. Event is sent without changes.`,
+          'Invalid beforeSend value. It should return event or false. Event is sent without changes.',
           'warn'
         );
-        payload = original;
       }
     }
 
