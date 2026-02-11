@@ -5,7 +5,10 @@ import type { HawkJavaScriptEvent } from '../src/types/event';
 import Catcher from '../src/catcher';
 
 const TEST_TOKEN = 'eyJpbnRlZ3JhdGlvbklkIjoiOTU3MmQyOWQtNWJhZS00YmYyLTkwN2MtZDk5ZDg5MGIwOTVmIiwic2VjcmV0IjoiZTExODFiZWItMjdlMS00ZDViLWEwZmEtZmUwYTM1Mzg5OWMyIn0=';
-const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+/**
+ * Wait for fire-and-forget async calls inside hawk.send() to complete
+ */
+const wait = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
 function createTransport() {
   const sendSpy = vi.fn<(msg: CatcherMessage) => Promise<void>>().mockResolvedValue(undefined);
@@ -51,7 +54,7 @@ describe('beforeSend', () => {
 
     // Act
     hawk.send(new Error('hello'));
-    await flush();
+    await wait();
 
     // Assert
     expect(sendSpy).toHaveBeenCalledOnce();
@@ -69,7 +72,7 @@ describe('beforeSend', () => {
 
     // Act
     hawk.send(new Error('modify'));
-    await flush();
+    await wait();
 
     // Assert
     expect(sendSpy).toHaveBeenCalledOnce();
@@ -83,7 +86,7 @@ describe('beforeSend', () => {
 
     // Act
     hawk.send(new Error('drop'));
-    await flush();
+    await wait();
 
     // Assert
     expect(sendSpy).not.toHaveBeenCalled();
@@ -103,7 +106,7 @@ describe('beforeSend', () => {
 
     // Act
     hawk.send(new Error('invalid'));
-    await flush();
+    await wait();
 
     // Assert
     expect(sendSpy).toHaveBeenCalledOnce();
@@ -127,7 +130,7 @@ describe('beforeSend', () => {
 
     // Act
     hawk.send(new Error('required-field'));
-    await flush();
+    await wait();
 
     // Assert — fallback to original payload, title preserved
     expect(sendSpy).toHaveBeenCalledOnce();
@@ -150,7 +153,7 @@ describe('beforeSend', () => {
 
     // Act
     hawk.send(new Error('optional'));
-    await flush();
+    await wait();
 
     // Assert
     expect(sendSpy).toHaveBeenCalledOnce();
