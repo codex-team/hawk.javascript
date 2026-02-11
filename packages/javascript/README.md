@@ -89,7 +89,7 @@ Initialization settings:
 | `disableVueErrorHandler`      | boolean                                                   | optional     | Do not initialize Vue errors handling                                               |
 | `consoleTracking`             | boolean                                                   | optional     | Initialize console logs tracking                                                    |
 | `breadcrumbs`                 | false or BreadcrumbsOptions object                        | optional     | Configure breadcrumbs tracking (see below)                                          |
-| `beforeSend`                  | function(event) => event                                  | optional     | This Method allows you to filter any data you don't want sending to Hawk            |
+| `beforeSend`                  | function(event) => event \| false \| void                 | optional     | Filter data before sending. Return modified event, `false` to drop the event.       |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -187,7 +187,7 @@ const hawk = new HawkCatcher({
     beforeBreadcrumb: (breadcrumb, hint) => {
       // Filter or modify breadcrumbs before storing
       if (breadcrumb.category === 'fetch' && breadcrumb.data?.url?.includes('/sensitive')) {
-        return null; // Discard this breadcrumb
+        return false; // Discard this breadcrumb
       }
       return breadcrumb;
     }
@@ -203,7 +203,7 @@ const hawk = new HawkCatcher({
 | `trackFetch` | `boolean` | `true` | Automatically track `fetch()` and `XMLHttpRequest` calls as breadcrumbs. Captures request URL, method, status code, and response time. |
 | `trackNavigation` | `boolean` | `true` | Automatically track navigation events (History API: `pushState`, `replaceState`, `popstate`). Captures route changes. |
 | `trackClicks` | `boolean` | `true` | Automatically track UI click events. Captures element selector, coordinates, and other click metadata. |
-| `beforeBreadcrumb` | `function` | `undefined` | Hook called before each breadcrumb is stored. Receives `(breadcrumb, hint)` and can return modified breadcrumb, `null` to discard it, or the original breadcrumb. Useful for filtering sensitive data or PII. |
+| `beforeBreadcrumb` | `function` | `undefined` | Hook called before each breadcrumb is stored. Receives `(breadcrumb, hint)`. Return modified breadcrumb to keep it, `false` to discard. |
 
 ### Manual Breadcrumbs
 
