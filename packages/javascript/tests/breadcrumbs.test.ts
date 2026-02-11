@@ -117,83 +117,117 @@ describe('BreadcrumbManager', () => {
   });
 });
 
-/**
- * Single manager with a branching beforeBreadcrumb.
- * Routes by bc.message:
- *
- *  "modify"  → mutate message, return bc
- *  "drop"    → return false
- *  "invalid" → return undefined (no return)
- *  "secret"  → return false (category filter)
- *  default   → return bc as-is
- */
 describe('beforeBreadcrumb', () => {
-  let manager: BreadcrumbManager;
   let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    resetManager();
     warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    manager.clearBreadcrumbs();
     warnSpy.mockRestore();
   });
 
-  resetManager();
-  manager = BreadcrumbManager.getInstance();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  manager.init({
-    beforeBreadcrumb(bc) {
-      switch (bc.message) {
-        case 'modify':
-          bc.message = 'MODIFIED';
-
-          return bc;
-
-        case 'drop':
-        case 'secret':
-          return false;
-
-        case 'invalid':
-          return;
-
-        default:
-          return bc;
-      }
-    },
-  });
-
   it('should store modified breadcrumb when hook returns changed object', () => {
-    manager.addBreadcrumb({ type: 'default', message: 'modify', level: 'info' });
+    // Arrange
+    const m = BreadcrumbManager.getInstance();
 
-    expect(manager.getBreadcrumbs()[0].message).toBe('MODIFIED');
+    m.init({
+      beforeBreadcrumb(bc) {
+        bc.message = 'MODIFIED';
+
+        return bc;
+      },
+    });
+
+    // Act
+    m.addBreadcrumb({ type: 'default', message: 'original', level: 'info' });
+
+    // Assert
+    expect(m.getBreadcrumbs()[0].message).toBe('MODIFIED');
   });
 
-  it('should discard breadcrumb when hook returns false', () => {
-    manager.addBreadcrumb({ type: 'default', message: 'drop', level: 'info' });
+  it('should not store breadcrumb when hook returns false', () => {
+    // Arrange
+    const m = BreadcrumbManager.getInstance();
 
-    expect(manager.getBreadcrumbs()).toHaveLength(0);
+    m.init({
+      beforeBreadcrumb: () => false,
+    });
+
+    // Act
+    m.addBreadcrumb({ type: 'default', message: 'drop', level: 'info' });
+
+    // Assert
+    expect(m.getBreadcrumbs()).toHaveLength(0);
   });
 
-  it('should store original breadcrumb and warn when hook returns invalid value', () => {
-    manager.addBreadcrumb({ type: 'default', message: 'invalid', level: 'info' });
+  it.each([
+    { label: 'undefined', value: undefined },
+    { label: 'null', value: null },
+    { label: 'number (42)', value: 42 },
+    { label: 'string ("oops")', value: 'oops' },
+    { label: 'true', value: true },
+  ])('should store original breadcrumb and warn when hook returns $label', ({ value }) => {
+    // Arrange
+    const m = BreadcrumbManager.getInstance();
 
-    expect(manager.getBreadcrumbs()[0].message).toBe('invalid');
+    m.init({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      beforeBreadcrumb: () => value as any,
+    });
+
+    // Act
+    m.addBreadcrumb({ type: 'default', message: 'original', level: 'info' });
+
+    // Assert
+    expect(m.getBreadcrumbs()[0].message).toBe('original');
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('beforeBreadcrumb returned nothing'),
+      expect.stringContaining('Invalid beforeBreadcrumb value'),
       expect.anything(),
       expect.anything()
     );
   });
 
-  it('should filter breadcrumbs by category', () => {
-    manager.addBreadcrumb({ type: 'default', message: 'keep', level: 'info', category: 'public' });
-    manager.addBreadcrumb({ type: 'default', message: 'secret', level: 'info', category: 'secret' });
+  it('should store original breadcrumb and warn when hook deletes required field (message)', () => {
+    // Arrange
+    const m = BreadcrumbManager.getInstance();
 
-    const crumbs = manager.getBreadcrumbs();
+    m.init({
+      beforeBreadcrumb(bc) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (bc as any).message;
+
+        return bc;
+      },
+    });
+
+    // Act
+    m.addBreadcrumb({ type: 'default', message: 'keep-me', level: 'info' });
+
+    // Assert — fallback to original, message preserved
+    expect(m.getBreadcrumbs()[0].message).toBe('keep-me');
+  });
+
+  it('should filter breadcrumbs by category using hook', () => {
+    // Arrange
+    const m = BreadcrumbManager.getInstance();
+
+    m.init({
+      beforeBreadcrumb(bc) {
+        return bc.category === 'secret' ? false : bc;
+      },
+    });
+
+    // Act
+    m.addBreadcrumb({ type: 'default', message: 'public', level: 'info', category: 'public' });
+    m.addBreadcrumb({ type: 'default', message: 'secret', level: 'info', category: 'secret' });
+
+    // Assert
+    const crumbs = m.getBreadcrumbs();
 
     expect(crumbs).toHaveLength(1);
-    expect(crumbs[0].message).toBe('keep');
+    expect(crumbs[0].message).toBe('public');
   });
 });

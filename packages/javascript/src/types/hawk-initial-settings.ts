@@ -1,5 +1,6 @@
 import type { EventContext, AffectedUser } from '@hawk.so/types';
 import type { HawkJavaScriptEvent } from './event';
+import type { Transport } from './transport';
 import type { BreadcrumbsOptions } from '../addons/breadcrumbs';
 
 /**
@@ -91,4 +92,10 @@ export interface HawkInitialSettings {
    * @default enabled with default options
    */
   breadcrumbs?: false | BreadcrumbsOptions;
+
+  /**
+   * Custom transport for sending events.
+   * If not provided, default WebSocket transport is used.
+   */
+  transport?: Transport;
 }

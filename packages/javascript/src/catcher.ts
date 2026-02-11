@@ -2,7 +2,7 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './utils/log';
 import StackParser from './modules/stackParser';
-import type { CatcherMessage, HawkInitialSettings, BreadcrumbsAPI } from './types';
+import type { CatcherMessage, HawkInitialSettings, BreadcrumbsAPI, Transport } from './types';
 import { VueIntegration } from './integrations/vue';
 import { id } from './utils/id';
 import type {
@@ -82,9 +82,9 @@ export default class Catcher {
 
   /**
    * Transport for dialog between Catcher and Collector
-   * (WebSocket decorator)
+   * (WebSocket decorator by default, or custom via settings.transport)
    */
-  private readonly transport: Socket;
+  private readonly transport: Transport;
 
   /**
    * Module for parsing backtrace
@@ -150,7 +150,7 @@ export default class Catcher {
     /**
      * Init transport
      */
-    this.transport = new Socket({
+    this.transport = settings.transport ?? new Socket({
       collectorEndpoint: settings.collectorEndpoint || `wss://${this.getIntegrationId()}.k1.hawk.so:443/ws`,
       reconnectionAttempts: settings.reconnectionAttempts,
       reconnectionTimeout: settings.reconnectionTimeout,
@@ -438,6 +438,7 @@ export default class Catcher {
      * Filter sensitive data
      */
     if (typeof this.beforeSend === 'function') {
+      const original = structuredClone(payload);
       const result = this.beforeSend(payload);
 
       /**
@@ -457,9 +458,10 @@ export default class Catcher {
          * Anything else is invalid — warn and send original
          */
         log(
-          `Invalid beforeSend value: (${String(result)}). It should return event or false. Event is sent without changes.`,
+          `Invalid beforeSend value. It should return event or false. Event is sent without changes.`,
           'warn'
         );
+        payload = original;
       }
     }
 

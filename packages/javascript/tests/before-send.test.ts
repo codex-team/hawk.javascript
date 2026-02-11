@@ -1,81 +1,42 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { CatcherMessage } from '../src/types/catcher-message';
+import type { Transport } from '../src/types/transport';
 import type { HawkJavaScriptEvent } from '../src/types/event';
 import Catcher from '../src/catcher';
 
-/**
- * Mock Socket — replaces WebSocket transport with a simple spy.
- */
-const socketSendSpy = vi.fn<(msg: CatcherMessage) => Promise<void>>().mockResolvedValue(undefined);
-
-vi.mock('../src/modules/socket', () => ({
-  default: class FakeSocket {
-    send = socketSendSpy;
-    constructor() { /* noop */ }
-  },
-}));
-
-/**
- * Valid base64-encoded integration token (Socket is mocked — nothing is sent)
- */
 const TEST_TOKEN = 'eyJpbnRlZ3JhdGlvbklkIjoiOTU3MmQyOWQtNWJhZS00YmYyLTkwN2MtZDk5ZDg5MGIwOTVmIiwic2VjcmV0IjoiZTExODFiZWItMjdlMS00ZDViLWEwZmEtZmUwYTM1Mzg5OWMyIn0=';
-
-/**
- * Flush microtask queue so fire-and-forget async calls complete
- */
 const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
-/**
- * Extract payload from the last socket.send() call
- */
-function getSentPayload(): HawkJavaScriptEvent | null {
-  const calls = socketSendSpy.mock.calls;
+function createTransport() {
+  const sendSpy = vi.fn<(msg: CatcherMessage) => Promise<void>>().mockResolvedValue(undefined);
+  const transport: Transport = { send: sendSpy };
+
+  return { sendSpy, transport };
+}
+
+function getSentPayload(spy: ReturnType<typeof vi.fn>): HawkJavaScriptEvent | null {
+  const calls = spy.mock.calls;
 
   return calls.length ? calls[calls.length - 1][0].payload : null;
 }
 
 /**
- * Single Catcher instance. beforeSend routes by event.title:
- *
- *  "modify"  → mutate context, return event
- *  "drop"    → return false
- *  "invalid" → return undefined (no return)
- *  "optional"→ delete release, return event
- *  default   → return event as-is
+ * Shared Catcher config — no breadcrumbs, no global handlers, fake transport
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const hawk = new Catcher({
-  token: TEST_TOKEN,
-  disableGlobalErrorsHandling: true,
-  beforeSend(event) {
-    switch (event.title) {
-      case 'drop':
-        return false;
-
-      case 'modify':
-        event.context = { sanitized: true };
-
-        return event;
-
-      case 'invalid':
-        return;
-
-      case 'optional':
-        delete event.release;
-
-        return event;
-
-      default:
-        return event;
-    }
-  },
-});
+function createCatcher(transport: Transport, beforeSend: NonNullable<ConstructorParameters<typeof Catcher>[0] extends object ? ConstructorParameters<typeof Catcher>[0]['beforeSend'] : never>) {
+  return new Catcher({
+    token: TEST_TOKEN,
+    disableGlobalErrorsHandling: true,
+    breadcrumbs: false,
+    transport,
+    beforeSend,
+  });
+}
 
 describe('beforeSend', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    socketSendSpy.mockClear();
     warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
@@ -83,47 +44,116 @@ describe('beforeSend', () => {
     warnSpy.mockRestore();
   });
 
-  it('should send event as-is when returned unchanged', async () => {
-    hawk.send(new Error('pass-through'));
+  it('should send event as-is when beforeSend returns it unchanged', async () => {
+    // Arrange
+    const { sendSpy, transport } = createTransport();
+    const hawk = createCatcher(transport, (event) => event);
+
+    // Act
+    hawk.send(new Error('hello'));
     await flush();
 
-    expect(socketSendSpy).toHaveBeenCalledOnce();
-    expect(getSentPayload()!.title).toBe('pass-through');
+    // Assert
+    expect(sendSpy).toHaveBeenCalledOnce();
+    expect(getSentPayload(sendSpy)!.title).toBe('hello');
   });
 
-  it('should send modified event when hook mutates and returns it', async () => {
+  it('should send modified event when beforeSend mutates and returns it', async () => {
+    // Arrange
+    const { sendSpy, transport } = createTransport();
+    const hawk = createCatcher(transport, (event) => {
+      event.context = { sanitized: true };
+
+      return event;
+    });
+
+    // Act
     hawk.send(new Error('modify'));
     await flush();
 
-    expect(socketSendSpy).toHaveBeenCalledOnce();
-    expect(getSentPayload()!.context).toEqual({ sanitized: true });
+    // Assert
+    expect(sendSpy).toHaveBeenCalledOnce();
+    expect(getSentPayload(sendSpy)!.context).toEqual({ sanitized: true });
   });
 
-  it('should drop event when hook returns false', async () => {
+  it('should not send event when beforeSend returns false', async () => {
+    // Arrange
+    const { sendSpy, transport } = createTransport();
+    const hawk = createCatcher(transport, () => false);
+
+    // Act
     hawk.send(new Error('drop'));
     await flush();
 
-    expect(socketSendSpy).not.toHaveBeenCalled();
+    // Assert
+    expect(sendSpy).not.toHaveBeenCalled();
   });
 
-  it('should send original event and warn when hook returns invalid value', async () => {
+  it.each([
+    { label: 'undefined', value: undefined },
+    { label: 'null', value: null },
+    { label: 'number (42)', value: 42 },
+    { label: 'string ("oops")', value: 'oops' },
+    { label: 'true', value: true },
+  ])('should send original event and warn when beforeSend returns $label', async ({ value }) => {
+    // Arrange
+    const { sendSpy, transport } = createTransport();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const hawk = createCatcher(transport, () => value as any);
+
+    // Act
     hawk.send(new Error('invalid'));
     await flush();
 
-    expect(socketSendSpy).toHaveBeenCalledOnce();
-    expect(getSentPayload()!.title).toBe('invalid');
+    // Assert
+    expect(sendSpy).toHaveBeenCalledOnce();
+    expect(getSentPayload(sendSpy)!.title).toBe('invalid');
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Invalid beforeSend value:'),
+      expect.stringContaining('Invalid beforeSend value'),
+      expect.anything(),
+      expect.anything()
+    );
+  });
+
+  it('should send original event and warn when beforeSend deletes required field (title)', async () => {
+    // Arrange
+    const { sendSpy, transport } = createTransport();
+    const hawk = createCatcher(transport, (event) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (event as any).title;
+
+      return event;
+    });
+
+    // Act
+    hawk.send(new Error('required-field'));
+    await flush();
+
+    // Assert — fallback to original payload, title preserved
+    expect(sendSpy).toHaveBeenCalledOnce();
+    expect(getSentPayload(sendSpy)!.title).toBe('required-field');
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Invalid beforeSend value'),
       expect.anything(),
       expect.anything()
     );
   });
 
   it('should send event without deleted optional fields', async () => {
+    // Arrange
+    const { sendSpy, transport } = createTransport();
+    const hawk = createCatcher(transport, (event) => {
+      delete event.release;
+
+      return event;
+    });
+
+    // Act
     hawk.send(new Error('optional'));
     await flush();
 
-    expect(socketSendSpy).toHaveBeenCalledOnce();
-    expect(getSentPayload()!.release).toBeUndefined();
+    // Assert
+    expect(sendSpy).toHaveBeenCalledOnce();
+    expect(getSentPayload(sendSpy)!.release).toBeUndefined();
   });
 });

@@ -236,6 +236,7 @@ export class BreadcrumbManager {
      * Apply beforeBreadcrumb hook
      */
     if (this.options.beforeBreadcrumb) {
+      const original = structuredClone(bc);
       const result = this.options.beforeBreadcrumb(bc, hint);
 
       /**
@@ -246,18 +247,19 @@ export class BreadcrumbManager {
       }
 
       /**
-       * void/undefined/null — warn and keep original breadcrumb
+       * Valid breadcrumb → use it
        */
-      if (result === undefined || result === null) {
-        log('beforeBreadcrumb returned nothing, storing original breadcrumb.', 'warn');
-      } else if (isValidBreadcrumb(result)) {
+      if (isValidBreadcrumb(result)) {
         Object.assign(bc, result);
       } else {
+        /**
+         * Anything else is invalid — warn and restore original
+         */
         log(
-          'beforeBreadcrumb produced invalid breadcrumb (must be an object with numeric timestamp), storing original. '
-          + `Received: ${Object.prototype.toString.call(result)}`,
+          `Invalid beforeBreadcrumb value. It should return breadcrumb or false. Breadcrumb is stored without changes.`,
           'warn'
         );
+        Object.assign(bc, original);
       }
     }
 

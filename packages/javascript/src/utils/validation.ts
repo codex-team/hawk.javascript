@@ -73,12 +73,16 @@ export function isValidEventPayload(payload: unknown): payload is EventData<Java
 
 /**
  * Runtime check that value is a valid Breadcrumb-like object.
- * Must be a plain object with a numeric timestamp.
+ * Must be a plain object with a string message and numeric timestamp.
  *
  * @param breadcrumb - value to validate
  */
 export function isValidBreadcrumb(breadcrumb: unknown): breadcrumb is Breadcrumb {
   if (!isPlainObject(breadcrumb)) {
+    return false;
+  }
+
+  if (typeof breadcrumb.message !== 'string' || breadcrumb.message.trim() === '') {
     return false;
   }
 
