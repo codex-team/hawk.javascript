@@ -451,7 +451,7 @@ export default class Catcher {
        * If user returned nothing (void/undefined/null) — warn and keep original payload
        */
       if (result === undefined || result === null) {
-        log(`[Hawk] Invalid beforeSend value: (${String(result)}). It should return event or false. Event is sent without changes.`, 'warn');
+        log(`Invalid beforeSend value: (${String(result)}). It should return event or false. Event is sent without changes.`, 'warn');
       } else if (isValidEventPayload(result)) {
         payload = result;
       } else {
@@ -468,7 +468,7 @@ export default class Catcher {
         }
 
         log(
-          '[Hawk] beforeSend produced invalid payload (missing required fields), sending original. '
+          'beforeSend produced invalid payload (missing required fields), sending original. '
           + `Received: ${received}`,
           'warn'
         );

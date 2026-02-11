@@ -249,12 +249,12 @@ export class BreadcrumbManager {
        * void/undefined/null — warn and keep original breadcrumb
        */
       if (result === undefined || result === null) {
-        log('[Hawk] beforeBreadcrumb returned nothing, storing original breadcrumb.', 'warn');
+        log('beforeBreadcrumb returned nothing, storing original breadcrumb.', 'warn');
       } else if (isValidBreadcrumb(result)) {
         Object.assign(bc, result);
       } else {
         log(
-          '[Hawk] beforeBreadcrumb produced invalid breadcrumb (must be an object with numeric timestamp), storing original. '
+          'beforeBreadcrumb produced invalid breadcrumb (must be an object with numeric timestamp), storing original. '
           + `Received: ${Object.prototype.toString.call(result)}`,
           'warn'
         );
