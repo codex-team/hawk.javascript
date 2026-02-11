@@ -2,7 +2,7 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './utils/log';
 import StackParser from './modules/stackParser';
-import type { CatcherMessage, HawkInitialSettings, BreadcrumbsAPI } from './types';
+import type { CatcherMessage, HawkInitialSettings, BreadcrumbsAPI, Transport } from './types';
 import { VueIntegration } from './integrations/vue';
 import { id } from './utils/id';
 import type {
@@ -10,7 +10,7 @@ import type {
   EventContext,
   JavaScriptAddons,
   VueIntegrationAddons,
-  Json, EncodedIntegrationToken, DecodedIntegrationToken,
+  Json, EncodedIntegrationToken, DecodedIntegrationToken
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
@@ -18,7 +18,7 @@ import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
-import { validateUser, validateContext } from './utils/validation';
+import { validateUser, validateContext, isValidEventPayload } from './utils/validation';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -73,16 +73,18 @@ export default class Catcher {
   private context: EventContext | undefined;
 
   /**
-   * This Method allows developer to filter any data you don't want sending to Hawk
-   * If method returns false, event will not be sent
+   * This Method allows developer to filter any data you don't want sending to Hawk.
+   * - Return modified event — it will be sent instead of the original.
+   * - Return `false` — the event will be dropped entirely.
+   * - Any other value is invalid — the original event is sent as-is (a warning is logged).
    */
-  private readonly beforeSend: undefined | ((event: HawkJavaScriptEvent) => HawkJavaScriptEvent | false);
+  private readonly beforeSend: undefined | ((event: HawkJavaScriptEvent) => HawkJavaScriptEvent | false | void);
 
   /**
    * Transport for dialog between Catcher and Collector
-   * (WebSocket decorator)
+   * (WebSocket decorator by default, or custom via settings.transport)
    */
-  private readonly transport: Socket;
+  private readonly transport: Transport;
 
   /**
    * Module for parsing backtrace
@@ -148,7 +150,7 @@ export default class Catcher {
     /**
      * Init transport
      */
-    this.transport = new Socket({
+    this.transport = settings.transport ?? new Socket({
       collectorEndpoint: settings.collectorEndpoint || `wss://${this.getIntegrationId()}.k1.hawk.so:443/ws`,
       reconnectionAttempts: settings.reconnectionAttempts,
       reconnectionTimeout: settings.reconnectionTimeout,
@@ -436,12 +438,29 @@ export default class Catcher {
      * Filter sensitive data
      */
     if (typeof this.beforeSend === 'function') {
-      const beforeSendResult = this.beforeSend(payload);
+      const eventPayloadClone = structuredClone(payload);
+      const result = this.beforeSend(eventPayloadClone);
 
-      if (beforeSendResult === false) {
+      /**
+       * false → drop event
+       */
+      if (result === false) {
         throw new EventRejectedError('Event rejected by beforeSend method.');
+      }
+
+      /**
+       * Valid event payload → use it instead of original
+       */
+      if (isValidEventPayload(result)) {
+        payload = result as HawkJavaScriptEvent;
       } else {
-        payload = beforeSendResult;
+        /**
+         * Anything else is invalid — warn, payload stays untouched (hook only received a clone)
+         */
+        log(
+          'Invalid beforeSend value. It should return event or false. Event is sent without changes.',
+          'warn'
+        );
       }
     }
 

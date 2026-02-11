@@ -4,13 +4,14 @@
  *
  * @param element - HTML element to build selector from
  * @param maxDepth - Maximum recursion depth (default: 3)
- * @returns CSS selector string (e.g., "div#myId.class1.class2" or ".some-parent button")
+ * @returns {string} CSS selector string (e.g., "div#myId.class1.class2" or ".some-parent button")
  */
 export function buildElementSelector(element: HTMLElement, maxDepth: number = 3): string {
   let selector = element.tagName.toLowerCase();
 
   if (element.id) {
     selector += `#${element.id}`;
+
     return selector;
   }
 
@@ -23,7 +24,9 @@ export function buildElementSelector(element: HTMLElement, maxDepth: number = 3)
     const classNameStr = String(element.className);
 
     if (classNameStr) {
-      selector += `.${classNameStr.split(' ').filter(Boolean).join('.')}`;
+      selector += `.${classNameStr.split(' ').filter(Boolean)
+        .join('.')}`;
+
       return selector;
     }
   }

@@ -1,12 +1,13 @@
 import log from '../utils/log';
 import type { CatcherMessage } from '@/types';
+import type { Transport } from '../types/transport';
 
 /**
  * Custom WebSocket wrapper class
  *
  * @copyright CodeX
  */
-export default class Socket {
+export default class Socket implements Transport {
   /**
    * Socket connection endpoint
    */

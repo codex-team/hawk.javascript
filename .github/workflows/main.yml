@@ -16,10 +16,24 @@ jobs:
       - run: yarn install
       - run: yarn lint-test
 
-  build:
+  test:
     runs-on: ubuntu-latest
     env:
       CI_JOB_NUMBER: 2
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+      - run: corepack enable
+      - run: yarn install
+      - run: yarn workspace @hawk.so/javascript test
+
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CI_JOB_NUMBER: 3
     steps:
       - uses: actions/checkout@v1
         with:
