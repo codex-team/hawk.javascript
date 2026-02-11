@@ -438,7 +438,18 @@ export default class Catcher {
      * Filter sensitive data
      */
     if (typeof this.beforeSend === 'function') {
-      const eventPayloadClone = structuredClone(payload);
+      let eventPayloadClone: HawkJavaScriptEvent;
+
+      try {
+        eventPayloadClone = structuredClone(payload);
+      } catch {
+        /**
+         * structuredClone may fail on non-cloneable values (functions, DOM nodes, etc.)
+         * Fall back to passing the original — hook may mutate it, but at least reporting won't crash
+         */
+        eventPayloadClone = payload;
+      }
+
       const result = this.beforeSend(eventPayloadClone);
 
       /**

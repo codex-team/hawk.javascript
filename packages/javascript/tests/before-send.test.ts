@@ -142,6 +142,25 @@ describe('beforeSend', () => {
     );
   });
 
+  it('should still send event when structuredClone throws (non-cloneable payload)', async () => {
+    // Arrange
+    const { sendSpy, transport } = createTransport();
+    const hawk = createCatcher(transport, (event) => event);
+    const cloneSpy = vi.spyOn(globalThis, 'structuredClone').mockImplementation(() => {
+      throw new DOMException('could not be cloned', 'DataCloneError');
+    });
+
+    // Act
+    hawk.send(new Error('non-cloneable'));
+    await wait();
+
+    // Assert — event is still sent, reporting didn't crash
+    expect(sendSpy).toHaveBeenCalledOnce();
+    expect(getSentPayload(sendSpy)!.title).toBe('non-cloneable');
+
+    cloneSpy.mockRestore();
+  });
+
   it('should send event without deleted optional fields', async () => {
     // Arrange
     const { sendSpy, transport } = createTransport();
