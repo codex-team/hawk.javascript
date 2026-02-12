@@ -1,5 +1,5 @@
 import type { HawkStorage } from '@hawk.so/core';
-import log from '../utils/log.ts';
+import { log } from '@hawk.so/core';
 
 /**
  * {@link HawkStorage} implementation backed by the browser's {@linkcode localStorage}.

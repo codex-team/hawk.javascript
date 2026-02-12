@@ -1,9 +1,9 @@
 import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
-import log from './utils/log';
 import StackParser from './modules/stackParser';
 import type { CatcherMessage, HawkInitialSettings, BreadcrumbsAPI, Transport } from './types';
 import { VueIntegration } from './integrations/vue';
+import { id } from './utils/id';
 import type {
   AffectedUser,
   EventContext,
@@ -18,14 +18,21 @@ import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
 import { validateUser, validateContext, isValidEventPayload } from './utils/validation';
-import { HawkUserManager } from '@hawk.so/core';
+import { HawkUserManager, setLogger, isLoggerSet, log } from '@hawk.so/core';
 import { HawkLocalStorage } from './storages/hawk-local-storage';
-import { id } from './utils/id';
+import { createBrowserLogger } from "./logger/logger";
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
  */
 declare const VERSION: string;
+
+/**
+ * Registers a global logger instance if not already done.
+ */
+if (!isLoggerSet()) {
+  setLogger(createBrowserLogger(VERSION));
+}
 
 /**
  * Hawk JavaScript Catcher
