@@ -1,5 +1,5 @@
 import type { HawkStorage } from '@hawk.so/core';
-import log from '../utils/log.ts';
+import log from '../utils/log';
 
 /**
  * {@link HawkStorage} implementation backed by the browser's {@linkcode localStorage}.
@@ -11,6 +11,7 @@ export class HawkLocalStorage implements HawkStorage {
       return localStorage.getItem(key);
     } catch (e) {
       log('HawkLocalStorage: getItem failed', 'error', e);
+
       return null;
     }
   }

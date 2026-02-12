@@ -26,6 +26,7 @@ export default defineConfig(() => {
         fileName: 'hawk',
       },
       rollupOptions: {
+        external: ['@hawk.so/core'],
         plugins: [
           license({
             thirdParty: {
