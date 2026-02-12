@@ -4,7 +4,7 @@
 import type { Breadcrumb, BreadcrumbLevel, BreadcrumbType, Json, JsonNode } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
 import { buildElementSelector } from '../utils/selector';
-import log from '../utils/log';
+import { log } from '@hawk.so/core';
 import { isValidBreadcrumb } from '../utils/validation';
 
 /**

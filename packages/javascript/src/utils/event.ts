@@ -1,4 +1,4 @@
-import log from './log';
+import { log } from '@hawk.so/core';
 
 /**
  * Symbol to mark error as processed by Hawk
