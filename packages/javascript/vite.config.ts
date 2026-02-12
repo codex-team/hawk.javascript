@@ -37,8 +37,8 @@ export default defineConfig(() => {
                     return false;
                   }
 
-                  // Allow MIT and Apache-2.0 licenses.
-                  return ['MIT', 'Apache-2.0'].includes(dependency.license);
+                  // Allow MIT, Apache-2.0 and AGPL-3.0-only (own packages) licenses.
+                  return ['MIT', 'Apache-2.0', 'AGPL-3.0-only'].includes(dependency.license);
                 },
                 failOnUnlicensed: true,
                 failOnViolation: true,
