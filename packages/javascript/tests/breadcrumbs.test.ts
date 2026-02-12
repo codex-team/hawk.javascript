@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BreadcrumbManager } from '../src/addons/breadcrumbs';
 import type { Breadcrumb } from '@hawk.so/types';
+import * as core from '@hawk.so/core';
 
 function resetManager(): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -8,15 +9,15 @@ function resetManager(): void {
 }
 
 describe('BreadcrumbManager', () => {
-  let warnSpy: ReturnType<typeof vi.spyOn>;
+  let logSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     resetManager();
-    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    logSpy = vi.spyOn(core, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    warnSpy.mockRestore();
+    logSpy.mockRestore();
   });
 
   it('should return empty array when no breadcrumbs added', () => {
@@ -118,15 +119,15 @@ describe('BreadcrumbManager', () => {
 });
 
 describe('beforeBreadcrumb', () => {
-  let warnSpy: ReturnType<typeof vi.spyOn>;
+  let logSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     resetManager();
-    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    logSpy = vi.spyOn(core, 'log').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    warnSpy.mockRestore();
+    logSpy.mockRestore();
   });
 
   it('should store modified breadcrumb when hook returns changed object', () => {
@@ -183,10 +184,9 @@ describe('beforeBreadcrumb', () => {
 
     // Assert
     expect(m.getBreadcrumbs()[0].message).toBe('original');
-    expect(warnSpy).toHaveBeenCalledWith(
+    expect(logSpy).toHaveBeenCalledWith(
       expect.stringContaining('Invalid beforeBreadcrumb value'),
-      expect.anything(),
-      expect.anything()
+      'warn'
     );
   });
 

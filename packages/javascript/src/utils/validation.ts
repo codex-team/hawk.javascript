@@ -1,4 +1,4 @@
-import log from './log';
+import { log } from '@hawk.so/core';
 import type { AffectedUser, Breadcrumb, EventContext, EventData, JavaScriptAddons } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
 
