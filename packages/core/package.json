@@ -17,7 +17,10 @@
     }
   },
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint --fix \"src/**/*.{js,ts}\""
   },
   "repository": {
     "type": "git",
@@ -33,8 +36,13 @@
     "url": "https://github.com/codex-team/hawk.javascript/issues"
   },
   "homepage": "https://github.com/codex-team/hawk.javascript#readme",
+  "dependencies": {
+    "@hawk.so/types": "0.5.8"
+  },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
     "vite": "^7.3.1",
-    "vite-plugin-dts": "^4.2.4"
+    "vite-plugin-dts": "^4.2.4",
+    "vitest": "^4.0.18"
   }
 }
