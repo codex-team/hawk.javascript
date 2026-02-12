@@ -587,8 +587,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@hawk.so/core@workspace:packages/core"
   dependencies:
+    "@hawk.so/types": "npm:0.5.8"
+    "@vitest/coverage-v8": "npm:^4.0.18"
     vite: "npm:^7.3.1"
     vite-plugin-dts: "npm:^4.2.4"
+    vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
 

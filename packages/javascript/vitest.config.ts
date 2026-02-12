@@ -14,5 +14,6 @@ export default defineConfig({
     alias: {
       '@/types': path.resolve(__dirname, './src/types'),
     },
+    conditions: ['source'],
   },
 });
