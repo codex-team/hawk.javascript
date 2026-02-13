@@ -1,7 +1,7 @@
 {
   "name": "@hawk.so/core",
   "version": "1.0.0",
-  "description": "Base implementation for all Hawk.so SDKs",
+  "description": "Core error tracking logic for Hawk.so catchers",
   "files": [
     "dist"
   ],
@@ -34,6 +34,7 @@
   },
   "homepage": "https://github.com/codex-team/hawk.javascript#readme",
   "devDependencies": {
+    "@hawk.so/types": "0.5.8",
     "vite": "^7.3.1",
     "vite-plugin-dts": "^4.2.4"
   }
