@@ -130,17 +130,17 @@ export default class Socket implements Transport {
   }
 
   /**
-   * Setup window event listeners
-   */
-  private setupListeners(): void {
-    window.addEventListener('pagehide', this.pageHideHandler, { capture: true });
-  }
-
-  /**
    * Remove window event listeners
    */
   public destroyListeners(): void {
     window.removeEventListener('pagehide', this.pageHideHandler, { capture: true });
+  }
+
+  /**
+   * Setup window event listeners
+   */
+  private setupListeners(): void {
+    window.addEventListener('pagehide', this.pageHideHandler, { capture: true });
   }
 
   /**
@@ -149,6 +149,7 @@ export default class Socket implements Transport {
   private init(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.ws = new WebSocket(this.url);
+
       /**
        * New message handler
        */
