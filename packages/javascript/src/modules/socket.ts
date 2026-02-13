@@ -55,6 +55,11 @@ export default class Socket implements Transport {
   private reconnectionAttempts: number;
 
   /**
+   * Page hide event handler reference (for removal)
+   */
+  private pageHideHandler: () => void;
+
+  /**
    * Creates new Socket instance. Setup initial socket params.
    *
    * @param options — constructor options for catcher initialization
@@ -76,6 +81,11 @@ export default class Socket implements Transport {
     this.onOpen = onOpen;
     this.reconnectionTimeout = reconnectionTimeout;
     this.reconnectionAttempts = reconnectionAttempts;
+
+    this.pageHideHandler = () => {
+      log('Page entering bfcache, closing WebSocket', 'info');
+      this.close();
+    };
 
     this.eventsQueue = [];
     this.ws = null;
@@ -120,12 +130,25 @@ export default class Socket implements Transport {
   }
 
   /**
-   * Create new WebSocket connection and setup event listeners
+   * Setup window event listeners
+   */
+  private setupListeners(): void {
+    window.addEventListener('pagehide', this.pageHideHandler, { capture: true });
+  }
+
+  /**
+   * Remove window event listeners
+   */
+  public destroyListeners(): void {
+    window.removeEventListener('pagehide', this.pageHideHandler, { capture: true });
+  }
+
+  /**
+   * Create new WebSocket connection and setup socket event listeners
    */
   private init(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.ws = new WebSocket(this.url);
-
       /**
        * New message handler
        */
@@ -139,6 +162,8 @@ export default class Socket implements Transport {
        * @param event - websocket event on closing
        */
       this.ws.onclose = (event: CloseEvent): void => {
+        this.destroyListeners();
+
         if (typeof this.onClose === 'function') {
           this.onClose(event);
         }
@@ -154,6 +179,8 @@ export default class Socket implements Transport {
       };
 
       this.ws.onopen = (event: Event): void => {
+        this.setupListeners();
+
         if (typeof this.onOpen === 'function') {
           this.onOpen(event);
         }
@@ -161,6 +188,16 @@ export default class Socket implements Transport {
         resolve();
       };
     });
+  }
+
+  /**
+   * Closes socket, it can be restored with init() later
+   */
+  private close(): void {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
   }
 
   /**
