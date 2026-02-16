@@ -83,7 +83,6 @@ export default class Socket implements Transport {
     this.reconnectionAttempts = reconnectionAttempts;
 
     this.pageHideHandler = () => {
-      log('Page entering bfcache, closing WebSocket', 'info');
       this.close();
     };
 
@@ -130,17 +129,17 @@ export default class Socket implements Transport {
   }
 
   /**
-   * Remove window event listeners
-   */
-  public destroyListeners(): void {
-    window.removeEventListener('pagehide', this.pageHideHandler, { capture: true });
-  }
-
-  /**
    * Setup window event listeners
    */
   private setupListeners(): void {
     window.addEventListener('pagehide', this.pageHideHandler, { capture: true });
+  }
+
+  /**
+   * Remove window event listeners
+   */
+  private destroyListeners(): void {
+    window.removeEventListener('pagehide', this.pageHideHandler, { capture: true });
   }
 
   /**
@@ -192,7 +191,7 @@ export default class Socket implements Transport {
   }
 
   /**
-   * Closes socket, it can be restored with init() later
+   * Closes socket connection
    */
   private close(): void {
     if (this.ws) {
