@@ -1,0 +1,40 @@
+{
+  "name": "@hawk.so/browser",
+  "version": "1.0.0",
+  "description": "Hawk.so JavaScript SDK for browsers",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/hawk-browser.umd.js",
+  "module": "./dist/hawk-browser.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/hawk-browser.mjs",
+      "require": "./dist/hawk-browser.umd.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codex-team/hawk.javascript.git",
+    "directory": "packages/browser"
+  },
+  "author": {
+    "name": "CodeX",
+    "email": "team@codex.so"
+  },
+  "license": "AGPL-3.0-only",
+  "bugs": {
+    "url": "https://github.com/codex-team/hawk.javascript/issues"
+  },
+  "homepage": "https://github.com/codex-team/hawk.javascript#readme",
+  "devDependencies": {
+    "vite": "^7.3.1",
+    "vite-plugin-dts": "^4.2.4"
+  }
+}
