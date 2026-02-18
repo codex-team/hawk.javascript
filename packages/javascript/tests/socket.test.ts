@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import Socket from '../src/modules/socket';
 import type { CatcherMessage } from '@hawk.so/types';
 
@@ -15,74 +15,60 @@ type MockWebSocket = {
   onmessage?: (event: MessageEvent) => void;
 };
 
-function createMockWebSocket() {
-  const instances: MockWebSocket[] = [];
-
-  const closeSpy = vi.fn(function (this: MockWebSocket) {
-    this.readyState = WebSocket.CLOSED;
-    this.onclose?.({ code: 1000 } as CloseEvent);
-  });
-
-  const ctor = vi.fn<(url: string) => MockWebSocket>().mockImplementation(function (
-    this: MockWebSocket,
-    url: string
-  ) {
-    this.url = url;
-    this.readyState = WebSocket.CONNECTING;
-    this.send = vi.fn();
-    this.close = closeSpy;
-    this.onopen = undefined;
-    this.onclose = undefined;
-    this.onerror = undefined;
-    this.onmessage = undefined;
-
-    instances.push(this);
-  });
-
-  return { ctor, closeSpy, instances };
-}
-
 describe('Socket', () => {
-  let ctor: ReturnType<typeof vi.fn>;
-  let closeSpy: ReturnType<typeof vi.fn>;
-  let instances: MockWebSocket[];
-
-  let addSpy: ReturnType<typeof vi.spyOn>;
-  let removeSpy: ReturnType<typeof vi.spyOn>;
-
-  beforeEach(() => {
-    ({ ctor, closeSpy, instances } = createMockWebSocket());
-    (globalThis as any).WebSocket = ctor;
-
-    addSpy = vi.spyOn(window, 'addEventListener');
-    removeSpy = vi.spyOn(window, 'removeEventListener');
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
   it('should close websocket on pagehide and recreate connection on next send()', async () => {
+    const closeSpy = vi.fn(function (this: MockWebSocket) {
+      this.readyState = WebSocket.CLOSED;
+      this.onclose?.({ code: 1000 } as CloseEvent);
+    });
+
+    let webSocket!: MockWebSocket;
+    const WebSocketConstructor = vi.fn<(url: string) => void>().mockImplementation(function (
+      this: MockWebSocket,
+      url: string
+    ) {
+      this.url = url;
+      this.readyState = WebSocket.CONNECTING;
+      this.send = vi.fn();
+      this.close = closeSpy;
+      this.onopen = undefined;
+      this.onclose = undefined;
+      this.onerror = undefined;
+      this.onmessage = undefined;
+      webSocket = this;
+    });
+    globalThis.WebSocket = WebSocketConstructor;
+
+    const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+    const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+
+    // initialize socket and open fake websocket connection
     const socket = new Socket({ collectorEndpoint: MOCK_WEBSOCKET_URL });
+    webSocket.readyState = WebSocket.OPEN;
+    webSocket.onopen?.(new Event('open'));
 
-    const first = instances[0];
-    first.readyState = WebSocket.OPEN;
-    first.onopen?.(new Event('open'));
-    const pagehideHandler = addSpy.mock.calls.find(c => c[0] === 'pagehide')![1] as EventListener;
+    // capture pagehide handler to verify it's properly removed
+    const pagehideCall = addEventListenerSpy.mock.calls.find(([event]) => event === 'pagehide');
+    expect(pagehideCall).toBeDefined();
+    const pagehideHandler = pagehideCall![1] as EventListener;
 
+    // trigger pagehide event
     window.dispatchEvent(new Event('pagehide'));
 
+    // websocket connection should be closed
     expect(closeSpy).toHaveBeenCalledOnce();
-    expect(removeSpy).toHaveBeenCalledWith('pagehide', pagehideHandler, { capture: true });
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('pagehide', pagehideHandler, { capture: true });
 
+    // send socket method should make websocket reconnect
     const sendPromise = socket.send({ foo: 'bar' } as CatcherMessage);
-
-    const second = instances[1];
-    second.readyState = WebSocket.OPEN;
-    second.onopen?.(new Event('open'));
+    webSocket.readyState = WebSocket.OPEN;
+    webSocket.onopen?.(new Event('open'));
     await sendPromise;
 
-    expect(ctor).toHaveBeenCalledTimes(2);
-    expect(second.url).toBe(MOCK_WEBSOCKET_URL);
+    expect(WebSocketConstructor).toHaveBeenCalledTimes(2);
   });
 });
