@@ -61,7 +61,7 @@ export class WebVitalsTracker {
     const formatted = this.formatValue(name, value);
     const thresholds = METRIC_THRESHOLDS[name];
     const thresholdNote = thresholds
-      ? `, threshold: ${this.formatValue(name, thresholds[1])}`
+      ? `, poor > ${this.formatValue(name, thresholds[1])}`
       : '';
 
     this.callbacks.sendEvent(
@@ -73,7 +73,7 @@ export class WebVitalsTracker {
         delta,
         id,
         navigationType,
-        url: location.href,
+        url: location.origin + location.pathname,
       },
     );
   }
