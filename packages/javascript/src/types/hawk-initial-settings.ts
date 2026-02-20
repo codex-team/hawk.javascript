@@ -98,4 +98,13 @@ export interface HawkInitialSettings {
    * If not provided, default WebSocket transport is used.
    */
   transport?: Transport;
+
+  /**
+   * Enable Web Vitals tracking.
+   * Sends a Hawk event when a Core Web Vital metric is rated 'poor'.
+   * Requires `web-vitals` package: `npm i web-vitals`
+   *
+   * @default false
+   */
+  webVitals?: boolean;
 }

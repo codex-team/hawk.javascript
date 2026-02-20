@@ -18,6 +18,7 @@ import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
+import { WebVitalsTracker } from './addons/webVitals';
 import { validateUser, validateContext, isValidEventPayload } from './utils/validation';
 
 /**
@@ -175,6 +176,15 @@ export default class Catcher {
       this.breadcrumbManager.init(settings.breadcrumbs ?? {});
     } else {
       this.breadcrumbManager = null;
+    }
+
+    /**
+     * Initialize Web Vitals tracking
+     */
+    if (settings.webVitals) {
+      new WebVitalsTracker({
+        sendEvent: (message, context) => this.send(message, context),
+      });
     }
 
     /**
