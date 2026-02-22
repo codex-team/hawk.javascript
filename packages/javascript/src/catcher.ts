@@ -18,7 +18,8 @@ import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
-import { WebVitalsTracker } from './addons/webVitals';
+import { checkWebVitals } from './utils/webVitals';
+import type { WebVitalsReport } from './utils/webVitals';
 import { validateUser, validateContext, isValidEventPayload } from './utils/validation';
 
 /**
@@ -179,11 +180,14 @@ export default class Catcher {
     }
 
     /**
-     * Initialize Web Vitals tracking
+     * Initialize Web Vitals check
      */
     if (settings.webVitals) {
-      new WebVitalsTracker({
-        sendEvent: (message, context) => this.send(message, context),
+      checkWebVitals((report: WebVitalsReport) => {
+        this.send(`Poor Web Vitals: ${report.summary}`, {
+          webVitals: report.metrics as unknown as Json,
+          poorCount: report.poorCount,
+        });
       });
     }
 
