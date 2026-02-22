@@ -90,6 +90,7 @@ Initialization settings:
 | `consoleTracking`             | boolean                                                   | optional     | Initialize console logs tracking                                                    |
 | `breadcrumbs`                 | false or BreadcrumbsOptions object                        | optional     | Configure breadcrumbs tracking (see below)                                          |
 | `beforeSend`                  | function(event) => event \| false \| void                 | optional     | Filter data before sending. Return modified event, `false` to drop the event.       |
+| `webVitals`                   | boolean                                                   | optional     | Enable Web Vitals monitoring. Sends a single event when any metric is "poor".       |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -231,6 +232,27 @@ const breadcrumbs = hawk.breadcrumbs.get();
 // Clear all breadcrumbs
 hawk.breadcrumbs.clear();
 ```
+
+## Web Vitals
+
+Monitor [Core Web Vitals](https://web.dev/vitals/) performance metrics. When enabled, the catcher collects all five metrics (LCP, FCP, TTFB, INP, CLS) and sends a single Hawk event if at least one is rated "poor".
+
+First, install the `web-vitals` peer dependency:
+
+```shell
+npm install web-vitals
+```
+
+Then enable it in the catcher settings:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  webVitals: true,
+});
+```
+
+The event context will include all collected metrics with their values and ratings, giving you a full performance snapshot of the page load.
 
 ## Source maps consuming
 

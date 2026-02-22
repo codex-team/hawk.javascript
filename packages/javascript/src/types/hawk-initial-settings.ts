@@ -100,8 +100,9 @@ export interface HawkInitialSettings {
   transport?: Transport;
 
   /**
-   * Enable Web Vitals tracking.
-   * Sends a Hawk event when a Core Web Vital metric is rated 'poor'.
+   * Enable Web Vitals monitoring.
+   * Collects all Core Web Vitals (LCP, FCP, TTFB, INP, CLS) and sends
+   * a single Hawk event if at least one metric is rated "poor".
    * Requires `web-vitals` package: `npm i web-vitals`
    *
    * @default false
