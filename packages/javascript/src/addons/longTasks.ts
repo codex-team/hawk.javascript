@@ -177,7 +177,10 @@ function observeLongTasks(onEntry: (e: LongTaskEvent) => void): void {
           ['containerName', attr?.containerName],
         ]);
 
-        onEntry({ title: `Long Task ${durationMs} ms`, context: { details } });
+        onEntry({
+          title: `Long Task ${durationMs} ms`,
+          context: { mainThreadBlocking: details },
+        });
       }
     }).observe({ type: 'longtask', buffered: true });
   } catch { /* unsupported — ignore */ }
@@ -239,7 +242,7 @@ function observeLoAF(onEntry: (e: LongTaskEvent) => void): void {
 
         onEntry({
           title: `Long Animation Frame ${durationMs} ms${blockingNote}${culpritNote}`,
-          context: { details },
+          context: { mainThreadBlocking: details },
         });
       }
     }).observe({ type: 'long-animation-frame', buffered: true });
