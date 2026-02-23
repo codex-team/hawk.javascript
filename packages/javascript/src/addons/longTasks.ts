@@ -63,6 +63,11 @@ interface LoAFEntry extends PerformanceEntry {
   }[];
 }
 
+/**
+ * Check whether the browser supports a given PerformanceObserver entry type
+ *
+ * @param type - entry type name, e.g. `'longtask'` or `'long-animation-frame'`
+ */
 function supportsEntryType(type: string): boolean {
   try {
     return (
@@ -75,6 +80,11 @@ function supportsEntryType(type: string): boolean {
   }
 }
 
+/**
+ * Subscribe to Long Tasks (>50 ms) via PerformanceObserver
+ *
+ * @param onEntry - callback fired for each detected long task
+ */
 function observeLongTasks(onEntry: (e: LongTaskEvent) => void): void {
   if (!supportsEntryType('longtask')) {
     log('Long Tasks API is not supported in this browser', 'info');
@@ -100,6 +110,12 @@ function observeLongTasks(onEntry: (e: LongTaskEvent) => void): void {
   } catch { /* unsupported — ignore */ }
 }
 
+/**
+ * Subscribe to Long Animation Frames (>50 ms) via PerformanceObserver.
+ * Provides script-level attribution (Chrome 123+, Edge 123+).
+ *
+ * @param onEntry - callback fired for each detected LoAF entry
+ */
 function observeLoAF(onEntry: (e: LongTaskEvent) => void): void {
   if (!supportsEntryType('long-animation-frame')) {
     log('Long Animation Frames (LoAF) API is not supported in this browser', 'info');
