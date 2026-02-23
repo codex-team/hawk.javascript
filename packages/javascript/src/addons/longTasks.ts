@@ -8,7 +8,7 @@
  * Sets up observers and fires `onEntry` per detected entry — fire and forget.
  */
 
-import type { EventContext, Json } from '@hawk.so/types';
+import type { EventContext, Json, JsonNode } from '@hawk.so/types';
 import log from '../utils/log';
 
 /**
@@ -50,17 +50,66 @@ export interface LongTaskEvent {
 }
 
 /**
+ * Long Task attribution (container-level info only)
+ */
+interface LongTaskAttribution {
+  name: string;
+  entryType: string;
+  containerType?: string;
+  containerSrc?: string;
+  containerId?: string;
+  containerName?: string;
+}
+
+/**
+ * Long Task entry with attribution
+ */
+interface LongTaskPerformanceEntry extends PerformanceEntry {
+  attribution?: LongTaskAttribution[];
+}
+
+/**
+ * LoAF script timing (PerformanceScriptTiming)
+ */
+interface LoAFScript {
+  name: string;
+  invoker?: string;
+  invokerType?: string;
+  sourceURL?: string;
+  sourceFunctionName?: string;
+  sourceCharPosition?: number;
+  duration: number;
+  startTime: number;
+  executionStart?: number;
+  forcedStyleAndLayoutDuration?: number;
+  pauseDuration?: number;
+  windowAttribution?: string;
+}
+
+/**
  * LoAF entry shape (spec is still evolving)
  */
 interface LoAFEntry extends PerformanceEntry {
   blockingDuration?: number;
-  scripts?: {
-    name: string;
-    invoker?: string;
-    invokerType?: string;
-    sourceURL?: string;
-    duration: number;
-  }[];
+  renderStart?: number;
+  styleAndLayoutStart?: number;
+  firstUIEventTimestamp?: number;
+  scripts?: LoAFScript[];
+}
+
+/**
+ * Build a Json object from entries, dropping null / undefined / empty-string values
+ */
+function compact(entries: [string, JsonNode | null | undefined][]): Json {
+  const result: Json = {};
+
+  for (const [key, value] of entries) {
+    if (value != null && value !== '') {
+      result[key] = value;
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -81,6 +130,24 @@ function supportsEntryType(type: string): boolean {
 }
 
 /**
+ * Serialize a LoAF script entry into a Json-compatible object
+ */
+function serializeScript(s: LoAFScript): Json {
+  return compact([
+    ['invoker', s.invoker],
+    ['invokerType', s.invokerType],
+    ['sourceURL', s.sourceURL],
+    ['sourceFunctionName', s.sourceFunctionName],
+    ['sourceCharPosition', s.sourceCharPosition != null && s.sourceCharPosition >= 0 ? s.sourceCharPosition : null],
+    ['duration', Math.round(s.duration)],
+    ['executionStart', s.executionStart != null ? Math.round(s.executionStart) : null],
+    ['forcedStyleAndLayoutDuration', s.forcedStyleAndLayoutDuration ? Math.round(s.forcedStyleAndLayoutDuration) : null],
+    ['pauseDuration', s.pauseDuration ? Math.round(s.pauseDuration) : null],
+    ['windowAttribution', s.windowAttribution],
+  ]);
+}
+
+/**
  * Subscribe to Long Tasks (>50 ms) via PerformanceObserver
  *
  * @param onEntry - callback fired for each detected long task
@@ -95,16 +162,22 @@ function observeLongTasks(onEntry: (e: LongTaskEvent) => void): void {
   try {
     new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        const durationMs = Math.round(entry.duration);
+        const task = entry as LongTaskPerformanceEntry;
+        const durationMs = Math.round(task.duration);
+        const attr = task.attribution?.[0];
 
-        onEntry({
-          title: `Long Task ${durationMs} ms`,
-          context: {
-            kind: 'longtask',
-            startTime: Math.round(entry.startTime),
-            durationMs,
-          },
-        });
+        const details = compact([
+          ['kind', 'longtask'],
+          ['entryName', task.name],
+          ['startTime', Math.round(task.startTime)],
+          ['durationMs', durationMs],
+          ['containerType', attr?.containerType],
+          ['containerSrc', attr?.containerSrc],
+          ['containerId', attr?.containerId],
+          ['containerName', attr?.containerName],
+        ]);
+
+        onEntry({ title: `Long Task ${durationMs} ms`, context: { details } });
       }
     }).observe({ type: 'longtask', buffered: true });
   } catch { /* unsupported — ignore */ }
@@ -130,43 +203,43 @@ function observeLoAF(onEntry: (e: LongTaskEvent) => void): void {
         const durationMs = Math.round(loaf.duration);
         const blockingDurationMs = loaf.blockingDuration != null
           ? Math.round(loaf.blockingDuration)
-          : undefined;
+          : null;
 
-        const scripts = loaf.scripts
-          ?.filter((s) => s.sourceURL)
-          .reduce<Record<string, Json>>((acc, s, i) => {
-            acc[`script_${i}`] = {
-              name: s.name,
-              invoker: s.invoker ?? '',
-              invokerType: s.invokerType ?? '',
-              sourceURL: s.sourceURL ?? '',
-              duration: Math.round(s.duration),
-            };
+        const relevantScripts = loaf.scripts?.filter((s) => s.sourceURL || s.sourceFunctionName);
+
+        const scripts = relevantScripts?.length
+          ? relevantScripts.reduce<Json>((acc, s, i) => {
+            acc[`script_${i}`] = serializeScript(s);
 
             return acc;
-          }, {});
+          }, {})
+          : null;
+
+        const details = compact([
+          ['kind', 'loaf'],
+          ['startTime', Math.round(loaf.startTime)],
+          ['durationMs', durationMs],
+          ['blockingDurationMs', blockingDurationMs],
+          ['renderStart', loaf.renderStart ? Math.round(loaf.renderStart) : null],
+          ['styleAndLayoutStart', loaf.styleAndLayoutStart ? Math.round(loaf.styleAndLayoutStart) : null],
+          ['firstUIEventTimestamp', loaf.firstUIEventTimestamp ? Math.round(loaf.firstUIEventTimestamp) : null],
+          ['scripts', scripts],
+        ]);
 
         const blockingNote = blockingDurationMs != null
           ? ` (blocking ${blockingDurationMs} ms)`
           : '';
 
-        const context: EventContext = {
-          kind: 'loaf',
-          startTime: Math.round(loaf.startTime),
-          durationMs,
-        };
-
-        if (blockingDurationMs != null) {
-          context.blockingDurationMs = blockingDurationMs;
-        }
-
-        if (scripts && Object.keys(scripts).length > 0) {
-          context.scripts = scripts;
-        }
+        const topScript = relevantScripts?.[0];
+        const culprit = topScript?.sourceFunctionName
+          || topScript?.invoker
+          || topScript?.sourceURL
+          || '';
+        const culpritNote = culprit ? ` — ${culprit}` : '';
 
         onEntry({
-          title: `Long Animation Frame ${durationMs} ms${blockingNote}`,
-          context,
+          title: `Long Animation Frame ${durationMs} ms${blockingNote}${culpritNote}`,
+          context: { details },
         });
       }
     }).observe({ type: 'long-animation-frame', buffered: true });
