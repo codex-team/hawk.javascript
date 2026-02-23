@@ -105,6 +105,9 @@ export interface HawkInitialSettings {
    * Observes Long Tasks and Long Animation Frames (LoAF) via PerformanceObserver
    * and sends a dedicated event when blocking is detected.
    *
+   * This is an umbrella option by design: Long Tasks and LoAF describe the same
+   * domain (main-thread blocking), so both toggles live under one config key.
+   *
    * Chromium-only (Chrome, Edge). On unsupported browsers the observers
    * simply won't start — no errors, no overhead.
    *

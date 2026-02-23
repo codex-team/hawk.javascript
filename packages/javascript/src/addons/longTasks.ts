@@ -8,8 +8,9 @@
  * Sets up observers and fires `onEntry` per detected entry — fire and forget.
  */
 
-import type { EventContext, Json, JsonNode } from '@hawk.so/types';
-import log from '../utils/log';
+import type { EventContext, Json } from '@hawk.so/types';
+import type { LoAFEntry, LoAFScript, LongTaskPerformanceEntry } from '../types/long-tasks';
+import { compactJson } from '../utils/compactJson';
 
 /**
  * Configuration for main-thread blocking detection
@@ -50,69 +51,6 @@ export interface LongTaskEvent {
 }
 
 /**
- * Long Task attribution (container-level info only)
- */
-interface LongTaskAttribution {
-  name: string;
-  entryType: string;
-  containerType?: string;
-  containerSrc?: string;
-  containerId?: string;
-  containerName?: string;
-}
-
-/**
- * Long Task entry with attribution
- */
-interface LongTaskPerformanceEntry extends PerformanceEntry {
-  attribution?: LongTaskAttribution[];
-}
-
-/**
- * LoAF script timing (PerformanceScriptTiming)
- */
-interface LoAFScript {
-  name: string;
-  invoker?: string;
-  invokerType?: string;
-  sourceURL?: string;
-  sourceFunctionName?: string;
-  sourceCharPosition?: number;
-  duration: number;
-  startTime: number;
-  executionStart?: number;
-  forcedStyleAndLayoutDuration?: number;
-  pauseDuration?: number;
-  windowAttribution?: string;
-}
-
-/**
- * LoAF entry shape (spec is still evolving)
- */
-interface LoAFEntry extends PerformanceEntry {
-  blockingDuration?: number;
-  renderStart?: number;
-  styleAndLayoutStart?: number;
-  firstUIEventTimestamp?: number;
-  scripts?: LoAFScript[];
-}
-
-/**
- * Build a Json object from entries, dropping null / undefined / empty-string values
- */
-function compact(entries: [string, JsonNode | null | undefined][]): Json {
-  const result: Json = {};
-
-  for (const [key, value] of entries) {
-    if (value != null && value !== '') {
-      result[key] = value;
-    }
-  }
-
-  return result;
-}
-
-/**
  * Check whether the browser supports a given PerformanceObserver entry type
  *
  * @param type - entry type name, e.g. `'longtask'` or `'long-animation-frame'`
@@ -133,7 +71,7 @@ function supportsEntryType(type: string): boolean {
  * Serialize a LoAF script entry into a Json-compatible object
  */
 function serializeScript(s: LoAFScript): Json {
-  return compact([
+  return compactJson([
     ['invoker', s.invoker],
     ['invokerType', s.invokerType],
     ['sourceURL', s.sourceURL],
@@ -148,14 +86,20 @@ function serializeScript(s: LoAFScript): Json {
 }
 
 /**
+ * Return LoAF scripts that contain useful source attribution for debugging.
+ * We keep only scripts that have at least function name or source URL.
+ */
+function getRelevantLoAFScripts(loaf: LoAFEntry): LoAFScript[] {
+  return loaf.scripts?.filter((s) => s.sourceURL || s.sourceFunctionName) ?? [];
+}
+
+/**
  * Subscribe to Long Tasks (>50 ms) via PerformanceObserver
  *
  * @param onEntry - callback fired for each detected long task
  */
 function observeLongTasks(onEntry: (e: LongTaskEvent) => void): void {
   if (!supportsEntryType('longtask')) {
-    log('Long Tasks API is not supported in this browser', 'info');
-
     return;
   }
 
@@ -166,7 +110,7 @@ function observeLongTasks(onEntry: (e: LongTaskEvent) => void): void {
         const durationMs = Math.round(task.duration);
         const attr = task.attribution?.[0];
 
-        const details = compact([
+        const details = compactJson([
           ['kind', 'longtask'],
           ['entryName', task.name],
           ['startTime', Math.round(task.startTime)],
@@ -194,8 +138,6 @@ function observeLongTasks(onEntry: (e: LongTaskEvent) => void): void {
  */
 function observeLoAF(onEntry: (e: LongTaskEvent) => void): void {
   if (!supportsEntryType('long-animation-frame')) {
-    log('Long Animation Frames (LoAF) API is not supported in this browser', 'info');
-
     return;
   }
 
@@ -204,13 +146,13 @@ function observeLoAF(onEntry: (e: LongTaskEvent) => void): void {
       for (const entry of list.getEntries()) {
         const loaf = entry as LoAFEntry;
         const durationMs = Math.round(loaf.duration);
-        const blockingDurationMs = loaf.blockingDuration !== null
+        const blockingDurationMs = loaf.blockingDuration !== undefined && loaf.blockingDuration !== null
           ? Math.round(loaf.blockingDuration)
           : null;
 
-        const relevantScripts = loaf.scripts?.filter((s) => s.sourceURL || s.sourceFunctionName);
+        const relevantScripts = getRelevantLoAFScripts(loaf);
 
-        const scripts = relevantScripts?.length
+        const scripts = relevantScripts.length
           ? relevantScripts.reduce<Json>((acc, s, i) => {
             acc[`script_${i}`] = serializeScript(s);
 
@@ -218,7 +160,7 @@ function observeLoAF(onEntry: (e: LongTaskEvent) => void): void {
           }, {})
           : null;
 
-        const details = compact([
+        const details = compactJson([
           ['kind', 'loaf'],
           ['startTime', Math.round(loaf.startTime)],
           ['durationMs', durationMs],
@@ -233,7 +175,7 @@ function observeLoAF(onEntry: (e: LongTaskEvent) => void): void {
           ? ` (blocking ${blockingDurationMs} ms)`
           : '';
 
-        const topScript = relevantScripts?.[0];
+        const topScript = relevantScripts[0];
         const culprit = topScript?.sourceFunctionName
           || topScript?.invoker
           || topScript?.sourceURL
