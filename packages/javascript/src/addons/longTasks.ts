@@ -229,7 +229,7 @@ function observeLoAF(onEntry: (e: LongTaskEvent) => void): void {
           ['scripts', scripts],
         ]);
 
-        const blockingNote = blockingDurationMs != null
+        const blockingNote = blockingDurationMs !== null
           ? ` (blocking ${blockingDurationMs} ms)`
           : '';
 
