@@ -223,9 +223,9 @@ function observeLoAF(onEntry: (e: LongTaskEvent) => void): void {
           ['startTime', Math.round(loaf.startTime)],
           ['durationMs', durationMs],
           ['blockingDurationMs', blockingDurationMs],
-          ['renderStart', loaf.renderStart ? Math.round(loaf.renderStart) : null],
-          ['styleAndLayoutStart', loaf.styleAndLayoutStart ? Math.round(loaf.styleAndLayoutStart) : null],
-          ['firstUIEventTimestamp', loaf.firstUIEventTimestamp ? Math.round(loaf.firstUIEventTimestamp) : null],
+          ['renderStart', loaf.renderStart != null ? Math.round(loaf.renderStart) : null],
+          ['styleAndLayoutStart', loaf.styleAndLayoutStart != null ? Math.round(loaf.styleAndLayoutStart) : null],
+          ['firstUIEventTimestamp', loaf.firstUIEventTimestamp != null ? Math.round(loaf.firstUIEventTimestamp) : null],
           ['scripts', scripts],
         ]);
 
