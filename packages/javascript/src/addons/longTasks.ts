@@ -141,8 +141,8 @@ function serializeScript(s: LoAFScript): Json {
     ['sourceCharPosition', s.sourceCharPosition != null && s.sourceCharPosition >= 0 ? s.sourceCharPosition : null],
     ['duration', Math.round(s.duration)],
     ['executionStart', s.executionStart != null ? Math.round(s.executionStart) : null],
-    ['forcedStyleAndLayoutDuration', s.forcedStyleAndLayoutDuration ? Math.round(s.forcedStyleAndLayoutDuration) : null],
-    ['pauseDuration', s.pauseDuration ? Math.round(s.pauseDuration) : null],
+    ['forcedStyleAndLayoutDuration', s.forcedStyleAndLayoutDuration != null ? Math.round(s.forcedStyleAndLayoutDuration) : null],
+    ['pauseDuration', s.pauseDuration != null ? Math.round(s.pauseDuration) : null],
     ['windowAttribution', s.windowAttribution],
   ]);
 }
