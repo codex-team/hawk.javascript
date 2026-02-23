@@ -18,6 +18,7 @@ import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
+import { observeMainThreadBlocking } from './addons/longTasks';
 import { validateUser, validateContext, isValidEventPayload } from './utils/validation';
 
 /**
@@ -175,6 +176,17 @@ export default class Catcher {
       this.breadcrumbManager.init(settings.breadcrumbs ?? {});
     } else {
       this.breadcrumbManager = null;
+    }
+
+    /**
+     * Main-thread blocking detection (Long Tasks + LoAF)
+     * Chromium-only — on unsupported browsers this is a no-op
+     */
+    if (settings.mainThreadBlocking !== false) {
+      observeMainThreadBlocking(
+        settings.mainThreadBlocking || {},
+        (entry) => this.send(entry.title, entry.context)
+      );
     }
 
     /**

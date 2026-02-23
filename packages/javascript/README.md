@@ -11,6 +11,7 @@ Error tracking for JavaScript/TypeScript applications.
 - 🛡️ Sensitive data filtering
 - 🌟 Source maps consuming
 - 💬 Console logs tracking
+- 🧊 Main-thread blocking detection (Chromium-only)
 - <img src="https://cdn.svglogos.dev/logos/vue.svg" width="16" height="16"> &nbsp;Vue support
 - <img src="https://cdn.svglogos.dev/logos/react.svg" width="16" height="16">  &nbsp;React support
 
@@ -90,6 +91,7 @@ Initialization settings:
 | `consoleTracking`             | boolean                                                   | optional     | Initialize console logs tracking                                                    |
 | `breadcrumbs`                 | false or BreadcrumbsOptions object                        | optional     | Configure breadcrumbs tracking (see below)                                          |
 | `beforeSend`                  | function(event) => event \| false \| void                 | optional     | Filter data before sending. Return modified event, `false` to drop the event.       |
+| `mainThreadBlocking`          | false or MainThreadBlockingOptions object                 | optional     | Main-thread blocking detection (see below)                                          |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -231,6 +233,49 @@ const breadcrumbs = hawk.breadcrumbs.get();
 // Clear all breadcrumbs
 hawk.breadcrumbs.clear();
 ```
+
+## Main-Thread Blocking Detection
+
+> **Chromium-only** (Chrome, Edge). On unsupported browsers the feature is silently skipped — no errors, no overhead.
+
+Hawk can detect tasks that block the browser's main thread for too long and send them as dedicated events. Two complementary APIs are used under the hood:
+
+- **Long Tasks API** — reports any task taking longer than 50 ms.
+- **Long Animation Frames (LoAF)** — reports frames taking longer than 50 ms with richer script attribution (Chrome 123+, Edge 123+).
+
+Both are enabled by default. When a blocking entry is detected, Hawk immediately sends a separate event with details in the context (duration, blocking time, scripts involved, etc.).
+
+### Disabling
+
+Disable the feature entirely:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  mainThreadBlocking: false
+});
+```
+
+### Selective Configuration
+
+Enable only one of the two observers:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  mainThreadBlocking: {
+    longTasks: true,            // Long Tasks API (default: true)
+    longAnimationFrames: false  // LoAF (default: true)
+  }
+});
+```
+
+### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `longTasks` | `boolean` | `true` | Observe Long Tasks (tasks blocking the main thread for >50 ms). |
+| `longAnimationFrames` | `boolean` | `true` | Observe Long Animation Frames — provides script-level attribution for slow frames. Requires Chrome 123+ / Edge 123+. |
 
 ## Source maps consuming
 

@@ -2,6 +2,7 @@ import type { EventContext, AffectedUser } from '@hawk.so/types';
 import type { HawkJavaScriptEvent } from './event';
 import type { Transport } from './transport';
 import type { BreadcrumbsOptions } from '../addons/breadcrumbs';
+import type { MainThreadBlockingOptions } from '../addons/longTasks';
 
 /**
  * JS Catcher initial settings
@@ -98,4 +99,19 @@ export interface HawkInitialSettings {
    * If not provided, default WebSocket transport is used.
    */
   transport?: Transport;
+
+  /**
+   * Main-thread blocking detection.
+   * Observes Long Tasks and Long Animation Frames (LoAF) via PerformanceObserver
+   * and sends a dedicated event when blocking is detected.
+   *
+   * Chromium-only (Chrome, Edge). On unsupported browsers the observers
+   * simply won't start — no errors, no overhead.
+   *
+   * Pass `false` to disable entirely.
+   * Pass an options object to toggle individual observers.
+   *
+   * @default enabled with default options (both longTasks and longAnimationFrames on)
+   */
+  mainThreadBlocking?: false | MainThreadBlockingOptions;
 }
