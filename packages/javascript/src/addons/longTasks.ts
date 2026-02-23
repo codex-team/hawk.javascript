@@ -204,7 +204,7 @@ function observeLoAF(onEntry: (e: LongTaskEvent) => void): void {
       for (const entry of list.getEntries()) {
         const loaf = entry as LoAFEntry;
         const durationMs = Math.round(loaf.duration);
-        const blockingDurationMs = loaf.blockingDuration != null
+        const blockingDurationMs = loaf.blockingDuration !== null
           ? Math.round(loaf.blockingDuration)
           : null;
 
