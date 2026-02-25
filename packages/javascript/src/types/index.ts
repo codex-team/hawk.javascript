@@ -10,7 +10,7 @@ import type {
   LoAFEntry,
   WebVitalMetric,
   WebVitalRating,
-  WebVitalsReport,
+  WebVitalsReport
 } from './issues';
 import type { Transport } from './transport';
 import type { HawkJavaScriptEvent } from './event';

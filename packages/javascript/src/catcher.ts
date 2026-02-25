@@ -191,27 +191,6 @@ export default class Catcher {
   }
 
   /**
-   * Configure issues-related features:
-   * - global errors handling
-   * - performance issue detectors (Long Tasks / LoAF)
-   */
-  private configureIssues(settings: HawkInitialSettings): void {
-    const issues = settings.issues ?? {};
-    const shouldHandleErrors = issues.errors ?? !settings.disableGlobalErrorsHandling;
-    const shouldDetectPerformanceIssues = issues.longTasks !== false
-      || issues.longAnimationFrames !== false
-      || issues.webVitals === true;
-
-    if (shouldHandleErrors) {
-      this.initGlobalHandlers();
-
-      if (shouldDetectPerformanceIssues) {
-        this.issuesMonitor.init(issues, (entry) => this.send(entry.title, entry.context));
-      }
-    }
-  }
-
-  /**
    * Generates user if no one provided via HawkCatcher settings
    * After generating, stores user for feature requests
    */
@@ -335,6 +314,29 @@ export default class Catcher {
     }
 
     this.context = context;
+  }
+
+  /**
+   * Configure issues-related features:
+   * - global errors handling
+   * - performance issue detectors (Long Tasks / LoAF)
+   *
+   * @param settings
+   */
+  private configureIssues(settings: HawkInitialSettings): void {
+    const issues = settings.issues ?? {};
+    const shouldHandleErrors = issues.errors ?? !settings.disableGlobalErrorsHandling;
+    const shouldDetectPerformanceIssues = issues.longTasks !== false
+      || issues.longAnimationFrames !== false
+      || issues.webVitals === true;
+
+    if (shouldHandleErrors) {
+      this.initGlobalHandlers();
+
+      if (shouldDetectPerformanceIssues) {
+        this.issuesMonitor.init(issues, (entry) => this.send(entry.title, entry.context));
+      }
+    }
   }
 
   /**

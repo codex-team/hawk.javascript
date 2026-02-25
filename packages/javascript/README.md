@@ -255,6 +255,7 @@ Freeze detectors use two complementary APIs:
 
 Both freeze detectors are enabled by default. If one API is unsupported, the other still works.
 Each detected freeze is reported immediately with detailed context (duration, blocking time, scripts involved, etc.).
+`thresholdMs` is the max allowed duration budget. Hawk emits an issue when measured duration is equal to or greater than this value. Values below `50ms` are clamped to `50ms`.
 
 ### Web Vitals (Aggregated)
 
@@ -306,8 +307,8 @@ const hawk = new HawkCatcher({
 |--------|------|---------|-------------|
 | `errors` | `boolean` | `true` | Enable global errors handling (`window.onerror` and `unhandledrejection`). |
 | `webVitals` | `boolean` | `false` | Collect all Core Web Vitals and send one issue event when at least one metric is rated `poor`. Requires optional `web-vitals` dependency. |
-| `longTasks` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 100 }` | Detect long tasks and emit issue events when duration is greater than threshold. |
-| `longAnimationFrames` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 500 }` | Detect LoAF events and emit issue events when duration is greater than threshold. Requires Chrome 123+ / Edge 123+. |
+| `longTasks` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 100 }` | Detect long tasks and emit issue events when duration is equal to or greater than the max allowed duration (`thresholdMs`, minimum effective value is `50ms`). |
+| `longAnimationFrames` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 500 }` | Detect LoAF events and emit issue events when duration is equal to or greater than the max allowed duration (`thresholdMs`, minimum effective value is `50ms`). Requires Chrome 123+ / Edge 123+. |
 
 ## Source maps consuming
 

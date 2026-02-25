@@ -5,7 +5,8 @@ import type { EventContext } from '@hawk.so/types';
  */
 export interface IssueThresholdOptions {
   /**
-   * Minimum duration (ms) required to emit an issue event.
+   * Max allowed duration (ms). Emit issue when entry duration is >= this value.
+   * Values below 50ms are clamped to 50ms.
    */
   thresholdMs?: number;
 }

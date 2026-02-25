@@ -587,9 +587,11 @@ __metadata:
     vite-plugin-dts: "npm:^4.2.4"
     vitest: "npm:^4.0.18"
     vue: "npm:^2"
-    web-vitals: "npm:^5.1.0"
   peerDependencies:
-    web-vitals: ^5.1.0
+    web-vitals: ^4.0.0 || ^5.0.0
+  peerDependenciesMeta:
+    web-vitals:
+      optional: true
   languageName: unknown
   linkType: soft
 
@@ -6193,13 +6195,6 @@ __metadata:
   dependencies:
     xml-name-validator: "npm:^5.0.0"
   checksum: 10c0/8712774c1aeb62dec22928bf1cdfd11426c2c9383a1a63f2bcae18db87ca574165a0fbe96b312b73652149167ac6c7f4cf5409f2eb101d9c805efe0e4bae798b
-  languageName: node
-  linkType: hard
-
-"web-vitals@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "web-vitals@npm:5.1.0"
-  checksum: 10c0/1af22ddbe2836ba880fcb492cfba24c3349f4760ebb5e92f38324ea67bca3c4dbb9c86f1a32af4795b6115cdaf98b90000cf3a7402bffef6e8c503f0d1b2e706
   languageName: node
   linkType: hard
 

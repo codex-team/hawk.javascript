@@ -7,13 +7,14 @@ import type {
   LongTaskPerformanceEntry,
   WebVitalMetric,
   WebVitalRating,
-  WebVitalsReport,
+  WebVitalsReport
 } from '../types/issues';
 import { compactJson } from '../utils/compactJson';
 import log from '../utils/log';
 
 const DEFAULT_LONG_TASK_THRESHOLD_MS = 100;
 const DEFAULT_LOAF_THRESHOLD_MS = 500;
+const MIN_ISSUE_THRESHOLD_MS = 50;
 
 const METRIC_THRESHOLDS: Record<string, [good: number, poor: number]> = {
   LCP: [2500, 4000],
@@ -38,6 +39,9 @@ export class IssuesMonitor {
 
   /**
    * Initialize selected issue detectors.
+   *
+   * @param options detectors config
+   * @param onIssue issue callback
    */
   public init(options: IssuesOptions, onIssue: (event: IssueEvent) => void): void {
     if (options.longTasks !== false) {
@@ -70,6 +74,11 @@ export class IssuesMonitor {
     this.loafObserver = null;
   }
 
+  /**
+   *
+   * @param thresholdMs max allowed duration
+   * @param onIssue issue callback
+   */
   private observeLongTasks(thresholdMs: number, onIssue: (event: IssueEvent) => void): void {
     if (!supportsEntryType('longtask')) {
       return;
@@ -108,12 +117,18 @@ export class IssuesMonitor {
         }
       });
 
-      this.longTaskObserver.observe({ type: 'longtask', buffered: true });
+      this.longTaskObserver.observe({ type: 'longtask',
+        buffered: true });
     } catch {
       this.longTaskObserver = null;
     }
   }
 
+  /**
+   *
+   * @param thresholdMs max allowed duration
+   * @param onIssue issue callback
+   */
   private observeLoAF(thresholdMs: number, onIssue: (event: IssueEvent) => void): void {
     if (!supportsEntryType('long-animation-frame')) {
       return;
@@ -175,12 +190,17 @@ export class IssuesMonitor {
         }
       });
 
-      this.loafObserver.observe({ type: 'long-animation-frame', buffered: true });
+      this.loafObserver.observe({ type: 'long-animation-frame',
+        buffered: true });
     } catch {
       this.loafObserver = null;
     }
   }
 
+  /**
+   *
+   * @param onIssue issue callback
+   */
   private observeWebVitals(onIssue: (event: IssueEvent) => void): void {
     void import('web-vitals').then(({ onCLS, onINP, onLCP, onFCP, onTTFB }) => {
       const collected: WebVitalMetric[] = [];
@@ -255,6 +275,10 @@ export class IssuesMonitor {
   }
 }
 
+/**
+ *
+ * @param type performance entry type
+ */
 function supportsEntryType(type: string): boolean {
   try {
     return (
@@ -267,18 +291,32 @@ function supportsEntryType(type: string): boolean {
   }
 }
 
+/**
+ *
+ * @param value custom threshold
+ * @param fallback default threshold
+ */
 function resolveThreshold(value: number | undefined, fallback: number): number {
   if (typeof value !== 'number' || Number.isNaN(value)) {
-    return fallback;
+    return Math.max(MIN_ISSUE_THRESHOLD_MS, fallback);
   }
 
-  return Math.max(0, Math.round(value));
+  return Math.max(MIN_ISSUE_THRESHOLD_MS, Math.round(value));
 }
 
+/**
+ *
+ * @param name metric name
+ * @param value metric value
+ */
 function formatValue(name: string, value: number): string {
   return name === 'CLS' ? value.toFixed(3) : `${Math.round(value)}ms`;
 }
 
+/**
+ *
+ * @param script loaf script entry
+ */
 function serializeScript(script: LoAFScript): Json {
   return compactJson([
     ['invoker', script.invoker],
@@ -294,6 +332,10 @@ function serializeScript(script: LoAFScript): Json {
   ]);
 }
 
+/**
+ *
+ * @param report aggregated vitals report
+ */
 function serializeWebVitalsReport(report: WebVitalsReport): Json {
   const metrics = Object.entries(report.metrics).reduce<Json>((acc, [name, metric]) => {
     acc[name] = compactJson([

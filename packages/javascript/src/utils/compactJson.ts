@@ -5,6 +5,8 @@ import type { Json, JsonNode } from '@hawk.so/types';
  * Drops `null`, `undefined`, and empty strings.
  *
  * Useful for compact event payload construction without repetitive `if` chains.
+ *
+ * @param entries
  */
 export function compactJson(entries: [string, JsonNode | null | undefined][]): Json {
   const result: Json = {};
