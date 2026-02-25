@@ -86,12 +86,12 @@ Initialization settings:
 | `user`                        | {id: string, name?: string, image?: string, url?: string} | optional     | Current authenticated user                                                          |
 | `context`                     | object                                                    | optional     | Any data you want to pass with every message. Has limitation of length.             |
 | `vue`                         | Vue constructor                                           | optional     | Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application) |
-| `disableGlobalErrorsHandling` | boolean                                                   | optional     | Do not initialize global errors handling                                            |
+| `disableGlobalErrorsHandling` | boolean                                                   | optional     | Deprecated. Use `issues.errors: false` instead.                                     |
 | `disableVueErrorHandler`      | boolean                                                   | optional     | Do not initialize Vue errors handling                                               |
 | `consoleTracking`             | boolean                                                   | optional     | Initialize console logs tracking                                                    |
 | `breadcrumbs`                 | false or BreadcrumbsOptions object                        | optional     | Configure breadcrumbs tracking (see below)                                          |
 | `beforeSend`                  | function(event) => event \| false \| void                 | optional     | Filter data before sending. Return modified event, `false` to drop the event.       |
-| `mainThreadBlocking`          | false or MainThreadBlockingOptions object                 | optional     | Main-thread blocking detection (see below)                                          |
+| `issues`                      | IssuesOptions object                                      | optional     | Issues config: `errors`, `webVitals`, `longTasks.thresholdMs`, `longAnimationFrames.thresholdMs` |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -234,38 +234,68 @@ const breadcrumbs = hawk.breadcrumbs.get();
 hawk.breadcrumbs.clear();
 ```
 
-## Main-Thread Blocking Detection
+## Issues Detection
 
-> **Chromium-only** (Chrome, Edge). On unsupported browsers the feature is silently skipped — no errors, no overhead.
+`issues` is an umbrella option for problems detected by the catcher.
+Browser support depends on the specific detector:
+- `errors` — works in all supported browsers
+- `webVitals` — via `web-vitals` package
+- `longTasks` / `longAnimationFrames` — Chromium-only (`long-animation-frame` requires Chrome/Edge 123+)
 
-Hawk can detect tasks that block the browser's main thread for too long and send them as dedicated events. Two complementary APIs are used under the hood:
+It currently includes three groups:
+
+- `issues.errors` — global runtime errors handling
+- `issues.webVitals` — aggregated Core Web Vitals report
+- `issues.longTasks` and `issues.longAnimationFrames` — freeze-related detectors
+
+Freeze detectors use two complementary APIs:
 
 - **Long Tasks API** — reports any task taking longer than 50 ms.
 - **Long Animation Frames (LoAF)** — reports frames taking longer than 50 ms with richer script attribution (Chrome 123+, Edge 123+).
 
-Both are enabled by default. When a blocking entry is detected, Hawk immediately sends a separate event with details in the context (duration, blocking time, scripts involved, etc.).
+Both freeze detectors are enabled by default. If one API is unsupported, the other still works.
+Each detected freeze is reported immediately with detailed context (duration, blocking time, scripts involved, etc.).
+
+### Web Vitals (Aggregated)
+
+When `issues.webVitals` is enabled, Hawk collects all Core Web Vitals (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) and sends a single issue event when at least one metric is rated `poor`.
+
+The event context contains all metrics with:
+- `value`
+- `rating`
+- `delta`
+
+`web-vitals` is an optional peer dependency and is loaded only when `issues.webVitals: true`.
 
 ### Disabling
 
-Disable the feature entirely:
+Disable global errors handling:
 
 ```js
 const hawk = new HawkCatcher({
   token: 'INTEGRATION_TOKEN',
-  mainThreadBlocking: false
+  issues: {
+    errors: false
+  }
 });
 ```
 
 ### Selective Configuration
 
-Enable only one of the two observers:
+Configure all issue detectors:
 
 ```js
 const hawk = new HawkCatcher({
   token: 'INTEGRATION_TOKEN',
-  mainThreadBlocking: {
-    longTasks: true,            // Long Tasks API (default: true)
-    longAnimationFrames: false  // LoAF (default: true)
+  issues: {
+    errors: true,
+    webVitals: true,
+    longTasks: {
+      thresholdMs: 100
+    },
+    longAnimationFrames: {
+      thresholdMs: 500
+    }
   }
 });
 ```
@@ -274,8 +304,10 @@ const hawk = new HawkCatcher({
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `longTasks` | `boolean` | `true` | Observe Long Tasks (tasks blocking the main thread for >50 ms). |
-| `longAnimationFrames` | `boolean` | `true` | Observe Long Animation Frames — provides script-level attribution for slow frames. Requires Chrome 123+ / Edge 123+. |
+| `errors` | `boolean` | `true` | Enable global errors handling (`window.onerror` and `unhandledrejection`). |
+| `webVitals` | `boolean` | `false` | Collect all Core Web Vitals and send one issue event when at least one metric is rated `poor`. Requires optional `web-vitals` dependency. |
+| `longTasks` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 100 }` | Detect long tasks and emit issue events when duration is greater than threshold. |
+| `longAnimationFrames` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 500 }` | Detect LoAF events and emit issue events when duration is greater than threshold. Requires Chrome 123+ / Edge 123+. |
 
 ## Source maps consuming
 

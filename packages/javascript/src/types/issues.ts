@@ -1,3 +1,44 @@
+import type { EventContext } from '@hawk.so/types';
+
+/**
+ * Per-issue threshold configuration.
+ */
+export interface IssueThresholdOptions {
+  /**
+   * Minimum duration (ms) required to emit an issue event.
+   */
+  thresholdMs?: number;
+}
+
+/**
+ * Issues configuration.
+ */
+export interface IssuesOptions {
+  /**
+   * Long Tasks options. Set `false` to disable.
+   */
+  longTasks?: false | IssueThresholdOptions;
+
+  /**
+   * Long Animation Frames options. Set `false` to disable.
+   */
+  longAnimationFrames?: false | IssueThresholdOptions;
+
+  /**
+   * Enable automatic global errors handling.
+   *
+   * @default true
+   */
+  errors?: boolean;
+
+  /**
+   * Enable aggregated Web Vitals monitoring.
+   *
+   * @default false
+   */
+  webVitals?: boolean;
+}
+
 /**
  * Long Task attribution information from Performance API.
  * Describes the container associated with the long task.
@@ -69,4 +110,43 @@ export interface LoAFEntry extends PerformanceEntry {
   firstUIEventTimestamp?: number;
   /** Script timing records for the frame */
   scripts?: LoAFScript[];
+}
+
+/**
+ * Web Vitals rating level.
+ */
+export type WebVitalRating = 'good' | 'needs-improvement' | 'poor';
+
+/**
+ * Single Web Vital metric.
+ */
+export interface WebVitalMetric {
+  /** Metric name (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) */
+  name: string;
+  /** Current metric value */
+  value: number;
+  /** Computed rating for the metric */
+  rating: WebVitalRating;
+  /** Delta from the previous reported value */
+  delta: number;
+}
+
+/**
+ * Aggregated Web Vitals report.
+ */
+export interface WebVitalsReport {
+  /** Human-readable summary of poor metrics */
+  summary: string;
+  /** Number of poor metrics in this report */
+  poorCount: number;
+  /** Full metrics map by metric name */
+  metrics: Record<string, WebVitalMetric>;
+}
+
+/**
+ * Payload sent by issues monitor to the catcher.
+ */
+export interface IssueEvent {
+  title: string;
+  context: EventContext;
 }

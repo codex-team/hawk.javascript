@@ -41,6 +41,14 @@
   "dependencies": {
     "error-stack-parser": "^2.1.4"
   },
+  "peerDependencies": {
+    "web-vitals": "^4.0.0 || ^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "web-vitals": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@hawk.so/types": "0.5.8",
     "jsdom": "^28.0.0",

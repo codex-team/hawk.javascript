@@ -18,7 +18,7 @@ import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
-import { observeMainThreadBlocking } from './addons/longTasks';
+import { IssuesMonitor } from './addons/issues';
 import { validateUser, validateContext, isValidEventPayload } from './utils/validation';
 
 /**
@@ -113,6 +113,11 @@ export default class Catcher {
   private readonly breadcrumbManager: BreadcrumbManager | null;
 
   /**
+   * Issues monitor instance
+   */
+  private readonly issuesMonitor = new IssuesMonitor();
+
+  /**
    * Catcher constructor
    *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
@@ -178,26 +183,31 @@ export default class Catcher {
       this.breadcrumbManager = null;
     }
 
-    /**
-     * Main-thread blocking detection (Long Tasks + LoAF)
-     * Chromium-only — on unsupported browsers this is a no-op
-     */
-    if (settings.mainThreadBlocking !== false) {
-      observeMainThreadBlocking(
-        settings.mainThreadBlocking || {},
-        (entry) => this.send(entry.title, entry.context)
-      );
-    }
-
-    /**
-     * Set global handlers
-     */
-    if (!settings.disableGlobalErrorsHandling) {
-      this.initGlobalHandlers();
-    }
+    this.configureIssues(settings);
 
     if (settings.vue) {
       this.connectVue(settings.vue);
+    }
+  }
+
+  /**
+   * Configure issues-related features:
+   * - global errors handling
+   * - performance issue detectors (Long Tasks / LoAF)
+   */
+  private configureIssues(settings: HawkInitialSettings): void {
+    const issues = settings.issues ?? {};
+    const shouldHandleErrors = issues.errors ?? !settings.disableGlobalErrorsHandling;
+    const shouldDetectPerformanceIssues = issues.longTasks !== false
+      || issues.longAnimationFrames !== false
+      || issues.webVitals === true;
+
+    if (shouldHandleErrors) {
+      this.initGlobalHandlers();
+
+      if (shouldDetectPerformanceIssues) {
+        this.issuesMonitor.init(issues, (entry) => this.send(entry.title, entry.context));
+      }
     }
   }
 

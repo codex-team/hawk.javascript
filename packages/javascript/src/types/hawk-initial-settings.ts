@@ -2,7 +2,7 @@ import type { EventContext, AffectedUser } from '@hawk.so/types';
 import type { HawkJavaScriptEvent } from './event';
 import type { Transport } from './transport';
 import type { BreadcrumbsOptions } from '../addons/breadcrumbs';
-import type { MainThreadBlockingOptions } from '../addons/longTasks';
+import type { IssuesOptions } from './issues';
 
 /**
  * JS Catcher initial settings
@@ -62,6 +62,8 @@ export interface HawkInitialSettings {
   /**
    * Do not initialize global errors handling
    * This options still allow you send events manually
+   *
+   * @deprecated Use `issues.errors` instead.
    */
   disableGlobalErrorsHandling?: boolean;
 
@@ -101,20 +103,8 @@ export interface HawkInitialSettings {
   transport?: Transport;
 
   /**
-   * Main-thread blocking detection.
-   * Observes Long Tasks and Long Animation Frames (LoAF) via PerformanceObserver
-   * and sends a dedicated event when blocking is detected.
-   *
-   * This is an umbrella option by design: Long Tasks and LoAF describe the same
-   * domain (main-thread blocking), so both toggles live under one config key.
-   *
-   * Chromium-only (Chrome, Edge). On unsupported browsers the observers
-   * simply won't start — no errors, no overhead.
-   *
-   * Pass `false` to disable entirely.
-   * Pass an options object to toggle individual observers.
-   *
-   * @default enabled with default options (both longTasks and longAnimationFrames on)
+   * Issues configuration:
+   * `errors`, `webVitals`, `longTasks`, `longAnimationFrames`.
    */
-  mainThreadBlocking?: false | MainThreadBlockingOptions;
+  issues?: IssuesOptions;
 }
