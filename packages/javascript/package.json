@@ -21,6 +21,7 @@
     "build": "vite build",
     "stats": "size-limit > stats.txt",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "lint": "eslint --fix \"src/**/*.{js,ts}\""
   },
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@hawk.so/types": "0.5.8",
+    "@vitest/coverage-v8": "^4.0.18",
     "jsdom": "^28.0.0",
     "vite": "^7.3.1",
     "vite-plugin-dts": "^4.2.4",
