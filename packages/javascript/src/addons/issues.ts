@@ -12,9 +12,10 @@ import type {
 import { compactJson } from '../utils/compactJson';
 import log from '../utils/log';
 
-const DEFAULT_LONG_TASK_THRESHOLD_MS = 100;
-const DEFAULT_LOAF_THRESHOLD_MS = 500;
+const DEFAULT_LONG_TASK_THRESHOLD_MS = 70;
+const DEFAULT_LOAF_THRESHOLD_MS = 200;
 const MIN_ISSUE_THRESHOLD_MS = 50;
+const WEB_VITALS_REPORT_TIMEOUT_MS = 10000;
 
 const METRIC_THRESHOLDS: Record<string, [good: number, poor: number]> = {
   LCP: [2500, 4000],
@@ -35,6 +36,8 @@ const TOTAL_WEB_VITALS = 5;
 export class IssuesMonitor {
   private longTaskObserver: PerformanceObserver | null = null;
   private loafObserver: PerformanceObserver | null = null;
+  private webVitalsCleanup: (() => void) | null = null;
+  private isInitialized = false;
   private destroyed = false;
 
   /**
@@ -44,6 +47,13 @@ export class IssuesMonitor {
    * @param onIssue issue callback
    */
   public init(options: IssuesOptions, onIssue: (event: IssueEvent) => void): void {
+    if (this.isInitialized) {
+      return;
+    }
+
+    this.isInitialized = true;
+    this.destroyed = false;
+
     if (options.longTasks !== false) {
       this.observeLongTasks(
         resolveThreshold(options.longTasks?.thresholdMs, DEFAULT_LONG_TASK_THRESHOLD_MS),
@@ -68,10 +78,13 @@ export class IssuesMonitor {
    */
   public destroy(): void {
     this.destroyed = true;
+    this.isInitialized = false;
     this.longTaskObserver?.disconnect();
     this.loafObserver?.disconnect();
+    this.webVitalsCleanup?.();
     this.longTaskObserver = null;
     this.loafObserver = null;
+    this.webVitalsCleanup = null;
   }
 
   /**
@@ -203,21 +216,49 @@ export class IssuesMonitor {
    */
   private observeWebVitals(onIssue: (event: IssueEvent) => void): void {
     void import('web-vitals').then(({ onCLS, onINP, onLCP, onFCP, onTTFB }) => {
-      const collected: WebVitalMetric[] = [];
-      let reported = false;
+      if (this.destroyed) {
+        return;
+      }
 
-      const tryReport = (): void => {
-        if (this.destroyed || reported || collected.length < TOTAL_WEB_VITALS) {
+      const collected: Record<string, WebVitalMetric> = {};
+      let reported = false;
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      let handlePageHide: (() => void) | null = null;
+
+      const cleanup = (): void => {
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+
+        if (typeof window !== 'undefined' && handlePageHide !== null) {
+          window.removeEventListener('pagehide', handlePageHide);
+        }
+      };
+
+      const tryReport = (force: boolean): void => {
+        if (this.destroyed || reported) {
           return;
         }
 
-        reported = true;
+        const metrics = Object.values(collected);
 
-        const poor = collected.filter((metric) => metric.rating === 'poor');
+        if (metrics.length === 0) {
+          return;
+        }
+
+        if (!force && metrics.length < TOTAL_WEB_VITALS) {
+          return;
+        }
+
+        const poor = metrics.filter((metric) => metric.rating === 'poor');
 
         if (poor.length === 0) {
           return;
         }
+
+        reported = true;
+        cleanup();
 
         const summary = poor
           .map((metric) => {
@@ -231,11 +272,7 @@ export class IssuesMonitor {
         const report: WebVitalsReport = {
           summary,
           poorCount: poor.length,
-          metrics: collected.reduce<Record<string, WebVitalMetric>>((acc, metric) => {
-            acc[metric.name] = metric;
-
-            return acc;
-          }, {}),
+          metrics: { ...collected },
         };
 
         onIssue({
@@ -251,15 +288,29 @@ export class IssuesMonitor {
           return;
         }
 
-        collected.push({
+        collected[metric.name] = {
           name: metric.name,
           value: metric.value,
           rating: metric.rating,
           delta: metric.delta,
-        });
+        };
 
-        tryReport();
+        tryReport(false);
       };
+
+      handlePageHide = (): void => {
+        tryReport(true);
+      };
+
+      timeoutId = setTimeout(() => {
+        tryReport(true);
+      }, WEB_VITALS_REPORT_TIMEOUT_MS);
+
+      if (typeof window !== 'undefined' && handlePageHide !== null) {
+        window.addEventListener('pagehide', handlePageHide);
+      }
+
+      this.webVitalsCleanup = cleanup;
 
       onCLS(collect);
       onINP(collect);

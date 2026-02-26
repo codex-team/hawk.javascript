@@ -250,16 +250,17 @@ It currently includes three groups:
 
 Freeze detectors use two complementary APIs:
 
-- **Long Tasks API** — reports any task taking longer than 50 ms.
-- **Long Animation Frames (LoAF)** — reports frames taking longer than 50 ms with richer script attribution (Chrome 123+, Edge 123+).
+- **Long Tasks API** — browser reports tasks taking longer than 50 ms.
+- **Long Animation Frames (LoAF)** — browser reports frames taking longer than 50 ms with richer script attribution (Chrome 123+, Edge 123+).
 
 Both freeze detectors are enabled by default. If one API is unsupported, the other still works.
 Each detected freeze is reported immediately with detailed context (duration, blocking time, scripts involved, etc.).
-`thresholdMs` is the max allowed duration budget. Hawk emits an issue when measured duration is equal to or greater than this value. Values below `50ms` are clamped to `50ms`.
+`thresholdMs` is an additional Hawk filter on top of browser reporting. Hawk emits an issue when measured duration is equal to or greater than this value. Values below `50ms` are clamped to `50ms`.
 
 ### Web Vitals (Aggregated)
 
-When `issues.webVitals` is enabled, Hawk collects all Core Web Vitals (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) and sends a single issue event when at least one metric is rated `poor`.
+When `issues.webVitals` is enabled, Hawk collects Core Web Vitals (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) and sends a single issue event when at least one metric is rated `poor`.
+Reporting happens when all five metrics are collected, or earlier on timeout/page unload to avoid waiting indefinitely on pages where some metrics never fire.
 
 The event context contains all metrics with:
 - `value`
@@ -292,10 +293,10 @@ const hawk = new HawkCatcher({
     errors: true,
     webVitals: true,
     longTasks: {
-      thresholdMs: 100
+      thresholdMs: 70
     },
     longAnimationFrames: {
-      thresholdMs: 500
+      thresholdMs: 200
     }
   }
 });
@@ -307,8 +308,8 @@ const hawk = new HawkCatcher({
 |--------|------|---------|-------------|
 | `errors` | `boolean` | `true` | Enable global errors handling (`window.onerror` and `unhandledrejection`). |
 | `webVitals` | `boolean` | `false` | Collect all Core Web Vitals and send one issue event when at least one metric is rated `poor`. Requires optional `web-vitals` dependency. |
-| `longTasks` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 100 }` | Detect long tasks and emit issue events when duration is equal to or greater than the max allowed duration (`thresholdMs`, minimum effective value is `50ms`). |
-| `longAnimationFrames` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 500 }` | Detect LoAF events and emit issue events when duration is equal to or greater than the max allowed duration (`thresholdMs`, minimum effective value is `50ms`). Requires Chrome 123+ / Edge 123+. |
+| `longTasks` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 70 }` | Detect long tasks and emit issue events when duration is equal to or greater than the max allowed duration (`thresholdMs`, minimum effective value is `50ms`). |
+| `longAnimationFrames` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 200 }` | Detect LoAF events and emit issue events when duration is equal to or greater than the max allowed duration (`thresholdMs`, minimum effective value is `50ms`). Requires Chrome 123+ / Edge 123+. |
 
 ## Source maps consuming
 

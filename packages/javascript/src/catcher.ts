@@ -325,17 +325,17 @@ export default class Catcher {
    */
   private configureIssues(settings: HawkInitialSettings): void {
     const issues = settings.issues ?? {};
-    const shouldHandleErrors = issues.errors ?? !settings.disableGlobalErrorsHandling;
+    const shouldHandleGlobalErrors = settings.disableGlobalErrorsHandling !== true && issues.errors !== false;
     const shouldDetectPerformanceIssues = issues.longTasks !== false
       || issues.longAnimationFrames !== false
       || issues.webVitals === true;
 
-    if (shouldHandleErrors) {
+    if (shouldHandleGlobalErrors) {
       this.initGlobalHandlers();
+    }
 
-      if (shouldDetectPerformanceIssues) {
-        this.issuesMonitor.init(issues, (entry) => this.send(entry.title, entry.context));
-      }
+    if (shouldDetectPerformanceIssues) {
+      this.issuesMonitor.init(issues, (entry) => this.send(entry.title, entry.context));
     }
   }
 

@@ -16,16 +16,6 @@ export interface IssueThresholdOptions {
  */
 export interface IssuesOptions {
   /**
-   * Long Tasks options. Set `false` to disable.
-   */
-  longTasks?: false | IssueThresholdOptions;
-
-  /**
-   * Long Animation Frames options. Set `false` to disable.
-   */
-  longAnimationFrames?: false | IssueThresholdOptions;
-
-  /**
    * Enable automatic global errors handling.
    *
    * @default true
@@ -38,6 +28,20 @@ export interface IssuesOptions {
    * @default false
    */
   webVitals?: boolean;
+
+  /**
+   * Long Tasks options. Set `false` to disable.
+   *
+   * @default false
+   */
+  longTasks?: false | IssueThresholdOptions;
+
+  /**
+   * Long Animation Frames options. Set `false` to disable.
+   *
+   * @default false
+   */
+  longAnimationFrames?: false | IssueThresholdOptions;
 }
 
 /**
