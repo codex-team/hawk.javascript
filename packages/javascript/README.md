@@ -253,7 +253,7 @@ Freeze detectors use two complementary APIs:
 - **Long Tasks API** — browser reports tasks taking longer than 50 ms.
 - **Long Animation Frames (LoAF)** — browser reports frames taking longer than 50 ms with richer script attribution (Chrome 123+, Edge 123+).
 
-Both freeze detectors are enabled by default. If one API is unsupported, the other still works.
+Both freeze detectors are disabled by default. If enabled and one API is unsupported, the other still works.
 Each detected freeze is reported immediately with detailed context (duration, blocking time, scripts involved, etc.).
 `thresholdMs` is an additional Hawk filter on top of browser reporting. Hawk emits an issue when measured duration is equal to or greater than this value. Values below `50ms` are clamped to `50ms`.
 
@@ -308,8 +308,8 @@ const hawk = new HawkCatcher({
 |--------|------|---------|-------------|
 | `errors` | `boolean` | `true` | Enable global errors handling (`window.onerror` and `unhandledrejection`). |
 | `webVitals` | `boolean` | `false` | Collect all Core Web Vitals and send one issue event when at least one metric is rated `poor`. Requires optional `web-vitals` dependency. |
-| `longTasks` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 70 }` | Detect long tasks and emit issue events when duration is equal to or greater than the max allowed duration (`thresholdMs`, minimum effective value is `50ms`). |
-| `longAnimationFrames` | `false` or `{ thresholdMs?: number }` | `{ thresholdMs: 200 }` | Detect LoAF events and emit issue events when duration is equal to or greater than the max allowed duration (`thresholdMs`, minimum effective value is `50ms`). Requires Chrome 123+ / Edge 123+. |
+| `longTasks` | `boolean` or `{ thresholdMs?: number }` | `false` | `false` disables. `true` enables with default threshold. Object enables and uses `thresholdMs` when valid; otherwise fallback threshold `70ms` is used (minimum effective value `50ms`). |
+| `longAnimationFrames` | `boolean` or `{ thresholdMs?: number }` | `false` | `false` disables. `true` enables with default threshold. Object enables and uses `thresholdMs` when valid; otherwise fallback threshold `200ms` is used (minimum effective value `50ms`). Requires Chrome 123+ / Edge 123+. |
 
 ## Source maps consuming
 

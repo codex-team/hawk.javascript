@@ -12,10 +12,10 @@ import type {
 import { compactJson } from '../utils/compactJson';
 import log from '../utils/log';
 
-const DEFAULT_LONG_TASK_THRESHOLD_MS = 70;
-const DEFAULT_LOAF_THRESHOLD_MS = 200;
-const MIN_ISSUE_THRESHOLD_MS = 50;
-const WEB_VITALS_REPORT_TIMEOUT_MS = 10000;
+export const DEFAULT_LONG_TASK_THRESHOLD_MS = 70;
+export const DEFAULT_LOAF_THRESHOLD_MS = 200;
+export const MIN_ISSUE_THRESHOLD_MS = 50;
+export const WEB_VITALS_REPORT_TIMEOUT_MS = 10000;
 
 const METRIC_THRESHOLDS: Record<string, [good: number, poor: number]> = {
   LCP: [2500, 4000],
@@ -54,16 +54,16 @@ export class IssuesMonitor {
     this.isInitialized = true;
     this.destroyed = false;
 
-    if (options.longTasks !== false) {
+    if (options.longTasks !== undefined && options.longTasks !== false) {
       this.observeLongTasks(
-        resolveThreshold(options.longTasks?.thresholdMs, DEFAULT_LONG_TASK_THRESHOLD_MS),
+        resolveThreshold(resolveThresholdOption(options.longTasks), DEFAULT_LONG_TASK_THRESHOLD_MS),
         onIssue
       );
     }
 
-    if (options.longAnimationFrames !== false) {
+    if (options.longAnimationFrames !== undefined && options.longAnimationFrames !== false) {
       this.observeLoAF(
-        resolveThreshold(options.longAnimationFrames?.thresholdMs, DEFAULT_LOAF_THRESHOLD_MS),
+        resolveThreshold(resolveThresholdOption(options.longAnimationFrames), DEFAULT_LOAF_THRESHOLD_MS),
         onIssue
       );
     }
@@ -353,6 +353,18 @@ function resolveThreshold(value: number | undefined, fallback: number): number {
   }
 
   return Math.max(MIN_ISSUE_THRESHOLD_MS, Math.round(value));
+}
+
+/**
+ *
+ * @param value
+ */
+function resolveThresholdOption(value: boolean | { thresholdMs?: number }): number | undefined {
+  if (typeof value === 'object' && value !== null) {
+    return value.thresholdMs;
+  }
+
+  return undefined;
 }
 
 /**

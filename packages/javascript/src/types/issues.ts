@@ -30,18 +30,24 @@ export interface IssuesOptions {
   webVitals?: boolean;
 
   /**
-   * Long Tasks options. Set `false` to disable.
+   * Long Tasks options.
+   * `false` disables the feature.
+   * Any other value enables it with default threshold.
+   * If `thresholdMs` is a valid number greater than or equal to 50, it is used.
    *
    * @default false
    */
-  longTasks?: false | IssueThresholdOptions;
+  longTasks?: boolean | IssueThresholdOptions;
 
   /**
-   * Long Animation Frames options. Set `false` to disable.
+   * Long Animation Frames options.
+   * `false` disables the feature.
+   * Any other value enables it with default threshold.
+   * If `thresholdMs` is a valid number greater than or equal to 50, it is used.
    *
    * @default false
    */
-  longAnimationFrames?: false | IssueThresholdOptions;
+  longAnimationFrames?: boolean | IssueThresholdOptions;
 }
 
 /**

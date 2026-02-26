@@ -326,8 +326,8 @@ export default class Catcher {
   private configureIssues(settings: HawkInitialSettings): void {
     const issues = settings.issues ?? {};
     const shouldHandleGlobalErrors = settings.disableGlobalErrorsHandling !== true && issues.errors !== false;
-    const shouldDetectPerformanceIssues = issues.longTasks !== false
-      || issues.longAnimationFrames !== false
+    const shouldDetectPerformanceIssues = (issues.longTasks !== undefined && issues.longTasks !== false)
+      || (issues.longAnimationFrames !== undefined && issues.longAnimationFrames !== false)
       || issues.webVitals === true;
 
     if (shouldHandleGlobalErrors) {

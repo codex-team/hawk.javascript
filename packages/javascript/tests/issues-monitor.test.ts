@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Metric, ReportCallback } from 'web-vitals';
+import {
+  DEFAULT_LONG_TASK_THRESHOLD_MS,
+  MIN_ISSUE_THRESHOLD_MS,
+  WEB_VITALS_REPORT_TIMEOUT_MS,
+} from '../src/addons/issues';
 
 class MockPerformanceObserver {
   public static supportedEntryTypes: string[] = ['longtask', 'long-animation-frame'];
@@ -96,10 +101,10 @@ describe('IssuesMonitor', () => {
 
     expect(observer).toBeDefined();
 
-    observer!.emit([entry('longtask', 49)]);
+    observer!.emit([entry('longtask', MIN_ISSUE_THRESHOLD_MS - 1)]);
     expect(onIssue).not.toHaveBeenCalled();
 
-    observer!.emit([entry('longtask', 50)]);
+    observer!.emit([entry('longtask', MIN_ISSUE_THRESHOLD_MS)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
   });
 
@@ -109,17 +114,37 @@ describe('IssuesMonitor', () => {
     const onIssue = vi.fn();
     const monitor = new IssuesMonitor();
 
-    monitor.init({ longTasks: { thresholdMs: 70 }, longAnimationFrames: false, webVitals: false }, onIssue);
+    const customThresholdMs = 75;
+
+    monitor.init({ longTasks: { thresholdMs: customThresholdMs }, longAnimationFrames: false, webVitals: false }, onIssue);
     const observer = MockPerformanceObserver.byType('longtask');
 
     expect(observer).toBeDefined();
 
-    observer!.emit([entry('longtask', 55)]);
+    observer!.emit([entry('longtask', customThresholdMs - 1)]);
     expect(onIssue).not.toHaveBeenCalled();
 
-    observer!.emit([entry('longtask', 75)]);
+    observer!.emit([entry('longtask', customThresholdMs)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
-    expect(onIssue.mock.calls[0][0].title).toContain('75 ms');
+    expect(onIssue.mock.calls[0][0].title).toContain(`${customThresholdMs} ms`);
+  });
+
+  it('should use default threshold when longTasks is true', async () => {
+    mockWebVitals();
+    const { IssuesMonitor } = await import('../src/addons/issues');
+    const onIssue = vi.fn();
+    const monitor = new IssuesMonitor();
+
+    monitor.init({ longTasks: true, longAnimationFrames: false, webVitals: false }, onIssue);
+    const observer = MockPerformanceObserver.byType('longtask');
+
+    expect(observer).toBeDefined();
+
+    observer!.emit([entry('longtask', DEFAULT_LONG_TASK_THRESHOLD_MS - 1)]);
+    expect(onIssue).not.toHaveBeenCalled();
+
+    observer!.emit([entry('longtask', DEFAULT_LONG_TASK_THRESHOLD_MS)]);
+    expect(onIssue).toHaveBeenCalledTimes(1);
   });
 
   it('should ignore second init call and avoid duplicate observers', async () => {
@@ -177,7 +202,7 @@ describe('IssuesMonitor', () => {
     await vi.dynamicImportSettled();
 
     webVitals.emit({ name: 'LCP', value: 5000, rating: 'poor', delta: 5000 });
-    vi.advanceTimersByTime(10000);
+    vi.advanceTimersByTime(WEB_VITALS_REPORT_TIMEOUT_MS);
 
     expect(onIssue).toHaveBeenCalledTimes(1);
     expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vitals');
