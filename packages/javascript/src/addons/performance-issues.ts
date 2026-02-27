@@ -1,7 +1,7 @@
 import type { Json } from '@hawk.so/types';
 import type {
-  IssueEvent,
-  IssuesOptions,
+  PerformanceIssueEvent,
+  PerformanceIssuesOptions,
   LoAFEntry,
   LoAFScript,
   LongTaskPerformanceEntry,
@@ -28,12 +28,12 @@ const METRIC_THRESHOLDS: Record<string, [good: number, poor: number]> = {
 const TOTAL_WEB_VITALS = 5;
 
 /**
- * Issues monitor handles:
+ * Performance issues monitor handles:
  * - Long Tasks
  * - Long Animation Frames (LoAF)
  * - Aggregated Web Vitals report
  */
-export class IssuesMonitor {
+export class PerformanceIssuesMonitor {
   private longTaskObserver: PerformanceObserver | null = null;
   private loafObserver: PerformanceObserver | null = null;
   private webVitalsCleanup: (() => void) | null = null;
@@ -46,7 +46,7 @@ export class IssuesMonitor {
    * @param options detectors config
    * @param onIssue issue callback
    */
-  public init(options: IssuesOptions, onIssue: (event: IssueEvent) => void): void {
+  public init(options: PerformanceIssuesOptions, onIssue: (event: PerformanceIssueEvent) => void): void {
     if (this.isInitialized) {
       return;
     }
@@ -92,7 +92,7 @@ export class IssuesMonitor {
    * @param thresholdMs max allowed duration
    * @param onIssue issue callback
    */
-  private observeLongTasks(thresholdMs: number, onIssue: (event: IssueEvent) => void): void {
+  private observeLongTasks(thresholdMs: number, onIssue: (event: PerformanceIssueEvent) => void): void {
     if (!supportsEntryType('longtask')) {
       return;
     }
@@ -142,7 +142,7 @@ export class IssuesMonitor {
    * @param thresholdMs max allowed duration
    * @param onIssue issue callback
    */
-  private observeLoAF(thresholdMs: number, onIssue: (event: IssueEvent) => void): void {
+  private observeLoAF(thresholdMs: number, onIssue: (event: PerformanceIssueEvent) => void): void {
     if (!supportsEntryType('long-animation-frame')) {
       return;
     }
@@ -214,7 +214,7 @@ export class IssuesMonitor {
    *
    * @param onIssue issue callback
    */
-  private observeWebVitals(onIssue: (event: IssueEvent) => void): void {
+  private observeWebVitals(onIssue: (event: PerformanceIssueEvent) => void): void {
     void import('web-vitals').then(({ onCLS, onINP, onLCP, onFCP, onTTFB }) => {
       if (this.destroyed) {
         return;

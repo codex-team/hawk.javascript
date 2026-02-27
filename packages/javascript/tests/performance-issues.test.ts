@@ -4,7 +4,7 @@ import {
   DEFAULT_LONG_TASK_THRESHOLD_MS,
   MIN_ISSUE_THRESHOLD_MS,
   WEB_VITALS_REPORT_TIMEOUT_MS,
-} from '../src/addons/issues';
+} from '../src/addons/performance-issues';
 
 class MockPerformanceObserver {
   public static supportedEntryTypes: string[] = ['longtask', 'long-animation-frame'];
@@ -74,7 +74,7 @@ function mockWebVitals() {
   };
 }
 
-describe('IssuesMonitor', () => {
+describe('PerformanceIssuesMonitor', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.unstubAllGlobals();
@@ -92,9 +92,9 @@ describe('IssuesMonitor', () => {
 
   it('should clamp long task threshold to 50ms minimum', async () => {
     mockWebVitals();
-    const { IssuesMonitor } = await import('../src/addons/issues');
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
     const onIssue = vi.fn();
-    const monitor = new IssuesMonitor();
+    const monitor = new PerformanceIssuesMonitor();
 
     monitor.init({ longTasks: { thresholdMs: 1 }, longAnimationFrames: false, webVitals: false }, onIssue);
     const observer = MockPerformanceObserver.byType('longtask');
@@ -110,9 +110,9 @@ describe('IssuesMonitor', () => {
 
   it('should emit only entries that are >= configured threshold', async () => {
     mockWebVitals();
-    const { IssuesMonitor } = await import('../src/addons/issues');
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
     const onIssue = vi.fn();
-    const monitor = new IssuesMonitor();
+    const monitor = new PerformanceIssuesMonitor();
 
     const customThresholdMs = 75;
 
@@ -131,9 +131,9 @@ describe('IssuesMonitor', () => {
 
   it('should use default threshold when longTasks is true', async () => {
     mockWebVitals();
-    const { IssuesMonitor } = await import('../src/addons/issues');
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
     const onIssue = vi.fn();
-    const monitor = new IssuesMonitor();
+    const monitor = new PerformanceIssuesMonitor();
 
     monitor.init({ longTasks: true, longAnimationFrames: false, webVitals: false }, onIssue);
     const observer = MockPerformanceObserver.byType('longtask');
@@ -149,8 +149,8 @@ describe('IssuesMonitor', () => {
 
   it('should ignore second init call and avoid duplicate observers', async () => {
     mockWebVitals();
-    const { IssuesMonitor } = await import('../src/addons/issues');
-    const monitor = new IssuesMonitor();
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const monitor = new PerformanceIssuesMonitor();
     const onIssue = vi.fn();
 
     monitor.init({ longTasks: {}, longAnimationFrames: {}, webVitals: false }, onIssue);
@@ -161,9 +161,9 @@ describe('IssuesMonitor', () => {
 
   it('should disconnect and stop reporting after destroy', async () => {
     mockWebVitals();
-    const { IssuesMonitor } = await import('../src/addons/issues');
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
     const onIssue = vi.fn();
-    const monitor = new IssuesMonitor();
+    const monitor = new PerformanceIssuesMonitor();
 
     monitor.init({ longTasks: {}, longAnimationFrames: false, webVitals: false }, onIssue);
     const observer = MockPerformanceObserver.byType('longtask');
@@ -183,8 +183,8 @@ describe('IssuesMonitor', () => {
   it('should skip observers when performance entry types are unsupported', async () => {
     MockPerformanceObserver.supportedEntryTypes = [];
     mockWebVitals();
-    const { IssuesMonitor } = await import('../src/addons/issues');
-    const monitor = new IssuesMonitor();
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const monitor = new PerformanceIssuesMonitor();
 
     monitor.init({ longTasks: {}, longAnimationFrames: {}, webVitals: false }, vi.fn());
 
@@ -194,9 +194,9 @@ describe('IssuesMonitor', () => {
   it('should report poor web vitals on timeout even when not all 5 metrics fired', async () => {
     vi.useFakeTimers();
     const webVitals = mockWebVitals();
-    const { IssuesMonitor } = await import('../src/addons/issues');
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
     const onIssue = vi.fn();
-    const monitor = new IssuesMonitor();
+    const monitor = new PerformanceIssuesMonitor();
 
     monitor.init({ longTasks: false, longAnimationFrames: false, webVitals: true }, onIssue);
     await vi.dynamicImportSettled();

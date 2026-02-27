@@ -18,7 +18,7 @@ import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
-import { IssuesMonitor } from './addons/issues';
+import { PerformanceIssuesMonitor } from './addons/performance-issues';
 import { validateUser, validateContext, isValidEventPayload } from './utils/validation';
 
 /**
@@ -115,7 +115,7 @@ export default class Catcher {
   /**
    * Issues monitor instance
    */
-  private readonly issuesMonitor = new IssuesMonitor();
+  private readonly issuesMonitor = new PerformanceIssuesMonitor();
 
   /**
    * Catcher constructor

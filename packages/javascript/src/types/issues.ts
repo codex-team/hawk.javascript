@@ -3,7 +3,7 @@ import type { EventContext } from '@hawk.so/types';
 /**
  * Per-issue threshold configuration.
  */
-export interface IssueThresholdOptions {
+export interface PerformanceIssueThresholdOptions {
   /**
    * Max allowed duration (ms). Emit issue when entry duration is >= this value.
    * Values below 50ms are clamped to 50ms.
@@ -12,16 +12,9 @@ export interface IssueThresholdOptions {
 }
 
 /**
- * Issues configuration.
+ * Performance issues configuration.
  */
-export interface IssuesOptions {
-  /**
-   * Enable automatic global errors handling.
-   *
-   * @default true
-   */
-  errors?: boolean;
-
+export interface PerformanceIssuesOptions {
   /**
    * Enable aggregated Web Vitals monitoring.
    *
@@ -37,7 +30,7 @@ export interface IssuesOptions {
    *
    * @default false
    */
-  longTasks?: boolean | IssueThresholdOptions;
+  longTasks?: boolean | PerformanceIssueThresholdOptions;
 
   /**
    * Long Animation Frames options.
@@ -47,7 +40,19 @@ export interface IssuesOptions {
    *
    * @default false
    */
-  longAnimationFrames?: boolean | IssueThresholdOptions;
+  longAnimationFrames?: boolean | PerformanceIssueThresholdOptions;
+}
+
+/**
+ * Full issues configuration.
+ */
+export interface IssuesOptions extends PerformanceIssuesOptions {
+  /**
+   * Enable automatic global errors handling.
+   *
+   * @default true
+   */
+  errors?: boolean;
 }
 
 /**
@@ -157,7 +162,7 @@ export interface WebVitalsReport {
 /**
  * Payload sent by issues monitor to the catcher.
  */
-export interface IssueEvent {
+export interface PerformanceIssueEvent {
   title: string;
   context: EventContext;
 }

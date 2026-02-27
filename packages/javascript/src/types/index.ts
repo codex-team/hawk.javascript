@@ -2,8 +2,9 @@ import type { CatcherMessage } from './catcher-message';
 import type { HawkInitialSettings } from './hawk-initial-settings';
 import type {
   IssuesOptions,
-  IssueThresholdOptions,
-  IssueEvent,
+  PerformanceIssuesOptions,
+  PerformanceIssueThresholdOptions,
+  PerformanceIssueEvent,
   LongTaskAttribution,
   LongTaskPerformanceEntry,
   LoAFScript,
@@ -20,8 +21,9 @@ export type {
   CatcherMessage,
   HawkInitialSettings,
   IssuesOptions,
-  IssueThresholdOptions,
-  IssueEvent,
+  PerformanceIssuesOptions,
+  PerformanceIssueThresholdOptions,
+  PerformanceIssueEvent,
   LongTaskAttribution,
   LongTaskPerformanceEntry,
   LoAFScript,
