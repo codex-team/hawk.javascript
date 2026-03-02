@@ -12,11 +12,29 @@ import type {
 import { compactJson } from '../utils/compactJson';
 import log from '../utils/log';
 
+/**
+ * Default threshold for Long Tasks detector.
+ * Used when detector is enabled without a valid custom threshold.
+ */
 export const DEFAULT_LONG_TASK_THRESHOLD_MS = 70;
+/**
+ * Default threshold for Long Animation Frames detector.
+ * Used when detector is enabled without a valid custom threshold.
+ */
 export const DEFAULT_LOAF_THRESHOLD_MS = 200;
+/**
+ * Global minimum threshold guard for freeze detectors.
+ * Prevents overly aggressive configuration and event spam.
+ */
 export const MIN_ISSUE_THRESHOLD_MS = 50;
+/**
+ * Maximum waiting time for Web Vitals aggregation before forced report attempt.
+ */
 export const WEB_VITALS_REPORT_TIMEOUT_MS = 10000;
 
+/**
+ * Web Vitals "good/poor" boundaries used to enrich issue summaries.
+ */
 const METRIC_THRESHOLDS: Record<string, [good: number, poor: number]> = {
   LCP: [2500, 4000],
   FCP: [1800, 3000],
@@ -25,6 +43,10 @@ const METRIC_THRESHOLDS: Record<string, [good: number, poor: number]> = {
   CLS: [0.1, 0.25],
 };
 
+/**
+ * Number of Core Web Vitals currently collected by this monitor.
+ * We wait for all metrics first, then fallback to timeout/pagehide flush.
+ */
 const TOTAL_WEB_VITALS = 5;
 
 /**
@@ -34,10 +56,15 @@ const TOTAL_WEB_VITALS = 5;
  * - Aggregated Web Vitals report
  */
 export class PerformanceIssuesMonitor {
+  /** Active observer for Long Tasks API. */
   private longTaskObserver: PerformanceObserver | null = null;
+  /** Active observer for Long Animation Frames API. */
   private loafObserver: PerformanceObserver | null = null;
+  /** Cleanup hook for Web Vitals timeout/pagehide listeners. */
   private webVitalsCleanup: (() => void) | null = null;
+  /** Prevents duplicate initialization and duplicate issue streams. */
   private isInitialized = false;
+  /** Marks monitor as stopped to ignore async callbacks after destroy. */
   private destroyed = false;
 
   /**
@@ -75,6 +102,9 @@ export class PerformanceIssuesMonitor {
 
   /**
    * Cleanup active observers.
+   *
+   * `isInitialized` controls re-initialization guard.
+   * `destroyed` prevents any late async callback from emitting issues.
    */
   public destroy(): void {
     this.destroyed = true;
@@ -88,6 +118,7 @@ export class PerformanceIssuesMonitor {
   }
 
   /**
+   * Observe Long Tasks and emit performance issues above threshold.
    *
    * @param thresholdMs max allowed duration
    * @param onIssue issue callback
@@ -138,6 +169,7 @@ export class PerformanceIssuesMonitor {
   }
 
   /**
+   * Observe Long Animation Frames and emit performance issues above threshold.
    *
    * @param thresholdMs max allowed duration
    * @param onIssue issue callback
@@ -211,6 +243,8 @@ export class PerformanceIssuesMonitor {
   }
 
   /**
+   * Observe Web Vitals and emit a single aggregated poor report.
+   * Reports when all metrics are collected or on timeout/pagehide fallback.
    *
    * @param onIssue issue callback
    */
@@ -225,6 +259,9 @@ export class PerformanceIssuesMonitor {
       let timeoutId: ReturnType<typeof setTimeout> | null = null;
       let handlePageHide: (() => void) | null = null;
 
+      /**
+       * Clears timeout and page lifecycle listener bound for this monitor run.
+       */
       const cleanup = (): void => {
         if (timeoutId !== null) {
           clearTimeout(timeoutId);
@@ -236,6 +273,11 @@ export class PerformanceIssuesMonitor {
         }
       };
 
+      /**
+       * Tries to emit an aggregated Web Vitals issue.
+       * When `force` is false, waits for all vitals.
+       * When `force` is true, emits with currently collected metrics.
+       */
       const tryReport = (force: boolean): void => {
         if (this.destroyed || reported) {
           return;
@@ -283,6 +325,9 @@ export class PerformanceIssuesMonitor {
         });
       };
 
+      /**
+       * Collects latest metric snapshot per metric name.
+       */
       const collect = (metric: { name: string; value: number; rating: WebVitalRating; delta: number }): void => {
         if (this.destroyed || reported) {
           return;
@@ -327,6 +372,8 @@ export class PerformanceIssuesMonitor {
 }
 
 /**
+ * Checks if browser supports a performance entry type.
+ *
  *
  * @param type performance entry type
  */
@@ -343,6 +390,8 @@ function supportsEntryType(type: string): boolean {
 }
 
 /**
+ * Resolves threshold from user input and applies global minimum clamp.
+ *
  *
  * @param value custom threshold
  * @param fallback default threshold
@@ -356,8 +405,11 @@ function resolveThreshold(value: number | undefined, fallback: number): number {
 }
 
 /**
+ * Returns custom threshold from detector config object.
+ * Boolean options use default threshold.
  *
- * @param value
+ *
+ * @param value detector config value
  */
 function resolveThresholdOption(value: boolean | { thresholdMs?: number }): number | undefined {
   if (typeof value === 'object' && value !== null) {
@@ -368,6 +420,8 @@ function resolveThresholdOption(value: boolean | { thresholdMs?: number }): numb
 }
 
 /**
+ * Formats Web Vitals metric value for readable summary.
+ *
  *
  * @param name metric name
  * @param value metric value
@@ -377,6 +431,8 @@ function formatValue(name: string, value: number): string {
 }
 
 /**
+ * Serializes LoAF script timing into compact JSON payload.
+ *
  *
  * @param script loaf script entry
  */
@@ -396,6 +452,8 @@ function serializeScript(script: LoAFScript): Json {
 }
 
 /**
+ * Serializes aggregated Web Vitals report into event context payload.
+ *
  *
  * @param report aggregated vitals report
  */

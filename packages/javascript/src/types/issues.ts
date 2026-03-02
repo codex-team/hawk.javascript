@@ -163,6 +163,8 @@ export interface WebVitalsReport {
  * Payload sent by issues monitor to the catcher.
  */
 export interface PerformanceIssueEvent {
+  /** Human-readable issue title shown in Hawk event list. */
   title: string;
+  /** Structured context payload attached to this issue event. */
   context: EventContext;
 }

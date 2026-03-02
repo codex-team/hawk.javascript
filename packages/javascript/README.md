@@ -11,7 +11,9 @@ Error tracking for JavaScript/TypeScript applications.
 - 🛡️ Sensitive data filtering
 - 🌟 Source maps consuming
 - 💬 Console logs tracking
-- 🧊 Main-thread blocking detection (Chromium-only)
+- 🧊 Main-thread blocking detection (Long Tasks + LoAF, Chromium-only)
+- 📊 Aggregated Web Vitals issues monitoring
+- ⚙️ Unified `issues` configuration (errors + performance detectors)
 - <img src="https://cdn.svglogos.dev/logos/vue.svg" width="16" height="16"> &nbsp;Vue support
 - <img src="https://cdn.svglogos.dev/logos/react.svg" width="16" height="16">  &nbsp;React support
 
