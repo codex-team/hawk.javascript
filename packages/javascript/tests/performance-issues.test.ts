@@ -74,12 +74,37 @@ function mockWebVitals() {
   };
 }
 
+function mockGlobalWebVitals() {
+  const callbacks: Record<string, ReportCallback | undefined> = {};
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).webVitals = {
+    onCLS: (cb: ReportCallback) => { callbacks.CLS = cb; },
+    onINP: (cb: ReportCallback) => { callbacks.INP = cb; },
+    onLCP: (cb: ReportCallback) => { callbacks.LCP = cb; },
+    onFCP: (cb: ReportCallback) => { callbacks.FCP = cb; },
+    onTTFB: (cb: ReportCallback) => { callbacks.TTFB = cb; },
+  };
+
+  return {
+    emit(metric: Metric): void {
+      callbacks[metric.name]?.(metric);
+    },
+    cleanup(): void {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (globalThis as any).webVitals;
+    },
+  };
+}
+
 describe('PerformanceIssuesMonitor', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     vi.useRealTimers();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any).webVitals;
     MockPerformanceObserver.reset();
     vi.stubGlobal('PerformanceObserver', MockPerformanceObserver as unknown as typeof PerformanceObserver);
   });
@@ -88,6 +113,8 @@ describe('PerformanceIssuesMonitor', () => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     vi.useRealTimers();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (globalThis as any).webVitals;
   });
 
   it('should clamp long task threshold to 50ms minimum', async () => {
@@ -207,5 +234,23 @@ describe('PerformanceIssuesMonitor', () => {
     expect(onIssue).toHaveBeenCalledTimes(1);
     expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vitals');
     expect(onIssue.mock.calls[0][0].context).toHaveProperty('webVitals');
+  });
+
+  it('should use global webVitals API when available (CDN scenario)', async () => {
+    vi.useFakeTimers();
+    const globalWebVitals = mockGlobalWebVitals();
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const onIssue = vi.fn();
+    const monitor = new PerformanceIssuesMonitor();
+
+    monitor.init({ longTasks: false, longAnimationFrames: false, webVitals: true }, onIssue);
+    await vi.dynamicImportSettled();
+
+    globalWebVitals.emit({ name: 'INP', value: 600, rating: 'poor', delta: 600 });
+    vi.advanceTimersByTime(WEB_VITALS_REPORT_TIMEOUT_MS);
+
+    expect(onIssue).toHaveBeenCalledTimes(1);
+    expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vitals');
+    globalWebVitals.cleanup();
   });
 });

@@ -269,7 +269,9 @@ The event context contains all metrics with:
 - `rating`
 - `delta`
 
-`web-vitals` is an optional peer dependency and is loaded only when `issues.webVitals: true`.
+`web-vitals` is optional and used only when `issues.webVitals: true`:
+- NPM/ESM setup: install `web-vitals` as dependency.
+- CDN setup: expose global `window.webVitals` before Hawk initialization.
 
 ### Disabling
 

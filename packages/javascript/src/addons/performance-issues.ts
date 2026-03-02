@@ -50,6 +50,18 @@ const METRIC_THRESHOLDS: Record<string, [good: number, poor: number]> = {
 const TOTAL_WEB_VITALS = 5;
 
 /**
+ * Minimal Web Vitals API contract used by this monitor.
+ * Supports module import and global CDN exposure (`window.webVitals`).
+ */
+type WebVitalsApi = {
+  onCLS: (callback: (metric: { name: string; value: number; rating: WebVitalRating; delta: number }) => void) => void;
+  onINP: (callback: (metric: { name: string; value: number; rating: WebVitalRating; delta: number }) => void) => void;
+  onLCP: (callback: (metric: { name: string; value: number; rating: WebVitalRating; delta: number }) => void) => void;
+  onFCP: (callback: (metric: { name: string; value: number; rating: WebVitalRating; delta: number }) => void) => void;
+  onTTFB: (callback: (metric: { name: string; value: number; rating: WebVitalRating; delta: number }) => void) => void;
+};
+
+/**
  * Performance issues monitor handles:
  * - Long Tasks
  * - Long Animation Frames (LoAF)
@@ -246,10 +258,15 @@ export class PerformanceIssuesMonitor {
    * Observe Web Vitals and emit a single aggregated poor report.
    * Reports when all metrics are collected or on timeout/pagehide fallback.
    *
+   * Resolution strategy:
+   * 1) Use global `window.webVitals` when available (CDN scenario)
+   * 2) Fallback to dynamic import of `web-vitals` (NPM/ESM scenario)
+   * 3) Log warning if neither is available
+   *
    * @param onIssue issue callback
    */
   private observeWebVitals(onIssue: (event: PerformanceIssueEvent) => void): void {
-    void import('web-vitals').then(({ onCLS, onINP, onLCP, onFCP, onTTFB }) => {
+    void resolveWebVitalsApi().then(({ onCLS, onINP, onLCP, onFCP, onTTFB }) => {
       if (this.destroyed) {
         return;
       }
@@ -277,6 +294,8 @@ export class PerformanceIssuesMonitor {
        * Tries to emit an aggregated Web Vitals issue.
        * When `force` is false, waits for all vitals.
        * When `force` is true, emits with currently collected metrics.
+       *
+       * @param force
        */
       const tryReport = (force: boolean): void => {
         if (this.destroyed || reported) {
@@ -327,6 +346,8 @@ export class PerformanceIssuesMonitor {
 
       /**
        * Collects latest metric snapshot per metric name.
+       *
+       * @param metric
        */
       const collect = (metric: { name: string; value: number; rating: WebVitalRating; delta: number }): void => {
         if (this.destroyed || reported) {
@@ -362,18 +383,18 @@ export class PerformanceIssuesMonitor {
       onLCP(collect);
       onFCP(collect);
       onTTFB(collect);
-    }).catch(() => {
-      log(
-        'web-vitals package is required for Web Vitals tracking. Install it with: npm i web-vitals',
-        'warn'
-      );
-    });
+    })
+      .catch(() => {
+        log(
+          'Web Vitals tracking requires `web-vitals` (npm) or global `window.webVitals` (CDN).',
+          'warn'
+        );
+      });
   }
 }
 
 /**
  * Checks if browser supports a performance entry type.
- *
  *
  * @param type performance entry type
  */
@@ -392,7 +413,6 @@ function supportsEntryType(type: string): boolean {
 /**
  * Resolves threshold from user input and applies global minimum clamp.
  *
- *
  * @param value custom threshold
  * @param fallback default threshold
  */
@@ -408,7 +428,6 @@ function resolveThreshold(value: number | undefined, fallback: number): number {
  * Returns custom threshold from detector config object.
  * Boolean options use default threshold.
  *
- *
  * @param value detector config value
  */
 function resolveThresholdOption(value: boolean | { thresholdMs?: number }): number | undefined {
@@ -420,8 +439,45 @@ function resolveThresholdOption(value: boolean | { thresholdMs?: number }): numb
 }
 
 /**
+ * Resolves Web Vitals API from global scope or dynamic module import.
+ */
+async function resolveWebVitalsApi(): Promise<WebVitalsApi> {
+  const globalApi = getGlobalWebVitalsApi();
+
+  if (globalApi) {
+    return globalApi;
+  }
+
+  const moduleApi = await import('web-vitals');
+
+  return moduleApi as unknown as WebVitalsApi;
+}
+
+/**
+ * Returns global Web Vitals API when Hawk is used via CDN.
+ */
+function getGlobalWebVitalsApi(): WebVitalsApi | null {
+  if (typeof globalThis === 'undefined') {
+    return null;
+  }
+
+  const candidate = (globalThis as { webVitals?: unknown }).webVitals;
+
+  if (!candidate || typeof candidate !== 'object') {
+    return null;
+  }
+
+  const api = candidate as Partial<WebVitalsApi>;
+
+  if (!api.onCLS || !api.onINP || !api.onLCP || !api.onFCP || !api.onTTFB) {
+    return null;
+  }
+
+  return api as WebVitalsApi;
+}
+
+/**
  * Formats Web Vitals metric value for readable summary.
- *
  *
  * @param name metric name
  * @param value metric value
@@ -432,7 +488,6 @@ function formatValue(name: string, value: number): string {
 
 /**
  * Serializes LoAF script timing into compact JSON payload.
- *
  *
  * @param script loaf script entry
  */
@@ -453,7 +508,6 @@ function serializeScript(script: LoAFScript): Json {
 
 /**
  * Serializes aggregated Web Vitals report into event context payload.
- *
  *
  * @param report aggregated vitals report
  */
