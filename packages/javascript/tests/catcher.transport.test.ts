@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BreadcrumbManager } from '../src/addons/breadcrumbs';
+import { BrowserBreadcrumbStore } from '../src/addons/breadcrumbs';
 import type { Transport } from '../src';
 import { wait, createCatcher, createTransport } from './catcher.helpers';
 
@@ -12,7 +12,7 @@ describe('Catcher', () => {
   beforeEach(() => {
     localStorage.clear();
     mockParse.mockResolvedValue([]);
-    (BreadcrumbManager as any).instance = null;
+    (BrowserBreadcrumbStore as any).instance?.destroy();
   });
 
   describe('transport failure', () => {
