@@ -1,12 +1,12 @@
 import type { StackFrame } from 'error-stack-parser';
 import ErrorStackParser from 'error-stack-parser';
 import type { BacktraceFrame, SourceCodeLine } from '@hawk.so/types';
-import fetchTimer from './fetchTimer';
+import fetchTimer from './fetch-timer';
 
 /**
  * This module prepares parsed backtrace
  */
-export default class StackParser {
+export class StackParser {
   /**
    * Prevents loading one file several times
    * name -> content
@@ -48,7 +48,7 @@ export default class StackParser {
     try {
       if (!frame.fileName) {
         return null;
-      };
+      }
 
       if (!this.isValidUrl(frame.fileName)) {
         return null;
@@ -118,9 +118,9 @@ export default class StackParser {
   /**
    * Downloads source file
    *
-   * @param {string} fileName - name of file to download
+   * @param fileName - name of file to download
    */
-  private async loadSourceFile(fileName): Promise<string | null> {
+  private async loadSourceFile(fileName: string): Promise<string | null> {
     if (this.sourceFilesCache[fileName] !== undefined) {
       return this.sourceFilesCache[fileName];
     }

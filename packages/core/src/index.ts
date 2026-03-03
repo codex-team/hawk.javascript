@@ -7,3 +7,8 @@ export { validateUser, validateContext, isValidEventPayload, isValidBreadcrumb }
 export { isPlainObject, isArray, isClassPrototype, isClassInstance, isString } from './utils/type-guards';
 export { Sanitizer } from './modules/sanitizer';
 export type { Transport } from './transports/transport';
+export type { SanitizerTypeHandler } from './modules/sanitizer';
+export { StackParser } from './modules/stack-parser';
+export { buildElementSelector } from './utils/selector';
+export { EventRejectedError } from './errors';
+export { isErrorProcessed, markErrorAsProcessed } from './utils/event';

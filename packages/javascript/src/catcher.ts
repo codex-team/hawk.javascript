@@ -1,6 +1,5 @@
 import './modules/element-sanitizer';
 import Socket from './modules/socket';
-import StackParser from './modules/stackParser';
 import type { BreadcrumbsAPI, CatcherMessage, HawkInitialSettings, HawkJavaScriptEvent, Transport } from './types';
 import { VueIntegration } from './integrations/vue';
 import type {
@@ -12,24 +11,26 @@ import type {
   Json,
   VueIntegrationAddons
 } from '@hawk.so/types';
-import type { JavaScriptCatcherIntegrations } from './types/integrations';
-import { EventRejectedError } from './errors';
-import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
-import { BrowserRandomGenerator } from './utils/random';
+import type { JavaScriptCatcherIntegrations } from '@/types';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
 import {
+  EventRejectedError,
   HawkUserManager,
+  isErrorProcessed,
   isLoggerSet,
   isValidEventPayload,
   log,
+  markErrorAsProcessed,
   Sanitizer,
   setLogger,
+  StackParser,
   validateContext,
   validateUser
 } from '@hawk.so/core';
 import { HawkLocalStorage } from './storages/hawk-local-storage';
 import { createBrowserLogger } from './logger/logger';
+import { BrowserRandomGenerator } from './utils/random';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -694,6 +695,6 @@ export default class Catcher {
    * @param integrationAddons - extra addons
    */
   private appendIntegrationAddons(errorFormatted: CatcherMessage<typeof Catcher.type>, integrationAddons: JavaScriptCatcherIntegrations): void {
-    Object.assign(errorFormatted.payload.addons!, integrationAddons);
+    Object.assign(errorFormatted.payload.addons, integrationAddons);
   }
 }

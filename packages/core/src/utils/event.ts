@@ -1,4 +1,4 @@
-import { log } from '@hawk.so/core';
+import { log } from '../logger/logger';
 
 /**
  * Symbol to mark error as processed by Hawk
@@ -6,7 +6,7 @@ import { log } from '@hawk.so/core';
 const errorSentShadowProperty = Symbol('__hawk_processed__');
 
 /**
- * Check if the error has alrady been sent to Hawk.
+ * Check if the error has already been sent to Hawk.
  *
  * Motivation:
  * Some integrations may catch errors on their own side and then normally re-throw them down.
@@ -20,7 +20,7 @@ export function isErrorProcessed(error: unknown): boolean {
     return false;
   }
 
-  return error[errorSentShadowProperty] === true;
+  return (error as Record<symbol, unknown>)[errorSentShadowProperty] === true;
 }
 
 /**
@@ -35,7 +35,7 @@ export function markErrorAsProcessed(error: unknown): void {
     }
 
     Object.defineProperty(error, errorSentShadowProperty, {
-      enumerable: false, // Prevent from beight collected by Hawk
+      enumerable: false,  // Prevent from being collected by Hawk
       value: true,
       writable: true,
       configurable: true,
