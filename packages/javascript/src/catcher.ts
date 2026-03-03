@@ -1,5 +1,5 @@
 import Socket from './modules/socket';
-import type { BreadcrumbsAPI, CatcherMessage, HawkInitialSettings, HawkJavaScriptEvent, Transport } from './types';
+import type { CatcherMessage, HawkInitialSettings, HawkJavaScriptEvent, Transport } from './types';
 import { VueIntegration } from './integrations/vue';
 import { id } from './utils/id';
 import type {
@@ -12,9 +12,10 @@ import type {
   VueIntegrationAddons
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from '@/types';
-import { ConsoleCatcher } from './addons/consoleCatcher';
-import { BreadcrumbManager } from './addons/breadcrumbs';
+import { ConsoleCatcher } from './addons/console-catcher';
+import { BrowserBreadcrumbStore } from './addons/breadcrumbs';
 import {
+  BreadcrumbStore,
   EventRejectedError,
   HawkUserManager,
   isErrorProcessed,
@@ -122,7 +123,7 @@ export default class Catcher {
   /**
    * Breadcrumb manager instance
    */
-  private readonly breadcrumbManager: BreadcrumbManager | null;
+  private readonly breadcrumbStore: BrowserBreadcrumbStore | null;
 
   /**
    * Current authenticated user manager instance
@@ -191,10 +192,10 @@ export default class Catcher {
      * Initialize breadcrumbs
      */
     if (settings.breadcrumbs !== false) {
-      this.breadcrumbManager = BreadcrumbManager.getInstance();
-      this.breadcrumbManager.init(settings.breadcrumbs ?? {});
+      this.breadcrumbStore = BrowserBreadcrumbStore.getInstance();
+      this.breadcrumbStore.init(settings.breadcrumbs ?? {});
     } else {
-      this.breadcrumbManager = null;
+      this.breadcrumbStore = null;
     }
 
     /**
@@ -293,11 +294,11 @@ export default class Catcher {
    *   data: { userId: '123' }
    * });
    */
-  public get breadcrumbs(): BreadcrumbsAPI {
+  public get breadcrumbs(): BreadcrumbStore {
     return {
-      add: (breadcrumb, hint) => this.breadcrumbManager?.addBreadcrumb(breadcrumb, hint),
-      get: () => this.breadcrumbManager?.getBreadcrumbs() ?? [],
-      clear: () => this.breadcrumbManager?.clearBreadcrumbs(),
+      add: (breadcrumb, hint) => this.breadcrumbStore?.add(breadcrumb, hint),
+      get: () => this.breadcrumbStore?.get() ?? [],
+      clear: () => this.breadcrumbStore?.clear(),
     };
   }
 
@@ -580,7 +581,7 @@ export default class Catcher {
    * Get breadcrumbs for event payload
    */
   private getBreadcrumbsForEvent(): HawkJavaScriptEvent['breadcrumbs'] {
-    const breadcrumbs = this.breadcrumbManager?.getBreadcrumbs();
+    const breadcrumbs = this.breadcrumbStore?.get();
 
     return breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs : undefined;
   }
