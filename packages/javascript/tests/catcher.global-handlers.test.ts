@@ -4,9 +4,10 @@ import { BreadcrumbManager } from '../src/addons/breadcrumbs';
 import { TEST_TOKEN, wait, createTransport, getLastPayload } from './catcher.helpers';
 
 const mockParse = vi.hoisted(() => vi.fn().mockResolvedValue([]));
-vi.mock('../src/modules/stackParser', () => ({
-  default: class { parse = mockParse; },
-}));
+vi.mock('@hawk.so/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@hawk.so/core')>();
+  return { ...actual, StackParser: class { parse = mockParse; } };
+});
 
 describe('Catcher', () => {
   beforeEach(() => {
