@@ -11,3 +11,4 @@ export type { Transport } from './transports/transport';
 export { EventRejectedError } from './errors';
 export { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 export { isPlainObject, validateUser, validateContext, isValidEventPayload, isValidBreadcrumb } from './utils/validation';
+export type { BreadcrumbStore, BreadcrumbsAPI, BreadcrumbHint, BreadcrumbInput } from './breadcrumbs/breadcrumb-store';
