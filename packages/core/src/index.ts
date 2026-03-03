@@ -12,3 +12,4 @@ export { StackParser } from './modules/stack-parser';
 export { buildElementSelector } from './utils/selector';
 export { EventRejectedError } from './errors';
 export { isErrorProcessed, markErrorAsProcessed } from './utils/event';
+export type { BreadcrumbStore, BreadcrumbsAPI, BreadcrumbHint, BreadcrumbInput } from './breadcrumbs/breadcrumb-store';

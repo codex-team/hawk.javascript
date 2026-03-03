@@ -1,9 +1,14 @@
 import type { CatcherMessage } from './catcher-message';
 import type { HawkInitialSettings } from './hawk-initial-settings';
 import type { Transport } from '@hawk.so/core';
+import type { BreadcrumbsAPI, BreadcrumbStore } from '@hawk.so/core';
 import type { HawkJavaScriptEvent } from './event';
-import type { VueIntegrationData, NuxtIntegrationData, NuxtIntegrationAddons, JavaScriptCatcherIntegrations } from './integrations';
-import type { BreadcrumbsAPI } from './breadcrumbs-api';
+import type {
+  JavaScriptCatcherIntegrations,
+  NuxtIntegrationAddons,
+  NuxtIntegrationData,
+  VueIntegrationData
+} from './integrations';
 
 export type {
   CatcherMessage,
@@ -14,5 +19,6 @@ export type {
   NuxtIntegrationData,
   NuxtIntegrationAddons,
   JavaScriptCatcherIntegrations,
+  BreadcrumbStore,
   BreadcrumbsAPI
 };
