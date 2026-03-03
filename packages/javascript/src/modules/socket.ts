@@ -1,6 +1,5 @@
 import { log } from '@hawk.so/core';
-import type { CatcherMessage } from '@/types';
-import type { Transport } from '../types/transport';
+import type { CatcherMessage, Transport } from '@/types';
 
 /**
  * Custom WebSocket wrapper class

@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { isPlainObject } from '../utils/validation';
+
 /**
  * This class provides methods for preparing data to sending to Hawk
  * - trim long strings
@@ -6,7 +8,7 @@
  * - represent big objects as "<big object>"
  * - represent class as <class SomeClass> or <instance of SomeClass>
  */
-export default class Sanitizer {
+export class Sanitizer {
   /**
    * Maximum string length
    */
@@ -34,7 +36,7 @@ export default class Sanitizer {
    * @param target - variable to check
    */
   public static isObject(target: any): boolean {
-    return Sanitizer.typeOf(target) === 'object';
+    return isPlainObject(target);
   }
 
   /**
