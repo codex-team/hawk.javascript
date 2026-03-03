@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BreadcrumbManager } from '../src/addons/breadcrumbs';
+import { BrowserBreadcrumbStore } from '../src/addons/breadcrumbs';
 import { wait, createTransport, getLastPayload, createCatcher } from './catcher.helpers';
 
 const mockParse = vi.hoisted(() => vi.fn().mockResolvedValue([]));
@@ -12,7 +12,7 @@ describe('Catcher', () => {
   beforeEach(() => {
     localStorage.clear();
     mockParse.mockResolvedValue([]);
-    (BreadcrumbManager as any).instance = null;
+    (BrowserBreadcrumbStore as any).instance?.destroy();
   });
 
   // ── Breadcrumbs trail ─────────────────────────────────────────────────────
@@ -22,7 +22,7 @@ describe('Catcher', () => {
   describe('breadcrumbs trail', () => {
     it('should include recorded breadcrumbs', async () => {
       const { sendSpy, transport } = createTransport();
-      const hawk = createCatcher(transport, { breadcrumbs: {} });
+      const hawk = createCatcher(transport, { breadcrumbs: { trackFetch: false } });
 
       hawk.breadcrumbs.add({ message: 'button clicked', timestamp: Date.now() });
       hawk.send(new Error('e'));
@@ -37,7 +37,7 @@ describe('Catcher', () => {
     it('should omit breadcrumbs when none have been recorded', async () => {
       const { sendSpy, transport } = createTransport();
 
-      createCatcher(transport, { breadcrumbs: {} }).send(new Error('e'));
+      createCatcher(transport, { breadcrumbs: { trackFetch: false } }).send(new Error('e'));
       await wait();
 
       expect(getLastPayload(sendSpy).breadcrumbs).toBeFalsy();
@@ -51,7 +51,7 @@ describe('Catcher', () => {
 
     it('should omit breadcrumbs cleared before payload was sent', async () => {
       const { sendSpy, transport } = createTransport();
-      const hawk = createCatcher(transport, { breadcrumbs: {} });
+      const hawk = createCatcher(transport, { breadcrumbs: { trackFetch: false } });
 
       hawk.breadcrumbs.add({ message: 'click', timestamp: Date.now() });
       hawk.breadcrumbs.clear();

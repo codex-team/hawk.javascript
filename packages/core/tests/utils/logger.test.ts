@@ -10,13 +10,13 @@ describe('Logger', () => {
   });
 
   it('should return false from isLoggerSet when no logger has been registered', async () => {
-    const { isLoggerSet } = await import('../../src/logger/logger');
+    const { isLoggerSet } = await import('../../src/utils/logger');
 
     expect(isLoggerSet()).toBe(false);
   });
 
   it('should return true from isLoggerSet after setLogger is called', async () => {
-    const { isLoggerSet, setLogger } = await import('../../src/logger/logger');
+    const { isLoggerSet, setLogger } = await import('../../src/utils/logger');
 
     setLogger(vi.fn());
 
@@ -24,13 +24,13 @@ describe('Logger', () => {
   });
 
   it('should not throw when log is called with no logger registered', async () => {
-    const { log } = await import('../../src/logger/logger');
+    const { log } = await import('../../src/utils/logger');
 
     expect(() => log('test message')).not.toThrow();
   });
 
   it('should forward msg, type, and args to the registered logger', async () => {
-    const { setLogger, log } = await import('../../src/logger/logger');
+    const { setLogger, log } = await import('../../src/utils/logger');
     const mockLogger = vi.fn();
 
     setLogger(mockLogger);
@@ -41,7 +41,7 @@ describe('Logger', () => {
   });
 
   it('should pass undefined for omitted type and args', async () => {
-    const { setLogger, log } = await import('../../src/logger/logger');
+    const { setLogger, log } = await import('../../src/utils/logger');
     const mockLogger = vi.fn();
 
     setLogger(mockLogger);
@@ -51,7 +51,7 @@ describe('Logger', () => {
   });
 
   it('should replace a previously registered logger when setLogger is called again', async () => {
-    const { setLogger, log } = await import('../../src/logger/logger');
+    const { setLogger, log } = await import('../../src/utils/logger');
     const first = vi.fn();
     const second = vi.fn();
 
@@ -64,7 +64,7 @@ describe('Logger', () => {
   });
 
   it('should clear the registered logger when resetLogger is called', async () => {
-    const { isLoggerSet, setLogger, resetLogger } = await import('../../src/logger/logger');
+    const { isLoggerSet, setLogger, resetLogger } = await import('../../src/utils/logger');
 
     setLogger(vi.fn());
     expect(isLoggerSet()).toBe(true);
@@ -74,7 +74,7 @@ describe('Logger', () => {
   });
 
   it('should become a no-op after resetLogger is called', async () => {
-    const { setLogger, resetLogger, log } = await import('../../src/logger/logger');
+    const { setLogger, resetLogger, log } = await import('../../src/utils/logger');
     const mockLogger = vi.fn();
 
     setLogger(mockLogger);

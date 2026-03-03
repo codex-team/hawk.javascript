@@ -110,4 +110,5 @@ export interface HawkInitialSettings {
    * Manual sending via `.send()` still works.
    */
   issues?: false | IssuesOptions;
+
 }

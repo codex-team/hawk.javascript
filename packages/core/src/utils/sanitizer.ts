@@ -154,7 +154,6 @@ export class Sanitizer {
     depth: number,
     seen: WeakSet<object>
   ): Record<string, any> | '<deep object>' | '<big object>' {
-
     // If the maximum depth is reached, return a placeholder
     if (depth > Sanitizer.maxDepth) {
       return '<deep object>';

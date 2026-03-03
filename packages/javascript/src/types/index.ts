@@ -5,9 +5,14 @@ import type {
   PerformanceIssueThresholdOptions
 } from './issues';
 import type { Transport } from '@hawk.so/core';
+import type { BreadcrumbsAPI, BreadcrumbStore } from '@hawk.so/core';
 import type { HawkJavaScriptEvent } from './event';
-import type { VueIntegrationData, NuxtIntegrationData, NuxtIntegrationAddons, JavaScriptCatcherIntegrations } from './integrations';
-import type { BreadcrumbsAPI } from './breadcrumbs-api';
+import type {
+  JavaScriptCatcherIntegrations,
+  NuxtIntegrationAddons,
+  NuxtIntegrationData,
+  VueIntegrationData
+} from './integrations';
 export type {
   CatcherMessage,
   HawkInitialSettings,
@@ -19,5 +24,6 @@ export type {
   NuxtIntegrationData,
   NuxtIntegrationAddons,
   JavaScriptCatcherIntegrations,
+  BreadcrumbStore,
   BreadcrumbsAPI
 };

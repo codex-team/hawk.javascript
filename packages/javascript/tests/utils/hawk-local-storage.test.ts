@@ -1,6 +1,6 @@
 import type { Mock } from 'vitest';
 import { beforeEach, afterEach, describe, it, expect, vi } from 'vitest';
-import { HawkLocalStorage } from '../../src/storages/hawk-local-storage';
+import { HawkLocalStorage } from '../../src/utils/hawk-local-storage';
 
 describe('HawkLocalStorage', () => {
   let getItemSpy: Mock<(key: string) => string | null>;
