@@ -88,7 +88,6 @@ Initialization settings:
 | `user`                        | {id: string, name?: string, image?: string, url?: string} | optional     | Current authenticated user                                                          |
 | `context`                     | object                                                    | optional     | Any data you want to pass with every message. Has limitation of length.             |
 | `vue`                         | Vue constructor                                           | optional     | Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application) |
-| `disableGlobalErrorsHandling` | boolean                                                   | optional     | Deprecated. Use `issues.errors: false` instead.                                     |
 | `disableVueErrorHandler`      | boolean                                                   | optional     | Do not initialize Vue errors handling                                               |
 | `consoleTracking`             | boolean                                                   | optional     | Initialize console logs tracking                                                    |
 | `breadcrumbs`                 | false or BreadcrumbsOptions object                        | optional     | Configure breadcrumbs tracking (see below)                                          |
