@@ -93,7 +93,7 @@ Initialization settings:
 | `consoleTracking`             | boolean                                                   | optional     | Initialize console logs tracking                                                    |
 | `breadcrumbs`                 | false or BreadcrumbsOptions object                        | optional     | Configure breadcrumbs tracking (see below)                                          |
 | `beforeSend`                  | function(event) => event \| false \| void                 | optional     | Filter data before sending. Return modified event, `false` to drop the event.       |
-| `issues`                      | IssuesOptions object                                      | optional     | Issues config: `errors`, `webVitals`, `longTasks.thresholdMs`, `longAnimationFrames.thresholdMs` |
+| `issues`                      | IssuesOptions object                                      | optional     | Issues config. See [Issues configuration](#issues-configuration). |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -236,28 +236,18 @@ const breadcrumbs = hawk.breadcrumbs.get();
 hawk.breadcrumbs.clear();
 ```
 
-## Issues Detection
+## Issues configuration
 
-`issues` is an umbrella option for problems detected by the catcher.
-Browser support depends on the specific detector:
-- `errors` — works in all supported browsers
-- `webVitals` — via `web-vitals` package
-- `longTasks` / `longAnimationFrames` — Chromium-only (`long-animation-frame` requires Chrome/Edge 123+)
-
-It currently includes three groups:
+The `issues` option is used to configure different tracking features
 
 - `issues.errors` — global runtime errors handling
-- `issues.webVitals` — aggregated Core Web Vitals report
-- `issues.longTasks` and `issues.longAnimationFrames` — freeze-related detectors
+- `issues.webVitals` — Core Web Vitals reports
+- `issues.longTasks` — reports about tasks taking longer than specified time (50 ms by default)
+- `issues.longAnimationFrames` — reporst about framges taking longer that specified time (200ms by default)
 
-Freeze detectors use two complementary APIs:
 
-- **Long Tasks API** — browser reports tasks taking longer than 50 ms.
-- **Long Animation Frames (LoAF)** — browser reports frames taking longer than 50 ms with richer script attribution (Chrome 123+, Edge 123+).
+All issues are enabled by default. If user browser does not support some metric, it won't be sent.
 
-Both freeze detectors are enabled by default. If one API is unsupported, the other still works.
-Each detected freeze is reported immediately with detailed context (duration, blocking time, scripts involved, etc.).
-`thresholdMs` is an additional Hawk filter on top of browser reporting. Hawk emits an issue when measured duration is equal to or greater than this value. Values below `50ms` are clamped to `50ms`.
 
 ### Web Vitals
 
@@ -268,7 +258,8 @@ Each Web Vitals issue context contains metric fields:
 - `rating`
 - `delta`
 
-`web-vitals` is optional and used only when `issues.webVitals: true`:
+**You need to install the `web-vitals` package if you enable `webVitals=true` (by default).**
+
 - NPM/ESM setup: install `web-vitals` as dependency.
 - CDN setup: expose global `window.webVitals` before Hawk initialization.
 
@@ -304,15 +295,6 @@ const hawk = new HawkCatcher({
   }
 });
 ```
-
-### Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `errors` | `boolean` | `true` | Enable global errors handling (`window.onerror` and `unhandledrejection`). |
-| `webVitals` | `boolean` | `true` | Listen to Core Web Vitals and send one issue event per metric when that metric is rated `poor`. Requires optional `web-vitals` dependency. |
-| `longTasks` | `boolean` or `{ thresholdMs?: number }` | `true` | `false` disables. `true` enables with default threshold. Object enables and uses `thresholdMs` when valid; otherwise fallback threshold `70ms` is used (minimum effective value `50ms`). |
-| `longAnimationFrames` | `boolean` or `{ thresholdMs?: number }` | `true` | `false` disables. `true` enables with default threshold. Object enables and uses `thresholdMs` when valid; otherwise fallback threshold `200ms` is used (minimum effective value `50ms`). Requires Chrome 123+ / Edge 123+. |
 
 ## Source maps consuming
 
