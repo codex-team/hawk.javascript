@@ -18,7 +18,7 @@ export interface PerformanceIssuesOptions {
   /**
    * Enable aggregated Web Vitals monitoring.
    *
-   * @default false
+   * @default true
    */
   webVitals?: boolean;
 
@@ -28,7 +28,7 @@ export interface PerformanceIssuesOptions {
    * Any other value enables it with default threshold.
    * If `thresholdMs` is a valid number greater than or equal to 50, it is used.
    *
-   * @default false
+   * @default true
    */
   longTasks?: boolean | PerformanceIssueThresholdOptions;
 
@@ -38,7 +38,7 @@ export interface PerformanceIssuesOptions {
    * Any other value enables it with default threshold.
    * If `thresholdMs` is a valid number greater than or equal to 50, it is used.
    *
-   * @default false
+   * @default true
    */
   longAnimationFrames?: boolean | PerformanceIssueThresholdOptions;
 }

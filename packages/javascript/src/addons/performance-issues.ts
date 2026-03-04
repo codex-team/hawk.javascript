@@ -6,8 +6,7 @@ import type {
   LoAFScript,
   LongTaskPerformanceEntry,
   WebVitalMetric,
-  WebVitalRating,
-  WebVitalsReport
+  WebVitalRating
 } from '../types/issues';
 import { compactJson } from '../utils/compactJson';
 import log from '../utils/log';
@@ -28,11 +27,6 @@ export const DEFAULT_LOAF_THRESHOLD_MS = 200;
  */
 export const MIN_ISSUE_THRESHOLD_MS = 50;
 /**
- * Maximum waiting time for Web Vitals aggregation before forced report attempt.
- */
-export const WEB_VITALS_REPORT_TIMEOUT_MS = 10000;
-
-/**
  * Web Vitals "good/poor" boundaries used to enrich issue summaries.
  */
 const METRIC_THRESHOLDS: Record<string, [good: number, poor: number]> = {
@@ -42,12 +36,6 @@ const METRIC_THRESHOLDS: Record<string, [good: number, poor: number]> = {
   INP: [200, 500],
   CLS: [0.1, 0.25],
 };
-
-/**
- * Number of Core Web Vitals currently collected by this monitor.
- * We wait for all metrics first, then fallback to timeout/pagehide flush.
- */
-const TOTAL_WEB_VITALS = 5;
 
 /**
  * Minimal Web Vitals API contract used by this monitor.
@@ -72,8 +60,6 @@ export class PerformanceIssuesMonitor {
   private longTaskObserver: PerformanceObserver | null = null;
   /** Active observer for Long Animation Frames API. */
   private loafObserver: PerformanceObserver | null = null;
-  /** Cleanup hook for Web Vitals timeout/pagehide listeners. */
-  private webVitalsCleanup: (() => void) | null = null;
   /** Prevents duplicate initialization and duplicate issue streams. */
   private isInitialized = false;
   /** Marks monitor as stopped to ignore async callbacks after destroy. */
@@ -93,21 +79,21 @@ export class PerformanceIssuesMonitor {
     this.isInitialized = true;
     this.destroyed = false;
 
-    if (options.longTasks !== undefined && options.longTasks !== false) {
+    if (options.longTasks !== false) {
       this.observeLongTasks(
         resolveThreshold(resolveThresholdOption(options.longTasks), DEFAULT_LONG_TASK_THRESHOLD_MS),
         onIssue
       );
     }
 
-    if (options.longAnimationFrames !== undefined && options.longAnimationFrames !== false) {
+    if (options.longAnimationFrames !== false) {
       this.observeLoAF(
         resolveThreshold(resolveThresholdOption(options.longAnimationFrames), DEFAULT_LOAF_THRESHOLD_MS),
         onIssue
       );
     }
 
-    if (options.webVitals === true) {
+    if (options.webVitals !== false) {
       this.observeWebVitals(onIssue);
     }
   }
@@ -123,10 +109,8 @@ export class PerformanceIssuesMonitor {
     this.isInitialized = false;
     this.longTaskObserver?.disconnect();
     this.loafObserver?.disconnect();
-    this.webVitalsCleanup?.();
     this.longTaskObserver = null;
     this.loafObserver = null;
-    this.webVitalsCleanup = null;
   }
 
   /**
@@ -255,8 +239,7 @@ export class PerformanceIssuesMonitor {
   }
 
   /**
-   * Observe Web Vitals and emit a single aggregated poor report.
-   * Reports when all metrics are collected or on timeout/pagehide fallback.
+   * Observe Web Vitals and emit one issue per poor metric.
    *
    * Resolution strategy:
    * 1) Use global `window.webVitals` when available (CDN scenario)
@@ -271,125 +254,46 @@ export class PerformanceIssuesMonitor {
         return;
       }
 
-      const collected: Record<string, WebVitalMetric> = {};
-      let reported = false;
-      let timeoutId: ReturnType<typeof setTimeout> | null = null;
-      let handlePageHide: (() => void) | null = null;
+      const reportedPoorMetrics = new Set<string>();
 
       /**
-       * Clears timeout and page lifecycle listener bound for this monitor run.
+       * Emits one issue event for a poor metric.
+       * Same metric name is reported only once.
        */
-      const cleanup = (): void => {
-        if (timeoutId !== null) {
-          clearTimeout(timeoutId);
-          timeoutId = null;
-        }
-
-        if (typeof window !== 'undefined' && handlePageHide !== null) {
-          window.removeEventListener('pagehide', handlePageHide);
-        }
-      };
-
-      /**
-       * Tries to emit an aggregated Web Vitals issue.
-       * When `force` is false, waits for all vitals.
-       * When `force` is true, emits with currently collected metrics.
-       *
-       * @param force
-       */
-      const tryReport = (force: boolean): void => {
-        if (this.destroyed || reported) {
+      const reportPoorMetric = (metric: { name: string; value: number; rating: WebVitalRating; delta: number }): void => {
+        if (this.destroyed || metric.rating !== 'poor') {
           return;
         }
 
-        const metrics = Object.values(collected);
-
-        if (metrics.length === 0) {
+        if (reportedPoorMetrics.has(metric.name)) {
           return;
         }
 
-        if (!force && metrics.length < TOTAL_WEB_VITALS) {
-          return;
-        }
+        reportedPoorMetrics.add(metric.name);
 
-        const poor = metrics.filter((metric) => metric.rating === 'poor');
-
-        if (poor.length === 0) {
-          return;
-        }
-
-        reported = true;
-        cleanup();
-
-        const summary = poor
-          .map((metric) => {
-            const thresholds = METRIC_THRESHOLDS[metric.name];
-            const threshold = thresholds ? ` (poor > ${formatValue(metric.name, thresholds[1])})` : '';
-
-            return `${metric.name} = ${formatValue(metric.name, metric.value)}${threshold}`;
-          })
-          .join(', ');
-
-        const report: WebVitalsReport = {
-          summary,
-          poorCount: poor.length,
-          metrics: { ...collected },
-        };
+        const thresholds = METRIC_THRESHOLDS[metric.name];
+        const thresholdNote = thresholds ? ` (poor > ${formatValue(metric.name, thresholds[1])})` : '';
+        const summary = `${metric.name} = ${formatValue(metric.name, metric.value)}${thresholdNote}`;
 
         onIssue({
-          title: `Poor Web Vitals: ${summary}`,
+          title: `Poor Web Vital: ${summary}`,
           context: {
-            webVitals: serializeWebVitalsReport(report),
+            webVitals: serializeWebVitalMetric(metric),
           },
         });
       };
 
-      /**
-       * Collects latest metric snapshot per metric name.
-       *
-       * @param metric
-       */
-      const collect = (metric: { name: string; value: number; rating: WebVitalRating; delta: number }): void => {
-        if (this.destroyed || reported) {
-          return;
-        }
-
-        collected[metric.name] = {
-          name: metric.name,
-          value: metric.value,
-          rating: metric.rating,
-          delta: metric.delta,
-        };
-
-        tryReport(false);
-      };
-
-      handlePageHide = (): void => {
-        tryReport(true);
-      };
-
-      timeoutId = setTimeout(() => {
-        tryReport(true);
-      }, WEB_VITALS_REPORT_TIMEOUT_MS);
-
-      if (typeof window !== 'undefined' && handlePageHide !== null) {
-        window.addEventListener('pagehide', handlePageHide);
-      }
-
-      this.webVitalsCleanup = cleanup;
-
-      onCLS(collect);
-      onINP(collect);
-      onLCP(collect);
-      onFCP(collect);
-      onTTFB(collect);
-    })
-      .catch(() => {
-        log(
-          'Web Vitals tracking requires `web-vitals` (npm) or global `window.webVitals` (CDN).',
-          'warn'
-        );
-      });
+      onCLS(reportPoorMetric);
+      onINP(reportPoorMetric);
+      onLCP(reportPoorMetric);
+      onFCP(reportPoorMetric);
+      onTTFB(reportPoorMetric);
+    }).catch(() => {
+      log(
+        'Web Vitals tracking requires `web-vitals` (npm) or global `window.webVitals` (CDN).',
+        'warn'
+      );
+    });
   }
 }
 
@@ -507,25 +411,15 @@ function serializeScript(script: LoAFScript): Json {
 }
 
 /**
- * Serializes aggregated Web Vitals report into event context payload.
+ * Serializes single Web Vital metric into event context payload.
  *
- * @param report aggregated vitals report
+ * @param metric web vital metric
  */
-function serializeWebVitalsReport(report: WebVitalsReport): Json {
-  const metrics = Object.entries(report.metrics).reduce<Json>((acc, [name, metric]) => {
-    acc[name] = compactJson([
-      ['name', metric.name],
-      ['value', metric.value],
-      ['rating', metric.rating],
-      ['delta', metric.delta],
-    ]);
-
-    return acc;
-  }, {});
-
+function serializeWebVitalMetric(metric: WebVitalMetric): Json {
   return compactJson([
-    ['summary', report.summary],
-    ['poorCount', report.poorCount],
-    ['metrics', metrics],
+    ['name', metric.name],
+    ['value', metric.value],
+    ['rating', metric.rating],
+    ['delta', metric.delta],
   ]);
 }

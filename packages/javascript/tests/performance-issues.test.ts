@@ -3,7 +3,6 @@ import type { Metric, ReportCallback } from 'web-vitals';
 import {
   DEFAULT_LONG_TASK_THRESHOLD_MS,
   MIN_ISSUE_THRESHOLD_MS,
-  WEB_VITALS_REPORT_TIMEOUT_MS,
 } from '../src/addons/performance-issues';
 
 class MockPerformanceObserver {
@@ -218,8 +217,7 @@ describe('PerformanceIssuesMonitor', () => {
     expect(MockPerformanceObserver.instances).toHaveLength(0);
   });
 
-  it('should report poor web vitals on timeout even when not all 5 metrics fired', async () => {
-    vi.useFakeTimers();
+  it('should report poor web vital metric immediately', async () => {
     const webVitals = mockWebVitals();
     const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
     const onIssue = vi.fn();
@@ -229,15 +227,13 @@ describe('PerformanceIssuesMonitor', () => {
     await vi.dynamicImportSettled();
 
     webVitals.emit({ name: 'LCP', value: 5000, rating: 'poor', delta: 5000 });
-    vi.advanceTimersByTime(WEB_VITALS_REPORT_TIMEOUT_MS);
 
     expect(onIssue).toHaveBeenCalledTimes(1);
-    expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vitals');
+    expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vital');
     expect(onIssue.mock.calls[0][0].context).toHaveProperty('webVitals');
   });
 
   it('should use global webVitals API when available (CDN scenario)', async () => {
-    vi.useFakeTimers();
     const globalWebVitals = mockGlobalWebVitals();
     const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
     const onIssue = vi.fn();
@@ -247,10 +243,23 @@ describe('PerformanceIssuesMonitor', () => {
     await vi.dynamicImportSettled();
 
     globalWebVitals.emit({ name: 'INP', value: 600, rating: 'poor', delta: 600 });
-    vi.advanceTimersByTime(WEB_VITALS_REPORT_TIMEOUT_MS);
 
     expect(onIssue).toHaveBeenCalledTimes(1);
-    expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vitals');
+    expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vital');
     globalWebVitals.cleanup();
   });
+
+  it('should not emit event for non-poor web vital metric', async () => {
+    const webVitals = mockWebVitals();
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const onIssue = vi.fn();
+    const monitor = new PerformanceIssuesMonitor();
+
+    monitor.init({ longTasks: false, longAnimationFrames: false, webVitals: true }, onIssue);
+    await vi.dynamicImportSettled();
+
+    webVitals.emit({ name: 'FCP', value: 1800, rating: 'good', delta: 1800 });
+    expect(onIssue).not.toHaveBeenCalled();
+  });
+
 });
