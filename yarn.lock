@@ -585,7 +585,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@hawk.so/javascript@npm:^3.0.0, @hawk.so/javascript@workspace:packages/javascript":
+"@hawk.so/javascript@workspace:^, @hawk.so/javascript@workspace:packages/javascript":
   version: 0.0.0-use.local
   resolution: "@hawk.so/javascript@workspace:packages/javascript"
   dependencies:
@@ -616,7 +616,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@hawk.so/sveltekit@workspace:packages/sveltekit"
   dependencies:
-    "@hawk.so/javascript": "npm:^3.0.0"
+    "@hawk.so/javascript": "workspace:^"
     vite: "npm:^7.3.1"
     vite-plugin-dts: "npm:^4.2.4"
   languageName: unknown
