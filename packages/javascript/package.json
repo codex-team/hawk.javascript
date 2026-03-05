@@ -39,15 +39,8 @@
   },
   "homepage": "https://github.com/codex-team/hawk.javascript#readme",
   "dependencies": {
-    "error-stack-parser": "^2.1.4"
-  },
-  "peerDependencies": {
-    "web-vitals": "^4.0.0 || ^5.0.0"
-  },
-  "peerDependenciesMeta": {
-    "web-vitals": {
-      "optional": true
-    }
+    "error-stack-parser": "^2.1.4",
+    "web-vitals": "^5.1.0"
   },
   "devDependencies": {
     "@hawk.so/types": "0.5.8",

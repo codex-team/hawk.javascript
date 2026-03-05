@@ -241,8 +241,8 @@ The `issues` option is used to configure different tracking features
 
 - `issues.errors` — global runtime errors handling
 - `issues.webVitals` — Core Web Vitals reports
-- `issues.longTasks` — reports about tasks taking longer than specified time (50 ms by default)
-- `issues.longAnimationFrames` — reporst about framges taking longer that specified time (200ms by default)
+- `issues.longTasks` — reports about tasks taking longer than specified time (`70ms` default threshold)
+- `issues.longAnimationFrames` — reports about frames taking longer than specified time (`200ms` default threshold)
 
 
 All issues are enabled by default. If user browser does not support some metric, it won't be sent.
@@ -257,10 +257,7 @@ Each Web Vitals issue context contains metric fields:
 - `rating`
 - `delta`
 
-**You need to install the `web-vitals` package if you enable `webVitals=true` (by default).**
-
-- NPM/ESM setup: install `web-vitals` as dependency.
-- CDN setup: expose global `window.webVitals` before Hawk initialization.
+`web-vitals` is included in the SDK dependencies, no extra installation is required.
 
 ### Disabling
 

@@ -5,6 +5,16 @@ import {
   MIN_ISSUE_THRESHOLD_MS,
 } from '../src/addons/performance-issues';
 
+const webVitalsCallbacks: Record<string, ReportCallback | undefined> = {};
+
+vi.mock('web-vitals', () => ({
+  onCLS: (cb: ReportCallback) => { webVitalsCallbacks.CLS = cb; },
+  onINP: (cb: ReportCallback) => { webVitalsCallbacks.INP = cb; },
+  onLCP: (cb: ReportCallback) => { webVitalsCallbacks.LCP = cb; },
+  onFCP: (cb: ReportCallback) => { webVitalsCallbacks.FCP = cb; },
+  onTTFB: (cb: ReportCallback) => { webVitalsCallbacks.TTFB = cb; },
+}));
+
 class MockPerformanceObserver {
   public static supportedEntryTypes: string[] = ['longtask', 'long-animation-frame'];
   public static instances: MockPerformanceObserver[] = [];
@@ -56,42 +66,9 @@ function entry(type: string, duration: number, extra: Record<string, unknown> = 
 }
 
 function mockWebVitals() {
-  const callbacks: Record<string, ReportCallback | undefined> = {};
-
-  vi.doMock('web-vitals', () => ({
-    onCLS: (cb: ReportCallback) => { callbacks.CLS = cb; },
-    onINP: (cb: ReportCallback) => { callbacks.INP = cb; },
-    onLCP: (cb: ReportCallback) => { callbacks.LCP = cb; },
-    onFCP: (cb: ReportCallback) => { callbacks.FCP = cb; },
-    onTTFB: (cb: ReportCallback) => { callbacks.TTFB = cb; },
-  }));
-
   return {
     emit(metric: Metric): void {
-      callbacks[metric.name]?.(metric);
-    },
-  };
-}
-
-function mockGlobalWebVitals() {
-  const callbacks: Record<string, ReportCallback | undefined> = {};
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (globalThis as any).webVitals = {
-    onCLS: (cb: ReportCallback) => { callbacks.CLS = cb; },
-    onINP: (cb: ReportCallback) => { callbacks.INP = cb; },
-    onLCP: (cb: ReportCallback) => { callbacks.LCP = cb; },
-    onFCP: (cb: ReportCallback) => { callbacks.FCP = cb; },
-    onTTFB: (cb: ReportCallback) => { callbacks.TTFB = cb; },
-  };
-
-  return {
-    emit(metric: Metric): void {
-      callbacks[metric.name]?.(metric);
-    },
-    cleanup(): void {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (globalThis as any).webVitals;
+      webVitalsCallbacks[metric.name]?.(metric);
     },
   };
 }
@@ -102,8 +79,11 @@ describe('PerformanceIssuesMonitor', () => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     vi.useRealTimers();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (globalThis as any).webVitals;
+    webVitalsCallbacks.CLS = undefined;
+    webVitalsCallbacks.INP = undefined;
+    webVitalsCallbacks.LCP = undefined;
+    webVitalsCallbacks.FCP = undefined;
+    webVitalsCallbacks.TTFB = undefined;
     MockPerformanceObserver.reset();
     vi.stubGlobal('PerformanceObserver', MockPerformanceObserver as unknown as typeof PerformanceObserver);
   });
@@ -112,8 +92,6 @@ describe('PerformanceIssuesMonitor', () => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     vi.useRealTimers();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (globalThis as any).webVitals;
   });
 
   it('should clamp long task threshold to 50ms minimum', async () => {
@@ -233,8 +211,8 @@ describe('PerformanceIssuesMonitor', () => {
     expect(onIssue.mock.calls[0][0].context).toHaveProperty('webVitals');
   });
 
-  it('should use global webVitals API when available (CDN scenario)', async () => {
-    const globalWebVitals = mockGlobalWebVitals();
+  it('should report poor INP metric', async () => {
+    const webVitals = mockWebVitals();
     const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
     const onIssue = vi.fn();
     const monitor = new PerformanceIssuesMonitor();
@@ -242,11 +220,10 @@ describe('PerformanceIssuesMonitor', () => {
     monitor.init({ longTasks: false, longAnimationFrames: false, webVitals: true }, onIssue);
     await vi.dynamicImportSettled();
 
-    globalWebVitals.emit({ name: 'INP', value: 600, rating: 'poor', delta: 600 });
+    webVitals.emit({ name: 'INP', value: 600, rating: 'poor', delta: 600 });
 
     expect(onIssue).toHaveBeenCalledTimes(1);
     expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vital');
-    globalWebVitals.cleanup();
   });
 
   it('should not emit event for non-poor web vital metric', async () => {

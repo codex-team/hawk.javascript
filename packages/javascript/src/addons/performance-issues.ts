@@ -1,4 +1,5 @@
 import type { Json } from '@hawk.so/types';
+import { onCLS, onINP, onLCP, onFCP, onTTFB } from 'web-vitals';
 import type {
   PerformanceIssueEvent,
   PerformanceIssuesOptions,
@@ -9,7 +10,6 @@ import type {
   WebVitalRating
 } from '../types/issues';
 import { compactJson } from '../utils/compactJson';
-import log from '../utils/log';
 
 /**
  * Default threshold for Long Tasks detector.
@@ -35,18 +35,6 @@ const METRIC_THRESHOLDS: Record<string, [good: number, poor: number]> = {
   TTFB: [800, 1800],
   INP: [200, 500],
   CLS: [0.1, 0.25],
-};
-
-/**
- * Minimal Web Vitals API contract used by this monitor.
- * Supports module import and global CDN exposure (`window.webVitals`).
- */
-type WebVitalsApi = {
-  onCLS: (callback: (metric: { name: string; value: number; rating: WebVitalRating; delta: number }) => void) => void;
-  onINP: (callback: (metric: { name: string; value: number; rating: WebVitalRating; delta: number }) => void) => void;
-  onLCP: (callback: (metric: { name: string; value: number; rating: WebVitalRating; delta: number }) => void) => void;
-  onFCP: (callback: (metric: { name: string; value: number; rating: WebVitalRating; delta: number }) => void) => void;
-  onTTFB: (callback: (metric: { name: string; value: number; rating: WebVitalRating; delta: number }) => void) => void;
 };
 
 /**
@@ -241,59 +229,47 @@ export class PerformanceIssuesMonitor {
   /**
    * Observe Web Vitals and emit one issue per poor metric.
    *
-   * Resolution strategy:
-   * 1) Use global `window.webVitals` when available (CDN scenario)
-   * 2) Fallback to dynamic import of `web-vitals` (NPM/ESM scenario)
-   * 3) Log warning if neither is available
-   *
    * @param onIssue issue callback
    */
   private observeWebVitals(onIssue: (event: PerformanceIssueEvent) => void): void {
-    void resolveWebVitalsApi().then(({ onCLS, onINP, onLCP, onFCP, onTTFB }) => {
-      if (this.destroyed) {
+    if (this.destroyed) {
+      return;
+    }
+
+    const reportedPoorMetrics = new Set<string>();
+
+    /**
+     * Emits one issue event for a poor metric.
+     * Same metric name is reported only once.
+     */
+    const reportPoorMetric = (metric: { name: string; value: number; rating: WebVitalRating; delta: number }): void => {
+      if (this.destroyed || metric.rating !== 'poor') {
         return;
       }
 
-      const reportedPoorMetrics = new Set<string>();
+      if (reportedPoorMetrics.has(metric.name)) {
+        return;
+      }
 
-      /**
-       * Emits one issue event for a poor metric.
-       * Same metric name is reported only once.
-       */
-      const reportPoorMetric = (metric: { name: string; value: number; rating: WebVitalRating; delta: number }): void => {
-        if (this.destroyed || metric.rating !== 'poor') {
-          return;
-        }
+      reportedPoorMetrics.add(metric.name);
 
-        if (reportedPoorMetrics.has(metric.name)) {
-          return;
-        }
+      const thresholds = METRIC_THRESHOLDS[metric.name];
+      const thresholdNote = thresholds ? ` (poor > ${formatValue(metric.name, thresholds[1])})` : '';
+      const summary = `${metric.name} = ${formatValue(metric.name, metric.value)}${thresholdNote}`;
 
-        reportedPoorMetrics.add(metric.name);
+      onIssue({
+        title: `Poor Web Vital: ${summary}`,
+        context: {
+          webVitals: serializeWebVitalMetric(metric),
+        },
+      });
+    };
 
-        const thresholds = METRIC_THRESHOLDS[metric.name];
-        const thresholdNote = thresholds ? ` (poor > ${formatValue(metric.name, thresholds[1])})` : '';
-        const summary = `${metric.name} = ${formatValue(metric.name, metric.value)}${thresholdNote}`;
-
-        onIssue({
-          title: `Poor Web Vital: ${summary}`,
-          context: {
-            webVitals: serializeWebVitalMetric(metric),
-          },
-        });
-      };
-
-      onCLS(reportPoorMetric);
-      onINP(reportPoorMetric);
-      onLCP(reportPoorMetric);
-      onFCP(reportPoorMetric);
-      onTTFB(reportPoorMetric);
-    }).catch(() => {
-      log(
-        'Web Vitals tracking requires `web-vitals` (npm) or global `window.webVitals` (CDN).',
-        'warn'
-      );
-    });
+    onCLS(reportPoorMetric);
+    onINP(reportPoorMetric);
+    onLCP(reportPoorMetric);
+    onFCP(reportPoorMetric);
+    onTTFB(reportPoorMetric);
   }
 }
 
@@ -334,50 +310,12 @@ function resolveThreshold(value: number | undefined, fallback: number): number {
  *
  * @param value detector config value
  */
-function resolveThresholdOption(value: boolean | { thresholdMs?: number }): number | undefined {
+function resolveThresholdOption(value: boolean | { thresholdMs?: number } | undefined): number | undefined {
   if (typeof value === 'object' && value !== null) {
     return value.thresholdMs;
   }
 
   return undefined;
-}
-
-/**
- * Resolves Web Vitals API from global scope or dynamic module import.
- */
-async function resolveWebVitalsApi(): Promise<WebVitalsApi> {
-  const globalApi = getGlobalWebVitalsApi();
-
-  if (globalApi) {
-    return globalApi;
-  }
-
-  const moduleApi = await import('web-vitals');
-
-  return moduleApi as unknown as WebVitalsApi;
-}
-
-/**
- * Returns global Web Vitals API when Hawk is used via CDN.
- */
-function getGlobalWebVitalsApi(): WebVitalsApi | null {
-  if (typeof globalThis === 'undefined') {
-    return null;
-  }
-
-  const candidate = (globalThis as { webVitals?: unknown }).webVitals;
-
-  if (!candidate || typeof candidate !== 'object') {
-    return null;
-  }
-
-  const api = candidate as Partial<WebVitalsApi>;
-
-  if (!api.onCLS || !api.onINP || !api.onLCP || !api.onFCP || !api.onTTFB) {
-    return null;
-  }
-
-  return api as WebVitalsApi;
 }
 
 /**
