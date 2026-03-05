@@ -2,6 +2,7 @@ import type { EventContext, AffectedUser } from '@hawk.so/types';
 import type { HawkJavaScriptEvent } from './event';
 import type { Transport } from './transport';
 import type { BreadcrumbsOptions } from '../addons/breadcrumbs';
+import type { IssuesOptions } from './issues';
 
 /**
  * JS Catcher initial settings
@@ -61,6 +62,8 @@ export interface HawkInitialSettings {
   /**
    * Do not initialize global errors handling
    * This options still allow you send events manually
+   *
+   * @deprecated Use `issues.errors` instead.
    */
   disableGlobalErrorsHandling?: boolean;
 
@@ -98,4 +101,10 @@ export interface HawkInitialSettings {
    * If not provided, default WebSocket transport is used.
    */
   transport?: Transport;
+
+  /**
+   * Issues configuration:
+   * `errors`, `webVitals`, `longTasks`, `longAnimationFrames`.
+   */
+  issues?: IssuesOptions;
 }

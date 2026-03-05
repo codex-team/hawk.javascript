@@ -18,6 +18,7 @@ import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
+import { PerformanceIssuesMonitor } from './addons/performance-issues';
 import { validateUser, validateContext, isValidEventPayload } from './utils/validation';
 
 /**
@@ -112,6 +113,11 @@ export default class Catcher {
   private readonly breadcrumbManager: BreadcrumbManager | null;
 
   /**
+   * Issues monitor instance
+   */
+  private readonly issuesMonitor = new PerformanceIssuesMonitor();
+
+  /**
    * Catcher constructor
    *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
@@ -177,12 +183,7 @@ export default class Catcher {
       this.breadcrumbManager = null;
     }
 
-    /**
-     * Set global handlers
-     */
-    if (!settings.disableGlobalErrorsHandling) {
-      this.initGlobalHandlers();
-    }
+    this.configureIssues(settings);
 
     if (settings.vue) {
       this.connectVue(settings.vue);
@@ -313,6 +314,29 @@ export default class Catcher {
     }
 
     this.context = context;
+  }
+
+  /**
+   * Configure issues-related features:
+   * - global errors handling
+   * - performance issue detectors (Long Tasks / LoAF)
+   *
+   * @param settings
+   */
+  private configureIssues(settings: HawkInitialSettings): void {
+    const issues = settings.issues ?? {};
+    const shouldHandleGlobalErrors = settings.disableGlobalErrorsHandling !== true && issues.errors !== false;
+    const shouldDetectPerformanceIssues = issues.longTasks !== false
+      || issues.longAnimationFrames !== false
+      || issues.webVitals === true;
+
+    if (shouldHandleGlobalErrors) {
+      this.initGlobalHandlers();
+    }
+
+    if (shouldDetectPerformanceIssues) {
+      this.issuesMonitor.init(issues, (entry) => this.send(entry.title, entry.context));
+    }
   }
 
   /**

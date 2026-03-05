@@ -11,6 +11,9 @@ Error tracking for JavaScript/TypeScript applications.
 - 🛡️ Sensitive data filtering
 - 🌟 Source maps consuming
 - 💬 Console logs tracking
+- 🧊 Main-thread blocking detection (Long Tasks + LoAF, Chromium-only)
+- 📊 Web Vitals issues monitoring
+- ⚙️ Unified `issues` configuration (errors + performance detectors)
 - <img src="https://cdn.svglogos.dev/logos/vue.svg" width="16" height="16"> &nbsp;Vue support
 - <img src="https://cdn.svglogos.dev/logos/react.svg" width="16" height="16">  &nbsp;React support
 
@@ -85,11 +88,11 @@ Initialization settings:
 | `user`                        | {id: string, name?: string, image?: string, url?: string} | optional     | Current authenticated user                                                          |
 | `context`                     | object                                                    | optional     | Any data you want to pass with every message. Has limitation of length.             |
 | `vue`                         | Vue constructor                                           | optional     | Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application) |
-| `disableGlobalErrorsHandling` | boolean                                                   | optional     | Do not initialize global errors handling                                            |
 | `disableVueErrorHandler`      | boolean                                                   | optional     | Do not initialize Vue errors handling                                               |
 | `consoleTracking`             | boolean                                                   | optional     | Initialize console logs tracking                                                    |
 | `breadcrumbs`                 | false or BreadcrumbsOptions object                        | optional     | Configure breadcrumbs tracking (see below)                                          |
 | `beforeSend`                  | function(event) => event \| false \| void                 | optional     | Filter data before sending. Return modified event, `false` to drop the event.       |
+| `issues`                      | IssuesOptions object                                      | optional     | Issues config. See [Issues configuration](#issues-configuration). |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -230,6 +233,66 @@ const breadcrumbs = hawk.breadcrumbs.get();
 
 // Clear all breadcrumbs
 hawk.breadcrumbs.clear();
+```
+
+## Issues configuration
+
+The `issues` option is used to configure different tracking features
+
+- `issues.errors` — global runtime errors handling
+- `issues.webVitals` — Core Web Vitals reports
+- `issues.longTasks` — reports about tasks taking longer than specified time (50 ms by default)
+- `issues.longAnimationFrames` — reporst about framges taking longer that specified time (200ms by default)
+
+
+All issues are enabled by default. If user browser does not support some metric, it won't be sent.
+
+
+### Web Vitals
+
+When `issues.webVitals` is enabled, Hawk listens to Core Web Vitals (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) and sends a dedicated issue event for each metric that is rated `poor`.
+
+Each Web Vitals issue context contains metric fields:
+- `value`
+- `rating`
+- `delta`
+
+**You need to install the `web-vitals` package if you enable `webVitals=true` (by default).**
+
+- NPM/ESM setup: install `web-vitals` as dependency.
+- CDN setup: expose global `window.webVitals` before Hawk initialization.
+
+### Disabling
+
+Disable global errors handling:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  issues: {
+    errors: false
+  }
+});
+```
+
+### Selective Configuration
+
+Configure all issue detectors:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  issues: {
+    errors: true,
+    webVitals: true,
+    longTasks: {
+      thresholdMs: 70
+    },
+    longAnimationFrames: {
+      thresholdMs: 200
+    }
+  }
+});
 ```
 
 ## Source maps consuming

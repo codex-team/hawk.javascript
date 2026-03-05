@@ -605,6 +605,11 @@ __metadata:
     vite-plugin-dts: "npm:^4.2.4"
     vitest: "npm:^4.0.18"
     vue: "npm:^2"
+  peerDependencies:
+    web-vitals: ^4.0.0 || ^5.0.0
+  peerDependenciesMeta:
+    web-vitals:
+      optional: true
   languageName: unknown
   linkType: soft
 
