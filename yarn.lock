@@ -583,7 +583,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hawk.so/core@workspace:packages/core":
+"@hawk.so/core@workspace:^, @hawk.so/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@hawk.so/core@workspace:packages/core"
   dependencies:
@@ -596,6 +596,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@hawk.so/javascript@workspace:packages/javascript"
   dependencies:
+    "@hawk.so/core": "workspace:^"
     "@hawk.so/types": "npm:0.5.8"
     "@vitest/coverage-v8": "npm:^4.0.18"
     error-stack-parser: "npm:^2.1.4"
