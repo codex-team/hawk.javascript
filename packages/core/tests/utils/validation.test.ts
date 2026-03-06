@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
-import { validateUser, validateContext, isValidEventPayload, isValidBreadcrumb } from '@hawk.so/core';
+import { validateUser, validateContext, isValidEventPayload, isValidBreadcrumb } from '../../src';
 
 // Suppress log output produced by log() calls inside validation failures.
-vi.mock('@hawk.so/core', () => ({ log: vi.fn(), isLoggerSet: vi.fn(() => true), setLogger: vi.fn() }));
+vi.mock('../../src/logger/logger', () => ({ log: vi.fn(), isLoggerSet: vi.fn(() => true), setLogger: vi.fn() }));
 
 describe('validateUser', () => {
   it('should return false when user is null', () => {

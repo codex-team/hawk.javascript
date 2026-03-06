@@ -4,6 +4,7 @@ export { HawkUserManager } from './users/hawk-user-manager';
 export type { Logger, LogType } from './logger/logger';
 export { isLoggerSet, setLogger, resetLogger, log } from './logger/logger';
 export { Sanitizer } from './modules/sanitizer';
+export type { SanitizerTypeHandler } from './modules/sanitizer';
 export { StackParser } from './modules/stack-parser';
 export { buildElementSelector } from './utils/selector';
 export type { Transport } from './transports/transport';

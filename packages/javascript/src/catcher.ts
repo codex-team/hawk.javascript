@@ -1,3 +1,4 @@
+import './modules/sanitizer';
 import Socket from './modules/socket';
 import type { BreadcrumbsAPI, CatcherMessage, HawkInitialSettings, HawkJavaScriptEvent, Transport } from './types';
 import { VueIntegration } from './integrations/vue';
