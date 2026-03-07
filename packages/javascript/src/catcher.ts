@@ -2,25 +2,26 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './utils/log';
 import StackParser from './modules/stackParser';
-import type { CatcherMessage, HawkInitialSettings, BreadcrumbsAPI, Transport } from './types';
+import type { BreadcrumbsAPI, CatcherMessage, HawkInitialSettings, HawkJavaScriptEvent, Transport } from './types';
 import { VueIntegration } from './integrations/vue';
 import type {
   AffectedUser,
+  DecodedIntegrationToken,
+  EncodedIntegrationToken,
   EventContext,
   JavaScriptAddons,
-  VueIntegrationAddons,
-  Json, EncodedIntegrationToken, DecodedIntegrationToken
+  Json,
+  VueIntegrationAddons
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
-import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
+import { BrowserRandomGenerator } from './utils/random';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
-import { validateUser, validateContext, isValidEventPayload } from './utils/validation';
+import { isValidEventPayload, validateContext, validateUser } from './utils/validation';
 import { HawkUserManager } from '@hawk.so/core';
 import { HawkLocalStorage } from './storages/hawk-local-storage';
-import { id } from './utils/id';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -109,9 +110,12 @@ export default class Catcher {
   private readonly breadcrumbManager: BreadcrumbManager | null;
 
   /**
-   * Current authenticated user manager instance
+   * Manages currently authenticated user identity.
    */
-  private readonly userManager: HawkUserManager = new HawkUserManager(new HawkLocalStorage());
+  private readonly userManager: HawkUserManager = new HawkUserManager(
+    new HawkLocalStorage(),
+    new BrowserRandomGenerator()
+  );
 
   /**
    * Catcher constructor
@@ -551,13 +555,7 @@ export default class Catcher {
    * Returns the current user if set, otherwise generates and persists an anonymous ID.
    */
   private getUser(): AffectedUser {
-    const user = this.userManager.getUser();
-    if (user) {
-      return user;
-    }
-    const generatedId = id();
-    this.userManager.persistGeneratedId(generatedId);
-    return { id: generatedId };
+    return this.userManager.getUser();
   }
 
   /**

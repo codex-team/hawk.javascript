@@ -1,10 +1,12 @@
 import type { AffectedUser } from '@hawk.so/types';
 import type { HawkStorage } from '../storages/hawk-storage';
+import { id } from '../utils/id';
+import type { RandomGenerator } from '../utils/random';
 
 /**
  * Storage key used to persist the auto-generated user ID.
  */
-export const SESSION_STORAGE_KEY = 'hawk-user-id';
+const SESSION_STORAGE_KEY = 'hawk-user-id';
 
 /**
  * Manages the affected user identity.
@@ -12,6 +14,9 @@ export const SESSION_STORAGE_KEY = 'hawk-user-id';
  * Manually provided users are kept in memory only (they don't change restarts).
  * {@link HawkStorage} is used solely to persist the auto-generated ID
  * so it survives across sessions.
+ *
+ * @remarks changes to user data in storage from outside manager are not tracked;
+ * for changes to take effect call {@link clear}.
  */
 export class HawkUserManager {
   /**
@@ -25,23 +30,44 @@ export class HawkUserManager {
   private readonly storage: HawkStorage;
 
   /**
-   * @param storage - Storage backend to use for persistence.
+   * Random generator used to produce anonymous user IDs.
    */
-  constructor(storage: HawkStorage) {
+  private readonly randomGenerator: RandomGenerator;
+
+  /**
+   * @param storage - storage backend to use for persistence
+   * @param randomGenerator - utilities related to RandomGenerator generated values
+   */
+  constructor(
+    storage: HawkStorage,
+    randomGenerator: RandomGenerator
+  ) {
     this.storage = storage;
+    this.randomGenerator = randomGenerator;
   }
 
   /**
-   * Returns the current affected user, or `null` if none is available.
+   * Returns current affected user if set, otherwise generates and persists an anonymous ID.
    *
    * Priority: in-memory user > persisted user ID.
+   *
+   * @returns set affected user or user with generated ID
    */
-  public getUser(): AffectedUser | null {
+  public getUser(): AffectedUser {
     if (this.user) {
       return this.user;
     }
-    const storedId = this.storage.getItem(SESSION_STORAGE_KEY);
-    return storedId ? { id: storedId } : null;
+
+    let storedId = this.storage.getItem(SESSION_STORAGE_KEY);
+
+    if (!storedId) {
+      storedId = id(this.randomGenerator);
+      this.storage.setItem(SESSION_STORAGE_KEY, storedId);
+    }
+
+    this.user = { id: storedId };
+
+    return this.user!;
   }
 
   /**
@@ -51,15 +77,6 @@ export class HawkUserManager {
    */
   public setUser(user: AffectedUser): void {
     this.user = user;
-  }
-
-  /**
-   * Persists an auto-generated user ID to storage.
-   *
-   * @param id - The generated ID to persist.
-   */
-  public persistGeneratedId(id: string): void {
-    this.storage.setItem(SESSION_STORAGE_KEY, id);
   }
 
   /**

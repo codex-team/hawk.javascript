@@ -11,6 +11,7 @@ export class HawkLocalStorage implements HawkStorage {
       return localStorage.getItem(key);
     } catch (e) {
       log('HawkLocalStorage: getItem failed', 'error', e);
+
       return null;
     }
   }
