@@ -1,4 +1,4 @@
-import log from '../utils/log';
+import { log } from '@hawk.so/core';
 
 /**
  * Sends AJAX request and wait for some time.
