@@ -2,23 +2,26 @@ import Socket from './modules/socket';
 import Sanitizer from './modules/sanitizer';
 import log from './utils/log';
 import StackParser from './modules/stackParser';
-import type { CatcherMessage, HawkInitialSettings, BreadcrumbsAPI, Transport } from './types';
+import type { BreadcrumbsAPI, CatcherMessage, HawkInitialSettings, HawkJavaScriptEvent, Transport } from './types';
 import { VueIntegration } from './integrations/vue';
-import { id } from './utils/id';
 import type {
   AffectedUser,
+  DecodedIntegrationToken,
+  EncodedIntegrationToken,
   EventContext,
   JavaScriptAddons,
-  VueIntegrationAddons,
-  Json, EncodedIntegrationToken, DecodedIntegrationToken
+  Json,
+  VueIntegrationAddons
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
-import type { HawkJavaScriptEvent } from './types';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
+import { BrowserRandomGenerator } from './utils/random';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
-import { validateUser, validateContext, isValidEventPayload } from './utils/validation';
+import { isValidEventPayload, validateContext, validateUser } from './utils/validation';
+import { HawkUserManager } from '@hawk.so/core';
+import { HawkLocalStorage } from './storages/hawk-local-storage';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -61,11 +64,6 @@ export default class Catcher {
    * Current bundle version
    */
   private readonly release: string | undefined;
-
-  /**
-   * Current authenticated user
-   */
-  private user: AffectedUser;
 
   /**
    * Any additional data passed by user for sending with all messages
@@ -112,6 +110,14 @@ export default class Catcher {
   private readonly breadcrumbManager: BreadcrumbManager | null;
 
   /**
+   * Manages currently authenticated user identity.
+   */
+  private readonly userManager: HawkUserManager = new HawkUserManager(
+    new HawkLocalStorage(),
+    new BrowserRandomGenerator()
+  );
+
+  /**
    * Catcher constructor
    *
    * @param {HawkInitialSettings|string} settings - If settings is a string, it means an Integration Token
@@ -126,7 +132,9 @@ export default class Catcher {
     this.token = settings.token;
     this.debug = settings.debug || false;
     this.release = settings.release !== undefined ? String(settings.release) : undefined;
-    this.setUser(settings.user || Catcher.getGeneratedUser());
+    if (settings.user) {
+      this.setUser(settings.user);
+    }
     this.setContext(settings.context || undefined);
     this.beforeSend = settings.beforeSend;
     this.disableVueErrorHandler =
@@ -187,27 +195,6 @@ export default class Catcher {
     if (settings.vue) {
       this.connectVue(settings.vue);
     }
-  }
-
-  /**
-   * Generates user if no one provided via HawkCatcher settings
-   * After generating, stores user for feature requests
-   */
-  private static getGeneratedUser(): AffectedUser {
-    let userId: string;
-    const LOCAL_STORAGE_KEY = 'hawk-user-id';
-    const storedId = localStorage.getItem(LOCAL_STORAGE_KEY);
-
-    if (storedId) {
-      userId = storedId;
-    } else {
-      userId = id();
-      localStorage.setItem(LOCAL_STORAGE_KEY, userId);
-    }
-
-    return {
-      id: userId,
-    };
   }
 
   /**
@@ -272,14 +259,14 @@ export default class Catcher {
       return;
     }
 
-    this.user = user;
+    this.userManager.setUser(user);
   }
 
   /**
-   * Clear current user information (revert to generated user)
+   * Clear current user information
    */
   public clearUser(): void {
-    this.user = Catcher.getGeneratedUser();
+    this.userManager.clear();
   }
 
   /**
@@ -565,10 +552,10 @@ export default class Catcher {
   }
 
   /**
-   * Current authenticated user
+   * Returns the current user if set, otherwise generates and persists an anonymous ID.
    */
-  private getUser(): HawkJavaScriptEvent['user'] {
-    return this.user || null;
+  private getUser(): AffectedUser {
+    return this.userManager.getUser();
   }
 
   /**
