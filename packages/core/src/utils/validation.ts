@@ -1,6 +1,6 @@
-import { log } from '@hawk.so/core';
-import type { AffectedUser, Breadcrumb, EventContext, EventData, JavaScriptAddons } from '@hawk.so/types';
-import Sanitizer from '../modules/sanitizer';
+import { log } from '../logger/logger';
+import type { AffectedUser, Breadcrumb, EventAddons, EventContext, EventData } from '@hawk.so/types';
+import { isPlainObject } from './type-guards';
 
 /**
  * Validates user data - basic security checks
@@ -8,7 +8,7 @@ import Sanitizer from '../modules/sanitizer';
  * @param user - user data to validate
  */
 export function validateUser(user: AffectedUser): boolean {
-  if (!user || !Sanitizer.isObject(user)) {
+  if (!user || !isPlainObject(user)) {
     log('validateUser: User must be an object', 'warn');
 
     return false;
@@ -30,7 +30,7 @@ export function validateUser(user: AffectedUser): boolean {
  * @param context - context data to validate
  */
 export function validateContext(context: EventContext | undefined): boolean {
-  if (context && !Sanitizer.isObject(context)) {
+  if (context && !isPlainObject(context)) {
     log('validateContext: Context must be an object', 'warn');
 
     return false;
@@ -40,22 +40,13 @@ export function validateContext(context: EventContext | undefined): boolean {
 }
 
 /**
- * Checks if value is a plain object (not array, Date, etc.)
- *
- * @param value - value to check
- */
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return Object.prototype.toString.call(value) === '[object Object]';
-}
-
-/**
  * Runtime check for required EventData fields.
  * Per @hawk.so/types EventData, `title` is the only non-optional field.
- * Additionally validates `backtrace` shape if present (must be an array).
+ * Additionally, validates `backtrace` shape if present (must be an array).
  *
  * @param payload - value to validate
  */
-export function isValidEventPayload(payload: unknown): payload is EventData<JavaScriptAddons> {
+export function isValidEventPayload(payload: unknown): payload is EventData<EventAddons> {
   if (!isPlainObject(payload)) {
     return false;
   }
@@ -64,11 +55,10 @@ export function isValidEventPayload(payload: unknown): payload is EventData<Java
     return false;
   }
 
-  if (payload.backtrace !== undefined && !Array.isArray(payload.backtrace)) {
-    return false;
-  }
+  const isBacktraceUndefined = payload.backtrace === undefined;
+  const isBacktraceArray = Array.isArray(payload.backtrace);
 
-  return true;
+  return isBacktraceUndefined || isBacktraceArray;
 }
 
 /**
@@ -86,9 +76,8 @@ export function isValidBreadcrumb(breadcrumb: unknown): breadcrumb is Breadcrumb
     return false;
   }
 
-  if (breadcrumb.timestamp !== undefined && typeof breadcrumb.timestamp !== 'number') {
-    return false;
-  }
+  const isTimestampUndefined = breadcrumb.timestamp === undefined;
+  const isTimestampNumber = typeof breadcrumb.timestamp === 'number';
 
-  return true;
+  return isTimestampUndefined || isTimestampNumber;
 }
