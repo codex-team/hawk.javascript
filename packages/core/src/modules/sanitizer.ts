@@ -1,12 +1,32 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { isPlainObject } from '../utils/validation';
+
+/**
+ * Custom type handler for Sanitizer.
+ *
+ * Allows user to register their own formatters from external packages.
+ */
+export interface SanitizerTypeHandler {
+  /**
+   * Checks if this handler should be applied to given value
+   *
+   * @returns `true`
+   */
+  check: (target: any) => boolean;
+
+  /**
+   * Formats the value into a sanitized representation
+   */
+  format: (target: any) => any;
+}
+
 /**
  * This class provides methods for preparing data to sending to Hawk
  * - trim long strings
- * - represent html elements like <div ...> as "<div>" instead of "{}"
  * - represent big objects as "<big object>"
  * - represent class as <class SomeClass> or <instance of SomeClass>
  */
-export default class Sanitizer {
+export class Sanitizer {
   /**
    * Maximum string length
    */
@@ -29,12 +49,30 @@ export default class Sanitizer {
   private static readonly maxArrayLength: number = 10;
 
   /**
+   * Custom type handlers registered via {@link registerHandler}.
+   *
+   * Checked in {@link sanitize} before built-in type checks.
+   */
+  private static readonly customHandlers: SanitizerTypeHandler[] = [];
+
+  /**
    * Check if passed variable is an object
    *
    * @param target - variable to check
    */
   public static isObject(target: any): boolean {
-    return Sanitizer.typeOf(target) === 'object';
+    return isPlainObject(target);
+  }
+
+  /**
+   * Register a custom type handler.
+   * Handlers are checked before built-in type checks, in reverse registration order
+   * (last registered = highest priority).
+   *
+   * @param handler - handler to register
+   */
+  public static registerHandler(handler: SanitizerTypeHandler): void {
+    Sanitizer.customHandlers.unshift(handler);
   }
 
   /**
@@ -60,19 +98,21 @@ export default class Sanitizer {
      */
     if (Sanitizer.isArray(data)) {
       return this.sanitizeArray(data, depth + 1, seen);
+    }
 
-      /**
-       * If value is an Element, format it as string with outer HTML
-       * HTMLDivElement -> "<div ...></div>"
-       */
-    } else if (Sanitizer.isElement(data)) {
-      return Sanitizer.formatElement(data);
+    // Check additional handlers provided by env-specific modules or users
+    // to sanitize some additional cases (e.g. specific object types)
+    for (const handler of Sanitizer.customHandlers) {
+      if (handler.check(data)) {
+        return handler.format(data);
+      }
+    }
 
-      /**
-       * If values is a not-constructed class, it will be formatted as "<class SomeClass>"
-       * class Editor {...} -> <class Editor>
-       */
-    } else if (Sanitizer.isClassPrototype(data)) {
+    /**
+     * If values is a not-constructed class, it will be formatted as "<class SomeClass>"
+     * class Editor {...} -> <class Editor>
+     */
+    if (Sanitizer.isClassPrototype(data)) {
       return Sanitizer.formatClassPrototype(data);
 
       /**
@@ -131,7 +171,9 @@ export default class Sanitizer {
    * @param depth - current depth of recursion
    * @param seen - Set of already seen objects to prevent circular references
    */
-  private static sanitizeObject(data: { [key: string]: any }, depth: number, seen: WeakSet<object>): Record<string, any> | '<deep object>' | '<big object>' {
+  private static sanitizeObject(data: {
+    [key: string]: any
+  }, depth: number, seen: WeakSet<object>): Record<string, any> | '<deep object>' | '<big object>' {
     /**
      * If the maximum depth is reached, return a placeholder
      */
@@ -206,24 +248,6 @@ export default class Sanitizer {
   }
 
   /**
-   * Return string representation of the object type
-   *
-   * @param object - object to get type
-   */
-  private static typeOf(object: any): string {
-    return Object.prototype.toString.call(object).match(/\s([a-zA-Z]+)/)[1].toLowerCase();
-  }
-
-  /**
-   * Check if passed variable is an HTML Element
-   *
-   * @param target - variable to check
-   */
-  private static isElement(target: any): boolean {
-    return target instanceof Element;
-  }
-
-  /**
    * Return name of a passed class
    *
    * @param target - not-constructed class
@@ -248,29 +272,10 @@ export default class Sanitizer {
    */
   private static trimString(target: string): string {
     if (target.length > Sanitizer.maxStringLen) {
-      return target.substr(0, Sanitizer.maxStringLen) + '…';
+      return target.substring(0, Sanitizer.maxStringLen) + '…';
     }
 
     return target;
-  }
-
-  /**
-   * Represent HTML Element as string with it outer-html
-   * HTMLDivElement -> "<div ...></div>"
-   *
-   * @param target - variable to format
-   */
-  private static formatElement(target: Element): string {
-    /**
-     * Also, remove inner HTML because it can be BIG
-     */
-    const innerHTML = target.innerHTML;
-
-    if (innerHTML) {
-      return target.outerHTML.replace(target.innerHTML, '…');
-    }
-
-    return target.outerHTML;
   }
 
   /**

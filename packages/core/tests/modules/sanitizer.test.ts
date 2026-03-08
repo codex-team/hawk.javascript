@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import Sanitizer from '../../src/modules/sanitizer';
+import { describe, expect, it } from 'vitest';
+import { Sanitizer } from '../../src';
 
 describe('Sanitizer', () => {
   describe('isObject', () => {
@@ -83,14 +83,6 @@ describe('Sanitizer', () => {
       const result = Sanitizer.sanitize(deep);
 
       expect(result.a.b.c.d.e).toBe('<deep object>');
-    });
-
-    it('should format HTML elements as a string starting with tag', () => {
-      const el = document.createElement('div');
-      const result = Sanitizer.sanitize(el);
-
-      expect(typeof result).toBe('string');
-      expect(result).toMatch(/^<div/);
     });
 
     it('should format a class (not constructed) as "<class Name>"', () => {
