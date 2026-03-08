@@ -6,3 +6,4 @@ export { isLoggerSet, setLogger, resetLogger, log } from './logger/logger';
 export { validateUser, validateContext, isValidEventPayload, isValidBreadcrumb } from './utils/validation';
 export { isPlainObject, isArray, isClassPrototype, isClassInstance, isString } from './utils/type-guards';
 export { Sanitizer } from './modules/sanitizer';
+export type { Transport } from './transports/transport';

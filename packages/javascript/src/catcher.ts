@@ -63,7 +63,7 @@ export default class Catcher {
   /**
    * Catcher Type
    */
-  private readonly type: string = 'errors/javascript';
+  private static readonly type = 'errors/javascript' as const;
 
   /**
    * User project's Integration Token
@@ -91,13 +91,13 @@ export default class Catcher {
    * - Return `false` — the event will be dropped entirely.
    * - Any other value is invalid — the original event is sent as-is (a warning is logged).
    */
-  private readonly beforeSend: undefined | ((event: HawkJavaScriptEvent) => HawkJavaScriptEvent | false | void);
+  private readonly beforeSend: undefined | ((event: HawkJavaScriptEvent<typeof Catcher.type>) => HawkJavaScriptEvent<typeof Catcher.type> | false | void);
 
   /**
    * Transport for dialog between Catcher and Collector
    * (WebSocket decorator by default, or custom via settings.transport)
    */
-  private readonly transport: Transport;
+  private readonly transport: Transport<typeof Catcher.type>;
 
   /**
    * Module for parsing backtrace
@@ -410,7 +410,7 @@ export default class Catcher {
    *
    * @param errorFormatted - formatted error to send
    */
-  private sendErrorFormatted(errorFormatted: CatcherMessage): void {
+  private sendErrorFormatted(errorFormatted: CatcherMessage<typeof Catcher.type>): void {
     this.transport.send(errorFormatted)
       .catch((sendingError) => {
         log('WebSocket sending error', 'error', sendingError);
@@ -423,7 +423,7 @@ export default class Catcher {
    * @param error - error to format
    * @param context - any additional data passed by user
    */
-  private async prepareErrorFormatted(error: Error | string, context?: EventContext): Promise<CatcherMessage> {
+  private async prepareErrorFormatted(error: Error | string, context?: EventContext): Promise<CatcherMessage<typeof Catcher.type>> {
     let payload: HawkJavaScriptEvent = {
       title: this.getTitle(error),
       type: this.getType(error),
@@ -479,7 +479,7 @@ export default class Catcher {
 
     return {
       token: this.token,
-      catcherType: this.type,
+      catcherType: Catcher.type,
       payload,
     };
   }
@@ -516,7 +516,7 @@ export default class Catcher {
      * and reject() provided with text reason instead of Error()
      */
     if (notAnError) {
-      return null;
+      return undefined;
     }
 
     return (error as Error).name;
@@ -526,7 +526,7 @@ export default class Catcher {
    * Release version
    */
   private getRelease(): HawkJavaScriptEvent['release'] {
-    return this.release !== undefined ? String(this.release) : null;
+    return this.release !== undefined ? String(this.release) : undefined;
   }
 
   /**
@@ -579,7 +579,7 @@ export default class Catcher {
   private getBreadcrumbsForEvent(): HawkJavaScriptEvent['breadcrumbs'] {
     const breadcrumbs = this.breadcrumbManager?.getBreadcrumbs();
 
-    return breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs : null;
+    return breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs : undefined;
   }
 
   /**
@@ -619,7 +619,7 @@ export default class Catcher {
      * and reject() provided with text reason instead of Error()
      */
     if (notAnError) {
-      return null;
+      return undefined;
     }
 
     try {
@@ -627,7 +627,7 @@ export default class Catcher {
     } catch (e) {
       log('Can not parse stack:', 'warn', e);
 
-      return null;
+      return undefined;
     }
   }
 
@@ -693,7 +693,7 @@ export default class Catcher {
    * @param errorFormatted - Hawk event prepared for sending
    * @param integrationAddons - extra addons
    */
-  private appendIntegrationAddons(errorFormatted: CatcherMessage, integrationAddons: JavaScriptCatcherIntegrations): void {
-    Object.assign(errorFormatted.payload.addons, integrationAddons);
+  private appendIntegrationAddons(errorFormatted: CatcherMessage<typeof Catcher.type>, integrationAddons: JavaScriptCatcherIntegrations): void {
+    Object.assign(errorFormatted.payload.addons!, integrationAddons);
   }
 }
