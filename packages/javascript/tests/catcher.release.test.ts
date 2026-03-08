@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createCatcher, createTransport, getLastPayload, wait } from "./catcher.helpers";
+
+vi.mock('@hawk.so/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@hawk.so/core')>();
+  return { ...actual, StackParser: class { parse = vi.fn().mockResolvedValue([]); } };
+});
 
 describe('Catcher', () => {
   it('should include release version when configured', async () => {
