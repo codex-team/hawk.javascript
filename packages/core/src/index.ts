@@ -4,4 +4,5 @@ export { HawkUserManager } from './users/hawk-user-manager';
 export type { Logger, LogType } from './logger/logger';
 export { isLoggerSet, setLogger, resetLogger, log } from './logger/logger';
 export { validateUser, validateContext, isValidEventPayload, isValidBreadcrumb } from './utils/validation';
-export { isPlainObject } from './utils/type-guards';
+export { isPlainObject, isArray, isClassPrototype, isClassInstance, isString } from './utils/type-guards';
+export { Sanitizer } from './modules/sanitizer';
