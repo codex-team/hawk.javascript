@@ -5,6 +5,7 @@ import type {
   PerformanceIssuesOptions,
   LoAFEntry,
   LoAFScript,
+  LongTaskAttribution,
   LongTaskPerformanceEntry,
   WebVitalMetric,
   WebVitalRating
@@ -26,16 +27,6 @@ export const DEFAULT_LOAF_THRESHOLD_MS = 200;
  * Prevents overly aggressive configuration and event spam.
  */
 export const MIN_ISSUE_THRESHOLD_MS = 50;
-/**
- * Web Vitals "good/poor" boundaries used to enrich issue summaries.
- */
-const METRIC_THRESHOLDS: Record<string, [good: number, poor: number]> = {
-  LCP: [2500, 4000],
-  FCP: [1800, 3000],
-  TTFB: [800, 1800],
-  INP: [200, 500],
-  CLS: [0.1, 0.25],
-};
 
 /**
  * Performance issues monitor handles:
@@ -121,26 +112,29 @@ export class PerformanceIssuesMonitor {
 
           const task = entry as LongTaskPerformanceEntry;
           const durationMs = Math.round(task.duration);
-          const attr = task.attribution?.[0];
+          const attributions = task.attribution ?? [];
+          const primaryAttribution = attributions[0];
 
           if (durationMs < thresholdMs) {
             continue;
           }
 
+          const culprit = resolveLongTaskCulprit(primaryAttribution);
+
           const details = compactJson([
             ['kind', 'longtask'],
             ['entryName', task.name],
+            ['entryType', task.entryType],
             ['startTime', Math.round(task.startTime)],
             ['durationMs', durationMs],
-            ['containerType', attr?.containerType],
-            ['containerSrc', attr?.containerSrc],
-            ['containerId', attr?.containerId],
-            ['containerName', attr?.containerName],
+            ['attributionCount', attributions.length || null],
+            ['attributions', serializeLongTaskAttributions(attributions)],
+            ['culprit', culprit],
           ]);
 
           onIssue({
-            title: `Long Task ${durationMs} ms`,
-            context: { freezeDetection: details },
+            title: 'Long Task' + (culprit ? ` — ${culprit}` : ''),
+            context: { longTask: details },
           });
         }
       });
@@ -189,32 +183,45 @@ export class PerformanceIssuesMonitor {
               return acc;
             }, {})
             : null;
+          const topScript = relevantScripts[0];
+          const maxScriptDurationMs = topScript ? Math.round(topScript.duration) : null;
+          const totalScriptDurationMs = relevantScripts.length
+            ? Math.round(relevantScripts.reduce((total, script) => total + script.duration, 0))
+            : null;
+          const topScriptName = topScript?.sourceFunctionName
+            || topScript?.name
+            || topScript?.invoker
+            || topScript?.sourceURL
+            || null;
+          const topScriptUrl = topScript?.sourceURL ?? null;
 
           const details = compactJson([
             ['kind', 'loaf'],
+            ['entryName', loaf.name],
+            ['entryType', loaf.entryType],
             ['startTime', Math.round(loaf.startTime)],
             ['durationMs', durationMs],
             ['blockingDurationMs', blockingDurationMs],
+            ['desiredRenderStart', loaf.desiredRenderStart != null ? Math.round(loaf.desiredRenderStart) : null],
             ['renderStart', loaf.renderStart != null ? Math.round(loaf.renderStart) : null],
             ['styleAndLayoutStart', loaf.styleAndLayoutStart != null ? Math.round(loaf.styleAndLayoutStart) : null],
             ['firstUIEventTimestamp', loaf.firstUIEventTimestamp != null ? Math.round(loaf.firstUIEventTimestamp) : null],
+            ['scriptsCount', relevantScripts.length || null],
+            ['maxScriptDurationMs', maxScriptDurationMs],
+            ['totalScriptDurationMs', totalScriptDurationMs],
+            ['topScriptName', topScriptName],
+            ['topScriptUrl', topScriptUrl],
             ['scripts', scripts],
           ]);
 
-          const blockingNote = blockingDurationMs !== null
-            ? ` (blocking ${blockingDurationMs} ms)`
-            : '';
-
-          const topScript = relevantScripts[0];
           const culprit = topScript?.sourceFunctionName
             || topScript?.invoker
             || topScript?.sourceURL
             || '';
-          const culpritNote = culprit ? ` — ${culprit}` : '';
 
           onIssue({
-            title: `Long Animation Frame ${durationMs} ms${blockingNote}${culpritNote}`,
-            context: { freezeDetection: details },
+            title: 'Long Animation Frame' + (culprit ? ` — ${culprit}` : ''),
+            context: { loaf: details },
           });
         }
       });
@@ -253,12 +260,8 @@ export class PerformanceIssuesMonitor {
 
       reportedPoorMetrics.add(metric.name);
 
-      const thresholds = METRIC_THRESHOLDS[metric.name];
-      const thresholdNote = thresholds ? ` (poor > ${formatValue(metric.name, thresholds[1])})` : '';
-      const summary = `${metric.name} = ${formatValue(metric.name, metric.value)}${thresholdNote}`;
-
       onIssue({
-        title: `Poor Web Vital: ${summary}`,
+        title: `Poor Web Vital: ${metric.name}`,
         context: {
           webVitals: serializeWebVitalMetric(metric),
         },
@@ -319,33 +322,68 @@ function resolveThresholdOption(value: boolean | { thresholdMs?: number } | unde
 }
 
 /**
- * Formats Web Vitals metric value for readable summary.
- *
- * @param name metric name
- * @param value metric value
- */
-function formatValue(name: string, value: number): string {
-  return name === 'CLS' ? value.toFixed(3) : `${Math.round(value)}ms`;
-}
-
-/**
  * Serializes LoAF script timing into compact JSON payload.
  *
  * @param script loaf script entry
  */
 function serializeScript(script: LoAFScript): Json {
   return compactJson([
+    ['name', script.name],
     ['invoker', script.invoker],
     ['invokerType', script.invokerType],
     ['sourceURL', script.sourceURL],
     ['sourceFunctionName', script.sourceFunctionName],
     ['sourceCharPosition', script.sourceCharPosition != null && script.sourceCharPosition >= 0 ? script.sourceCharPosition : null],
+    ['startTime', Math.round(script.startTime)],
     ['duration', Math.round(script.duration)],
     ['executionStart', script.executionStart != null ? Math.round(script.executionStart) : null],
     ['forcedStyleAndLayoutDuration', script.forcedStyleAndLayoutDuration != null ? Math.round(script.forcedStyleAndLayoutDuration) : null],
     ['pauseDuration', script.pauseDuration != null ? Math.round(script.pauseDuration) : null],
     ['windowAttribution', script.windowAttribution],
   ]);
+}
+
+/**
+ * Serializes long task attributions into compact JSON payload.
+ *
+ * @param attributions long task attribution entries
+ */
+function serializeLongTaskAttributions(attributions: LongTaskAttribution[]): Json | null {
+  if (attributions.length === 0) {
+    return null;
+  }
+
+  return attributions.reduce<Json>((acc, attribution, i) => {
+    acc[`attribution_${i}`] = compactJson([
+      ['name', attribution.name],
+      ['entryType', attribution.entryType],
+      ['startTime', attribution.startTime != null ? Math.round(attribution.startTime) : null],
+      ['duration', attribution.duration != null ? Math.round(attribution.duration) : null],
+      ['containerType', attribution.containerType],
+      ['containerSrc', attribution.containerSrc],
+      ['containerId', attribution.containerId],
+      ['containerName', attribution.containerName],
+    ]);
+
+    return acc;
+  }, {});
+}
+
+/**
+ * Resolves readable culprit from long task attribution.
+ *
+ * @param attribution first attribution entry
+ */
+function resolveLongTaskCulprit(attribution: LongTaskAttribution | undefined): string | null {
+  if (!attribution) {
+    return null;
+  }
+
+  return attribution.containerSrc
+    || attribution.containerId
+    || attribution.containerName
+    || attribution.name
+    || null;
 }
 
 /**

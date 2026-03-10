@@ -64,6 +64,10 @@ export interface LongTaskAttribution {
   name: string;
   /** Entry type name from the attribution object */
   entryType: string;
+  /** Attribution start time */
+  startTime?: number;
+  /** Attribution duration */
+  duration?: number;
   /** Container type (`iframe`, `embed`, `object`) */
   containerType?: string;
   /** Source URL of the container */
@@ -118,6 +122,8 @@ export interface LoAFScript {
 export interface LoAFEntry extends PerformanceEntry {
   /** Blocking duration in milliseconds */
   blockingDuration?: number;
+  /** Desired render start timestamp */
+  desiredRenderStart?: number;
   /** Render start timestamp */
   renderStart?: number;
   /** Style/layout start timestamp */

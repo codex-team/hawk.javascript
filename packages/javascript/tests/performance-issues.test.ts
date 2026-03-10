@@ -130,7 +130,8 @@ describe('PerformanceIssuesMonitor', () => {
 
     observer!.emit([entry('longtask', customThresholdMs)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
-    expect(onIssue.mock.calls[0][0].title).toContain(`${customThresholdMs} ms`);
+    expect(onIssue.mock.calls[0][0].title).toContain('Long Task');
+    expect(onIssue.mock.calls[0][0].context).toHaveProperty('longTask.kind', 'longtask');
   });
 
   it('should use default threshold when longTasks is true', async () => {

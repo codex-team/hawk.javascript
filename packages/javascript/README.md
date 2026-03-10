@@ -252,11 +252,6 @@ All issues are enabled by default. If user browser does not support some metric,
 
 When `issues.webVitals` is enabled, Hawk listens to Core Web Vitals (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) and sends a dedicated issue event for each metric that is rated `poor`.
 
-Each Web Vitals issue context contains metric fields:
-- `value`
-- `rating`
-- `delta`
-
 `web-vitals` is included in the SDK dependencies, no extra installation is required.
 
 ### Disabling
