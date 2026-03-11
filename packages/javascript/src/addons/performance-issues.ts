@@ -11,10 +11,10 @@ import type {
 import { compactJson } from '../utils/compactJson';
 
 /** Default threshold for Long Tasks detector (ms). */
-export const DEFAULT_LONG_TASK_THRESHOLD_MS = 70;
+export const DEFAULT_LONG_TASK_THRESHOLD_MS = 100;
 
 /** Default threshold for Long Animation Frames detector (ms). */
-export const DEFAULT_LOAF_THRESHOLD_MS = 200;
+export const DEFAULT_LOAF_THRESHOLD_MS = 300;
 
 /** Global minimum threshold guard — prevents overly aggressive configuration and event spam. */
 export const MIN_ISSUE_THRESHOLD_MS = 50;

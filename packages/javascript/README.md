@@ -243,8 +243,8 @@ The `issues` option configures automatic performance and error tracking.
 |---|---|---|---|
 | **Errors** | `issues.errors` | — | Global runtime errors (`window.onerror`, `unhandledrejection`) |
 | **Web Vitals** | `issues.webVitals` | — | Poor-rated Core Web Vitals (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) |
-| **Long Tasks** | `issues.longTasks` | `70 ms` | Cross-origin / iframe tasks with identifiable container (`containerSrc`, `containerId`, or `containerName`). Tasks attributed to `"self"` are skipped |
-| **Long Animation Frames** | `issues.longAnimationFrames` | `200 ms` | Frames where at least one script attribution has `sourceURL`, `sourceFunctionName`, or `invoker` |
+| **Long Tasks** | `issues.longTasks` | `100 ms` | Cross-origin / iframe tasks with identifiable container (`containerSrc`, `containerId`, or `containerName`). Tasks attributed to `"self"` are skipped |
+| **Long Animation Frames** | `issues.longAnimationFrames` | `300 ms` | Frames where at least one script attribution has `sourceURL`, `sourceFunctionName`, or `invoker` |
 
 All detectors are enabled by default.
 If the browser does not support a specific Performance API (`longtask`, `long-animation-frame`), the corresponding detector is silently skipped.
