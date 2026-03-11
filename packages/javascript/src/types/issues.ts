@@ -1,4 +1,4 @@
-import type { EventContext } from '@hawk.so/types';
+import type { Json } from '@hawk.so/types';
 
 /**
  * Per-issue threshold configuration.
@@ -56,81 +56,72 @@ export interface IssuesOptions extends PerformanceIssuesOptions {
 }
 
 /**
- * Long Task attribution information from Performance API.
- * Describes the container associated with the long task.
+ * Long Task attribution from the Performance API (TaskAttributionTiming).
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongTaskTiming
  */
 export interface LongTaskAttribution {
-  /** Attribution source name (`self`, `same-origin-ancestor`, etc.) */
+  /** Attribution source type (`self`, `same-origin-ancestor`, `cross-origin-descendant`, etc.) */
   name: string;
-  /** Entry type name from the attribution object */
-  entryType: string;
-  /** Attribution start time */
-  startTime?: number;
-  /** Attribution duration */
-  duration?: number;
   /** Container type (`iframe`, `embed`, `object`) */
   containerType?: string;
-  /** Source URL of the container */
+  /** Source URL of the container element */
   containerSrc?: string;
   /** DOM id of the container element */
   containerId?: string;
-  /** DOM name of the container element */
+  /** DOM name attribute of the container element */
   containerName?: string;
 }
 
 /**
- * Long Task entry with attribution details.
+ * PerformanceLongTaskTiming entry with attribution details.
  */
 export interface LongTaskPerformanceEntry extends PerformanceEntry {
-  /** Attribution list for the long task */
   attribution?: LongTaskAttribution[];
 }
 
 /**
- * LoAF script timing information (PerformanceScriptTiming).
+ * PerformanceScriptTiming — script that contributed to a Long Animation Frame.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceScriptTiming
  */
 export interface LoAFScript {
-  /** Script display name */
-  name: string;
-  /** Script invoker (e.g. `TimerHandler:setTimeout`) */
+  /** How the script was called (e.g. `DOMWindow.onclick`, `TimerHandler:setTimeout`) */
   invoker?: string;
-  /** Invoker type (`event-listener`, `user-callback`, etc.) */
+  /** Script entry point type (`event-listener`, `user-callback`, `resolve-promise`, etc.) */
   invokerType?: string;
   /** Source URL of the script */
   sourceURL?: string;
-  /** Function name associated with the script execution */
+  /** Top-level function name at the entry point of the script execution */
   sourceFunctionName?: string;
-  /** Character position in source */
+  /** Character position in the source file */
   sourceCharPosition?: number;
   /** Script duration in milliseconds */
   duration: number;
-  /** Start time in milliseconds from navigation start */
+  /** Start time relative to navigation start (ms) */
   startTime: number;
-  /** Execution start timestamp */
+  /** When script compilation finished and execution began (ms) */
   executionStart?: number;
-  /** Forced style/layout duration in milliseconds */
+  /** Time spent in forced synchronous style/layout recalculations (ms) */
   forcedStyleAndLayoutDuration?: number;
-  /** Paused time in milliseconds */
+  /** Time spent on synchronous pausing operations like alert() or sync XHR (ms) */
   pauseDuration?: number;
-  /** Window attribution (`self`, `ancestor`, `descendant`) */
+  /** Relationship of the script's container to the top-level document (`self`, `ancestor`, `descendant`) */
   windowAttribution?: string;
 }
 
 /**
- * Long Animation Frame entry shape.
+ * PerformanceLongAnimationFrameTiming entry.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming
  */
 export interface LoAFEntry extends PerformanceEntry {
-  /** Blocking duration in milliseconds */
+  /** Total time the main thread was blocked from responding to high-priority tasks (ms) */
   blockingDuration?: number;
-  /** Desired render start timestamp */
-  desiredRenderStart?: number;
-  /** Render start timestamp */
+  /** Start time of the rendering cycle (ms) */
   renderStart?: number;
-  /** Style/layout start timestamp */
+  /** When style and layout calculations began (ms) */
   styleAndLayoutStart?: number;
-  /** First UI event timestamp */
+  /** Timestamp of the first UI event (click, keypress) queued during this frame (ms) */
   firstUIEventTimestamp?: number;
-  /** Script timing records for the frame */
+  /** Script timing entries that contributed to this frame */
   scripts?: LoAFScript[];
 }
 
@@ -143,14 +134,19 @@ export type WebVitalRating = 'good' | 'needs-improvement' | 'poor';
  * Single Web Vital metric.
  */
 export interface WebVitalMetric {
-  /** Metric name (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) */
   name: string;
-  /** Current metric value */
   value: number;
-  /** Computed rating for the metric */
   rating: WebVitalRating;
-  /** Delta from the previous reported value */
   delta: number;
+}
+
+/**
+ * Addons payload shape for performance issue events.
+ */
+export interface PerformanceIssueAddons {
+  longTask?: Json;
+  longAnimationFrame?: Json;
+  webVitals?: Json;
 }
 
 /**
@@ -159,6 +155,6 @@ export interface WebVitalMetric {
 export interface PerformanceIssueEvent {
   /** Human-readable issue title shown in Hawk event list. */
   title: string;
-  /** Structured context payload attached to this issue event. */
-  context: EventContext;
+  /** Structured addons payload attached to this issue event. */
+  addons: PerformanceIssueAddons;
 }

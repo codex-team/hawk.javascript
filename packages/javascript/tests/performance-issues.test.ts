@@ -54,15 +54,45 @@ class MockPerformanceObserver {
   }
 }
 
-function entry(type: string, duration: number, extra: Record<string, unknown> = {}): PerformanceEntry {
+/**
+ * Creates a long task entry with cross-origin attribution (passes new filter).
+ */
+function longTaskEntry(duration: number, attribution?: { name?: string; containerSrc?: string; containerId?: string; containerName?: string }): PerformanceEntry {
+  const attr = {
+    name: attribution?.name ?? 'same-origin-ancestor',
+    containerSrc: attribution?.containerSrc ?? 'https://example.com/frame.js',
+    containerId: attribution?.containerId,
+    containerName: attribution?.containerName,
+  };
+
   return {
-    entryType: type,
-    name: type,
-    startTime: 0,
+    startTime: 100,
     duration,
-    toJSON: () => ({}),
-    ...extra,
-  } as PerformanceEntry;
+    attribution: [attr],
+  } as unknown as PerformanceEntry;
+}
+
+/**
+ * Creates a LoAF entry with at least one identifiable script (passes new filter).
+ */
+function loafEntry(duration: number, scripts?: Array<{ sourceURL?: string; sourceFunctionName?: string; invoker?: string; duration?: number; startTime?: number }>): PerformanceEntry {
+  const defaultScripts = scripts ?? [{
+    sourceURL: 'https://example.com/app.js',
+    sourceFunctionName: 'handleClick',
+    invoker: 'DOMWindow.onclick',
+    duration: duration * 0.8,
+    startTime: 100,
+  }];
+
+  return {
+    startTime: 100,
+    duration,
+    blockingDuration: 0,
+    renderStart: 120,
+    styleAndLayoutStart: 130,
+    firstUIEventTimestamp: 0,
+    scripts: defaultScripts,
+  } as unknown as PerformanceEntry;
 }
 
 function mockWebVitals() {
@@ -105,10 +135,10 @@ describe('PerformanceIssuesMonitor', () => {
 
     expect(observer).toBeDefined();
 
-    observer!.emit([entry('longtask', MIN_ISSUE_THRESHOLD_MS - 1)]);
+    observer!.emit([longTaskEntry(MIN_ISSUE_THRESHOLD_MS - 1)]);
     expect(onIssue).not.toHaveBeenCalled();
 
-    observer!.emit([entry('longtask', MIN_ISSUE_THRESHOLD_MS)]);
+    observer!.emit([longTaskEntry(MIN_ISSUE_THRESHOLD_MS)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
   });
 
@@ -125,13 +155,41 @@ describe('PerformanceIssuesMonitor', () => {
 
     expect(observer).toBeDefined();
 
-    observer!.emit([entry('longtask', customThresholdMs - 1)]);
+    observer!.emit([longTaskEntry(customThresholdMs - 1)]);
     expect(onIssue).not.toHaveBeenCalled();
 
-    observer!.emit([entry('longtask', customThresholdMs)]);
+    observer!.emit([longTaskEntry(customThresholdMs)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
     expect(onIssue.mock.calls[0][0].title).toContain('Long Task');
-    expect(onIssue.mock.calls[0][0].context).toHaveProperty('longTask.kind', 'longtask');
+    expect(onIssue.mock.calls[0][0].addons).toHaveProperty('longTask');
+    expect(onIssue.mock.calls[0][0].addons.longTask).toHaveProperty('taskDurationMs', customThresholdMs);
+    expect(onIssue.mock.calls[0][0].addons.longTask).toHaveProperty('attributionSourceType', 'same-origin-ancestor');
+  });
+
+  it('should skip long tasks with name=self (no container info)', async () => {
+    mockWebVitals();
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const onIssue = vi.fn();
+    const monitor = new PerformanceIssuesMonitor();
+
+    monitor.init({ longTasks: { thresholdMs: 50 }, longAnimationFrames: false, webVitals: false }, onIssue);
+    const observer = MockPerformanceObserver.byType('longtask');
+
+    observer!.emit([longTaskEntry(120, { name: 'self', containerSrc: '' })]);
+    expect(onIssue).not.toHaveBeenCalled();
+  });
+
+  it('should skip long tasks without container identifier', async () => {
+    mockWebVitals();
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const onIssue = vi.fn();
+    const monitor = new PerformanceIssuesMonitor();
+
+    monitor.init({ longTasks: { thresholdMs: 50 }, longAnimationFrames: false, webVitals: false }, onIssue);
+    const observer = MockPerformanceObserver.byType('longtask');
+
+    observer!.emit([longTaskEntry(120, { name: 'cross-origin-ancestor' })]);
+    expect(onIssue).not.toHaveBeenCalled();
   });
 
   it('should use default threshold when longTasks is true', async () => {
@@ -145,10 +203,10 @@ describe('PerformanceIssuesMonitor', () => {
 
     expect(observer).toBeDefined();
 
-    observer!.emit([entry('longtask', DEFAULT_LONG_TASK_THRESHOLD_MS - 1)]);
+    observer!.emit([longTaskEntry(DEFAULT_LONG_TASK_THRESHOLD_MS - 1)]);
     expect(onIssue).not.toHaveBeenCalled();
 
-    observer!.emit([entry('longtask', DEFAULT_LONG_TASK_THRESHOLD_MS)]);
+    observer!.emit([longTaskEntry(DEFAULT_LONG_TASK_THRESHOLD_MS)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
   });
 
@@ -175,13 +233,13 @@ describe('PerformanceIssuesMonitor', () => {
 
     expect(observer).toBeDefined();
 
-    observer!.emit([entry('longtask', 120)]);
+    observer!.emit([longTaskEntry(120)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
 
     monitor.destroy();
     expect(observer!.disconnected).toBe(true);
 
-    observer!.emit([entry('longtask', 130)]);
+    observer!.emit([longTaskEntry(130)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
   });
 
@@ -196,7 +254,25 @@ describe('PerformanceIssuesMonitor', () => {
     expect(MockPerformanceObserver.instances).toHaveLength(0);
   });
 
-  it('should report poor web vital metric immediately', async () => {
+  it('should emit LoAF issue only when scripts have identifiable source', async () => {
+    mockWebVitals();
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const onIssue = vi.fn();
+    const monitor = new PerformanceIssuesMonitor();
+
+    monitor.init({ longTasks: false, longAnimationFrames: { thresholdMs: 50 }, webVitals: false }, onIssue);
+    const observer = MockPerformanceObserver.byType('long-animation-frame');
+
+    observer!.emit([loafEntry(250, [{ duration: 200, startTime: 100 }])]);
+    expect(onIssue).not.toHaveBeenCalled();
+
+    observer!.emit([loafEntry(250)]);
+    expect(onIssue).toHaveBeenCalledTimes(1);
+    expect(onIssue.mock.calls[0][0].addons).toHaveProperty('longAnimationFrame');
+    expect(onIssue.mock.calls[0][0].addons.longAnimationFrame).toHaveProperty('frameDurationMs', 250);
+  });
+
+  it('should report poor web vital metric in addons', async () => {
     const webVitals = mockWebVitals();
     const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
     const onIssue = vi.fn();
@@ -209,7 +285,8 @@ describe('PerformanceIssuesMonitor', () => {
 
     expect(onIssue).toHaveBeenCalledTimes(1);
     expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vital');
-    expect(onIssue.mock.calls[0][0].context).toHaveProperty('webVitals');
+    expect(onIssue.mock.calls[0][0].addons).toHaveProperty('webVitals');
+    expect(onIssue.mock.calls[0][0].addons.webVitals).toHaveProperty('metricName', 'LCP');
   });
 
   it('should report poor INP metric', async () => {

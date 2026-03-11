@@ -5,9 +5,7 @@ import type {
   PerformanceIssuesOptions,
   LoAFEntry,
   LoAFScript,
-  LongTaskAttribution,
   LongTaskPerformanceEntry,
-  WebVitalMetric,
   WebVitalRating
 } from '../types/issues';
 import { compactJson } from '../utils/compactJson';
@@ -30,26 +28,16 @@ export const MIN_ISSUE_THRESHOLD_MS = 50;
 
 /**
  * Performance issues monitor handles:
- * - Long Tasks
- * - Long Animation Frames (LoAF)
- * - Aggregated Web Vitals report
+ * - Long Tasks (only cross-origin / iframe tasks with identifiable container)
+ * - Long Animation Frames (only when at least one script has identifiable source)
+ * - Web Vitals (poor metrics only)
  */
 export class PerformanceIssuesMonitor {
-  /** Active observer for Long Tasks API. */
   private longTaskObserver: PerformanceObserver | null = null;
-  /** Active observer for Long Animation Frames API. */
   private loafObserver: PerformanceObserver | null = null;
-  /** Prevents duplicate initialization and duplicate issue streams. */
   private isInitialized = false;
-  /** Marks monitor as stopped to ignore async callbacks after destroy. */
   private destroyed = false;
 
-  /**
-   * Initialize selected issue detectors.
-   *
-   * @param options detectors config
-   * @param onIssue issue callback
-   */
   public init(options: PerformanceIssuesOptions, onIssue: (event: PerformanceIssueEvent) => void): void {
     if (this.isInitialized) {
       return;
@@ -77,12 +65,6 @@ export class PerformanceIssuesMonitor {
     }
   }
 
-  /**
-   * Cleanup active observers.
-   *
-   * `isInitialized` controls re-initialization guard.
-   * `destroyed` prevents any late async callback from emitting issues.
-   */
   public destroy(): void {
     this.destroyed = true;
     this.isInitialized = false;
@@ -93,10 +75,12 @@ export class PerformanceIssuesMonitor {
   }
 
   /**
-   * Observe Long Tasks and emit performance issues above threshold.
+   * Long Tasks are only reported when the primary attribution points to
+   * an identifiable external container (name !== "self") with at least
+   * one of containerSrc / containerId / containerName.
    *
-   * @param thresholdMs max allowed duration
-   * @param onIssue issue callback
+   * Removed always-constant fields: entryType ("longtask"), attribution entryType ("taskattribution").
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongTaskTiming
    */
   private observeLongTasks(thresholdMs: number, onIssue: (event: PerformanceIssueEvent) => void): void {
     if (!supportsEntryType('longtask')) {
@@ -112,45 +96,53 @@ export class PerformanceIssuesMonitor {
 
           const task = entry as LongTaskPerformanceEntry;
           const durationMs = Math.round(task.duration);
-          const attributions = task.attribution ?? [];
-          const primaryAttribution = attributions[0];
 
           if (durationMs < thresholdMs) {
             continue;
           }
 
-          const culprit = resolveLongTaskCulprit(primaryAttribution);
+          const primary = (task.attribution ?? [])[0];
+
+          if (!primary || primary.name === 'self') {
+            continue;
+          }
+
+          const containerIdentifier = primary.containerSrc || primary.containerId || primary.containerName;
+
+          if (!containerIdentifier) {
+            continue;
+          }
 
           const details = compactJson([
-            ['kind', 'longtask'],
-            ['entryName', task.name],
-            ['entryType', task.entryType],
-            ['startTime', Math.round(task.startTime)],
-            ['durationMs', durationMs],
-            ['attributionCount', attributions.length || null],
-            ['attributions', serializeLongTaskAttributions(attributions)],
-            ['culprit', culprit],
+            ['taskStartTimeMs', Math.round(task.startTime)],
+            ['taskDurationMs', durationMs],
+            ['attributionSourceType', primary.name],
+            ['containerElementType', primary.containerType],
+            ['containerSourceUrl', primary.containerSrc],
+            ['containerElementId', primary.containerId],
+            ['containerElementName', primary.containerName],
           ]);
 
           onIssue({
-            title: 'Long Task' + (culprit ? ` — ${culprit}` : ''),
-            context: { longTask: details },
+            title: 'Long Task — ' + containerIdentifier,
+            addons: { longTask: details },
           });
         }
       });
 
-      this.longTaskObserver.observe({ type: 'longtask',
-        buffered: true });
+      this.longTaskObserver.observe({ type: 'longtask', buffered: true });
     } catch {
       this.longTaskObserver = null;
     }
   }
 
   /**
-   * Observe Long Animation Frames and emit performance issues above threshold.
+   * LoAF is only reported when at least one script has an identifiable source
+   * (sourceURL, sourceFunctionName, or invoker).
    *
-   * @param thresholdMs max allowed duration
-   * @param onIssue issue callback
+   * Removed always-constant fields: name ("long-animation-frame"), entryType ("long-animation-frame"),
+   * script name ("script"). Removed derived summary fields (scriptsCount, topScript*, totals).
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming
    */
   private observeLoAF(thresholdMs: number, onIssue: (event: PerformanceIssueEvent) => void): void {
     if (!supportsEntryType('long-animation-frame')) {
@@ -171,49 +163,31 @@ export class PerformanceIssuesMonitor {
             continue;
           }
 
-          const blockingDurationMs = loaf.blockingDuration !== undefined && loaf.blockingDuration !== null
-            ? Math.round(loaf.blockingDuration)
-            : null;
+          const relevantScripts = loaf.scripts?.filter(
+            (s) => s.sourceURL || s.sourceFunctionName || s.invoker
+          ) ?? [];
 
-          const relevantScripts = loaf.scripts?.filter((s) => s.sourceURL || s.sourceFunctionName) ?? [];
-          const scripts = relevantScripts.length
-            ? relevantScripts.reduce<Json>((acc, script, i) => {
-              acc[`script_${i}`] = serializeScript(script);
+          if (relevantScripts.length === 0) {
+            continue;
+          }
 
-              return acc;
-            }, {})
-            : null;
-          const topScript = relevantScripts[0];
-          const maxScriptDurationMs = topScript ? Math.round(topScript.duration) : null;
-          const totalScriptDurationMs = relevantScripts.length
-            ? Math.round(relevantScripts.reduce((total, script) => total + script.duration, 0))
-            : null;
-          const topScriptName = topScript?.sourceFunctionName
-            || topScript?.name
-            || topScript?.invoker
-            || topScript?.sourceURL
-            || null;
-          const topScriptUrl = topScript?.sourceURL ?? null;
+          const scripts = relevantScripts.reduce<Json>((acc, script, i) => {
+            acc[`script_${i}`] = serializeScriptTiming(script);
+
+            return acc;
+          }, {});
 
           const details = compactJson([
-            ['kind', 'loaf'],
-            ['entryName', loaf.name],
-            ['entryType', loaf.entryType],
-            ['startTime', Math.round(loaf.startTime)],
-            ['durationMs', durationMs],
-            ['blockingDurationMs', blockingDurationMs],
-            ['desiredRenderStart', loaf.desiredRenderStart != null ? Math.round(loaf.desiredRenderStart) : null],
-            ['renderStart', loaf.renderStart != null ? Math.round(loaf.renderStart) : null],
-            ['styleAndLayoutStart', loaf.styleAndLayoutStart != null ? Math.round(loaf.styleAndLayoutStart) : null],
-            ['firstUIEventTimestamp', loaf.firstUIEventTimestamp != null ? Math.round(loaf.firstUIEventTimestamp) : null],
-            ['scriptsCount', relevantScripts.length || null],
-            ['maxScriptDurationMs', maxScriptDurationMs],
-            ['totalScriptDurationMs', totalScriptDurationMs],
-            ['topScriptName', topScriptName],
-            ['topScriptUrl', topScriptUrl],
+            ['frameStartTimeMs', Math.round(loaf.startTime)],
+            ['frameDurationMs', durationMs],
+            ['frameBlockingDurationMs', positiveOrNull(loaf.blockingDuration)],
+            ['renderStartTimeMs', loaf.renderStart != null ? Math.round(loaf.renderStart) : null],
+            ['styleAndLayoutStartTimeMs', loaf.styleAndLayoutStart != null ? Math.round(loaf.styleAndLayoutStart) : null],
+            ['firstUIEventTimeMs', positiveOrNull(loaf.firstUIEventTimestamp)],
             ['scripts', scripts],
           ]);
 
+          const topScript = relevantScripts[0];
           const culprit = topScript?.sourceFunctionName
             || topScript?.invoker
             || topScript?.sourceURL
@@ -221,23 +195,17 @@ export class PerformanceIssuesMonitor {
 
           onIssue({
             title: 'Long Animation Frame' + (culprit ? ` — ${culprit}` : ''),
-            context: { loaf: details },
+            addons: { longAnimationFrame: details },
           });
         }
       });
 
-      this.loafObserver.observe({ type: 'long-animation-frame',
-        buffered: true });
+      this.loafObserver.observe({ type: 'long-animation-frame', buffered: true });
     } catch {
       this.loafObserver = null;
     }
   }
 
-  /**
-   * Observe Web Vitals and emit one issue per poor metric.
-   *
-   * @param onIssue issue callback
-   */
   private observeWebVitals(onIssue: (event: PerformanceIssueEvent) => void): void {
     if (this.destroyed) {
       return;
@@ -245,10 +213,6 @@ export class PerformanceIssuesMonitor {
 
     const reportedPoorMetrics = new Set<string>();
 
-    /**
-     * Emits one issue event for a poor metric.
-     * Same metric name is reported only once.
-     */
     const reportPoorMetric = (metric: { name: string; value: number; rating: WebVitalRating; delta: number }): void => {
       if (this.destroyed || metric.rating !== 'poor') {
         return;
@@ -262,7 +226,7 @@ export class PerformanceIssuesMonitor {
 
       onIssue({
         title: `Poor Web Vital: ${metric.name}`,
-        context: {
+        addons: {
           webVitals: serializeWebVitalMetric(metric),
         },
       });
@@ -276,11 +240,6 @@ export class PerformanceIssuesMonitor {
   }
 }
 
-/**
- * Checks if browser supports a performance entry type.
- *
- * @param type performance entry type
- */
 function supportsEntryType(type: string): boolean {
   try {
     return (
@@ -294,11 +253,17 @@ function supportsEntryType(type: string): boolean {
 }
 
 /**
- * Resolves threshold from user input and applies global minimum clamp.
- *
- * @param value custom threshold
- * @param fallback default threshold
+ * Returns rounded value only when > 0; otherwise null (stripped by compactJson).
+ * Avoids sending noise like blockingDuration=0, pauseDuration=0, etc.
  */
+function positiveOrNull(value: number | null | undefined): number | null {
+  if (value == null || value <= 0) {
+    return null;
+  }
+
+  return Math.round(value);
+}
+
 function resolveThreshold(value: number | undefined, fallback: number): number {
   if (typeof value !== 'number' || Number.isNaN(value)) {
     return Math.max(MIN_ISSUE_THRESHOLD_MS, fallback);
@@ -307,12 +272,6 @@ function resolveThreshold(value: number | undefined, fallback: number): number {
   return Math.max(MIN_ISSUE_THRESHOLD_MS, Math.round(value));
 }
 
-/**
- * Returns custom threshold from detector config object.
- * Boolean options use default threshold.
- *
- * @param value detector config value
- */
 function resolveThresholdOption(value: boolean | { thresholdMs?: number } | undefined): number | undefined {
   if (typeof value === 'object' && value !== null) {
     return value.thresholdMs;
@@ -322,80 +281,31 @@ function resolveThresholdOption(value: boolean | { thresholdMs?: number } | unde
 }
 
 /**
- * Serializes LoAF script timing into compact JSON payload.
- *
- * @param script loaf script entry
+ * Serialize a PerformanceScriptTiming entry.
+ * Removed always-constant `name` field (always "script").
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceScriptTiming
  */
-function serializeScript(script: LoAFScript): Json {
+function serializeScriptTiming(script: LoAFScript): Json {
   return compactJson([
-    ['name', script.name],
-    ['invoker', script.invoker],
+    ['invokerName', script.invoker],
     ['invokerType', script.invokerType],
-    ['sourceURL', script.sourceURL],
+    ['sourceUrl', script.sourceURL],
     ['sourceFunctionName', script.sourceFunctionName],
     ['sourceCharPosition', script.sourceCharPosition != null && script.sourceCharPosition >= 0 ? script.sourceCharPosition : null],
-    ['startTime', Math.round(script.startTime)],
-    ['duration', Math.round(script.duration)],
-    ['executionStart', script.executionStart != null ? Math.round(script.executionStart) : null],
-    ['forcedStyleAndLayoutDuration', script.forcedStyleAndLayoutDuration != null ? Math.round(script.forcedStyleAndLayoutDuration) : null],
-    ['pauseDuration', script.pauseDuration != null ? Math.round(script.pauseDuration) : null],
+    ['scriptStartTimeMs', Math.round(script.startTime)],
+    ['scriptDurationMs', Math.round(script.duration)],
+    ['executionStartTimeMs', script.executionStart != null ? Math.round(script.executionStart) : null],
+    ['forcedStyleAndLayoutDurationMs', positiveOrNull(script.forcedStyleAndLayoutDuration)],
+    ['pauseDurationMs', positiveOrNull(script.pauseDuration)],
     ['windowAttribution', script.windowAttribution],
   ]);
 }
 
-/**
- * Serializes long task attributions into compact JSON payload.
- *
- * @param attributions long task attribution entries
- */
-function serializeLongTaskAttributions(attributions: LongTaskAttribution[]): Json | null {
-  if (attributions.length === 0) {
-    return null;
-  }
-
-  return attributions.reduce<Json>((acc, attribution, i) => {
-    acc[`attribution_${i}`] = compactJson([
-      ['name', attribution.name],
-      ['entryType', attribution.entryType],
-      ['startTime', attribution.startTime != null ? Math.round(attribution.startTime) : null],
-      ['duration', attribution.duration != null ? Math.round(attribution.duration) : null],
-      ['containerType', attribution.containerType],
-      ['containerSrc', attribution.containerSrc],
-      ['containerId', attribution.containerId],
-      ['containerName', attribution.containerName],
-    ]);
-
-    return acc;
-  }, {});
-}
-
-/**
- * Resolves readable culprit from long task attribution.
- *
- * @param attribution first attribution entry
- */
-function resolveLongTaskCulprit(attribution: LongTaskAttribution | undefined): string | null {
-  if (!attribution) {
-    return null;
-  }
-
-  return attribution.containerSrc
-    || attribution.containerId
-    || attribution.containerName
-    || attribution.name
-    || null;
-}
-
-/**
- * Serializes single Web Vital metric into event context payload.
- *
- * @param metric web vital metric
- */
-function serializeWebVitalMetric(metric: WebVitalMetric): Json {
+function serializeWebVitalMetric(metric: { name: string; value: number; rating: string; delta: number }): Json {
   return compactJson([
-    ['name', metric.name],
-    ['value', metric.value],
-    ['rating', metric.rating],
-    ['delta', metric.delta],
+    ['metricName', metric.name],
+    ['metricValue', metric.value],
+    ['metricRating', metric.rating],
+    ['metricDelta', metric.delta],
   ]);
 }

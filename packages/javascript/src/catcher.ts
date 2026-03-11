@@ -339,7 +339,9 @@ export default class Catcher {
     }
 
     if (shouldDetectPerformanceIssues) {
-      this.issuesMonitor.init(issues, (entry) => this.send(entry.title, entry.context));
+      this.issuesMonitor.init(issues, (entry) => {
+        void this.formatAndSend(entry.title, entry.addons);
+      });
     }
   }
 
