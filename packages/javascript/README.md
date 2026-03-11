@@ -237,26 +237,29 @@ hawk.breadcrumbs.clear();
 
 ## Issues configuration
 
-The `issues` option is used to configure different tracking features
+The `issues` option configures automatic performance and error tracking.
 
-- `issues.errors` — global runtime errors handling
-- `issues.webVitals` — Core Web Vitals reports
-- `issues.longTasks` — reports about tasks taking longer than specified time (`70ms` default threshold)
-- `issues.longAnimationFrames` — reports about frames taking longer than specified time (`200ms` default threshold)
+| detector | key | default threshold | what it reports |
+|---|---|---|---|
+| **Errors** | `issues.errors` | — | Global runtime errors (`window.onerror`, `unhandledrejection`) |
+| **Web Vitals** | `issues.webVitals` | — | Poor-rated Core Web Vitals (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) |
+| **Long Tasks** | `issues.longTasks` | `70 ms` | Cross-origin / iframe tasks with identifiable container (`containerSrc`, `containerId`, or `containerName`). Tasks attributed to `"self"` are skipped |
+| **Long Animation Frames** | `issues.longAnimationFrames` | `200 ms` | Frames where at least one script attribution has `sourceURL`, `sourceFunctionName`, or `invoker` |
 
+All detectors are enabled by default.
+If the browser does not support a specific Performance API (`longtask`, `long-animation-frame`), the corresponding detector is silently skipped.
 
-All issues are enabled by default. If user browser does not support some metric, it won't be sent.
-
+Performance data is transmitted in the event **addons** (keys: `Long Task`, `Long Animation Frame`, `Web Vitals`).
 
 ### Web Vitals
 
-When `issues.webVitals` is enabled, Hawk listens to Core Web Vitals (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) and sends a dedicated issue event for each metric that is rated `poor`.
+When `issues.webVitals` is enabled, Hawk subscribes to Core Web Vitals via the `web-vitals` library and sends a dedicated issue event for each metric rated as `poor`. Each metric name is reported at most once per page load.
 
-`web-vitals` is included in the SDK dependencies, no extra installation is required.
+`web-vitals` is included in the SDK dependencies — no extra installation required.
 
 ### Disabling
 
-Disable all automatic issue tracking (errors, Web Vitals, Long Tasks, LoAF).
+Disable **all** automatic issue tracking (errors, Web Vitals, Long Tasks, LoAF).
 Manual sending via `hawk.send()` still works:
 
 ```js
@@ -279,7 +282,7 @@ const hawk = new HawkCatcher({
 
 ### Selective Configuration
 
-Configure all issue detectors:
+Enable or disable individual detectors, optionally overriding thresholds (minimum `50 ms`):
 
 ```js
 const hawk = new HawkCatcher({

@@ -161,9 +161,9 @@ describe('PerformanceIssuesMonitor', () => {
     observer!.emit([longTaskEntry(customThresholdMs)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
     expect(onIssue.mock.calls[0][0].title).toContain('Long Task');
-    expect(onIssue.mock.calls[0][0].addons).toHaveProperty('longTask');
-    expect(onIssue.mock.calls[0][0].addons.longTask).toHaveProperty('taskDurationMs', customThresholdMs);
-    expect(onIssue.mock.calls[0][0].addons.longTask).toHaveProperty('attributionSourceType', 'same-origin-ancestor');
+    expect(onIssue.mock.calls[0][0].addons).toHaveProperty('Long Task');
+    expect(onIssue.mock.calls[0][0].addons['Long Task']).toHaveProperty('taskDurationMs', customThresholdMs);
+    expect(onIssue.mock.calls[0][0].addons['Long Task']).toHaveProperty('attributionSourceType', 'same-origin-ancestor');
   });
 
   it('should skip long tasks with name=self (no container info)', async () => {
@@ -268,8 +268,8 @@ describe('PerformanceIssuesMonitor', () => {
 
     observer!.emit([loafEntry(250)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
-    expect(onIssue.mock.calls[0][0].addons).toHaveProperty('longAnimationFrame');
-    expect(onIssue.mock.calls[0][0].addons.longAnimationFrame).toHaveProperty('frameDurationMs', 250);
+    expect(onIssue.mock.calls[0][0].addons).toHaveProperty('Long Animation Frame');
+    expect(onIssue.mock.calls[0][0].addons['Long Animation Frame']).toHaveProperty('frameDurationMs', 250);
   });
 
   it('should report poor web vital metric in addons', async () => {
@@ -285,8 +285,8 @@ describe('PerformanceIssuesMonitor', () => {
 
     expect(onIssue).toHaveBeenCalledTimes(1);
     expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vital');
-    expect(onIssue.mock.calls[0][0].addons).toHaveProperty('webVitals');
-    expect(onIssue.mock.calls[0][0].addons.webVitals).toHaveProperty('metricName', 'LCP');
+    expect(onIssue.mock.calls[0][0].addons).toHaveProperty('Web Vitals');
+    expect(onIssue.mock.calls[0][0].addons['Web Vitals']).toHaveProperty('metricName', 'LCP');
   });
 
   it('should report poor INP metric', async () => {

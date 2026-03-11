@@ -5,284 +5,205 @@ import type {
   PerformanceIssuesOptions,
   LoAFEntry,
   LoAFScript,
+  LongTaskAttribution,
   LongTaskPerformanceEntry,
   WebVitalRating
 } from '../types/issues';
 import { compactJson } from '../utils/compactJson';
 
-/**
- * Default threshold for Long Tasks detector.
- * Used when detector is enabled without a valid custom threshold.
- */
+/** Default threshold for Long Tasks detector (ms). */
 export const DEFAULT_LONG_TASK_THRESHOLD_MS = 70;
-/**
- * Default threshold for Long Animation Frames detector.
- * Used when detector is enabled without a valid custom threshold.
- */
+
+/** Default threshold for Long Animation Frames detector (ms). */
 export const DEFAULT_LOAF_THRESHOLD_MS = 200;
-/**
- * Global minimum threshold guard for freeze detectors.
- * Prevents overly aggressive configuration and event spam.
- */
+
+/** Global minimum threshold guard — prevents overly aggressive configuration and event spam. */
 export const MIN_ISSUE_THRESHOLD_MS = 50;
 
 /**
- * Performance issues monitor handles:
- * - Long Tasks (only cross-origin / iframe tasks with identifiable container)
- * - Long Animation Frames (only when at least one script has identifiable source)
- * - Web Vitals (poor metrics only)
+ * Extracted and validated data from a PerformanceLongTaskTiming entry.
+ * Passed from {@link validateLongTask} to {@link serializeLongTaskEvent}.
  */
-export class PerformanceIssuesMonitor {
-  private longTaskObserver: PerformanceObserver | null = null;
-  private loafObserver: PerformanceObserver | null = null;
-  private isInitialized = false;
-  private destroyed = false;
-
-  public init(options: PerformanceIssuesOptions, onIssue: (event: PerformanceIssueEvent) => void): void {
-    if (this.isInitialized) {
-      return;
-    }
-
-    this.isInitialized = true;
-    this.destroyed = false;
-
-    if (options.longTasks !== false) {
-      this.observeLongTasks(
-        resolveThreshold(resolveThresholdOption(options.longTasks), DEFAULT_LONG_TASK_THRESHOLD_MS),
-        onIssue
-      );
-    }
-
-    if (options.longAnimationFrames !== false) {
-      this.observeLoAF(
-        resolveThreshold(resolveThresholdOption(options.longAnimationFrames), DEFAULT_LOAF_THRESHOLD_MS),
-        onIssue
-      );
-    }
-
-    if (options.webVitals !== false) {
-      this.observeWebVitals(onIssue);
-    }
-  }
-
-  public destroy(): void {
-    this.destroyed = true;
-    this.isInitialized = false;
-    this.longTaskObserver?.disconnect();
-    this.loafObserver?.disconnect();
-    this.longTaskObserver = null;
-    this.loafObserver = null;
-  }
-
-  /**
-   * Long Tasks are only reported when the primary attribution points to
-   * an identifiable external container (name !== "self") with at least
-   * one of containerSrc / containerId / containerName.
-   *
-   * Removed always-constant fields: entryType ("longtask"), attribution entryType ("taskattribution").
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongTaskTiming
-   */
-  private observeLongTasks(thresholdMs: number, onIssue: (event: PerformanceIssueEvent) => void): void {
-    if (!supportsEntryType('longtask')) {
-      return;
-    }
-
-    try {
-      this.longTaskObserver = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-          if (this.destroyed) {
-            return;
-          }
-
-          const task = entry as LongTaskPerformanceEntry;
-          const durationMs = Math.round(task.duration);
-
-          if (durationMs < thresholdMs) {
-            continue;
-          }
-
-          const primary = (task.attribution ?? [])[0];
-
-          if (!primary || primary.name === 'self') {
-            continue;
-          }
-
-          const containerIdentifier = primary.containerSrc || primary.containerId || primary.containerName;
-
-          if (!containerIdentifier) {
-            continue;
-          }
-
-          const details = compactJson([
-            ['taskStartTimeMs', Math.round(task.startTime)],
-            ['taskDurationMs', durationMs],
-            ['attributionSourceType', primary.name],
-            ['containerElementType', primary.containerType],
-            ['containerSourceUrl', primary.containerSrc],
-            ['containerElementId', primary.containerId],
-            ['containerElementName', primary.containerName],
-          ]);
-
-          onIssue({
-            title: 'Long Task — ' + containerIdentifier,
-            addons: { longTask: details },
-          });
-        }
-      });
-
-      this.longTaskObserver.observe({ type: 'longtask', buffered: true });
-    } catch {
-      this.longTaskObserver = null;
-    }
-  }
-
-  /**
-   * LoAF is only reported when at least one script has an identifiable source
-   * (sourceURL, sourceFunctionName, or invoker).
-   *
-   * Removed always-constant fields: name ("long-animation-frame"), entryType ("long-animation-frame"),
-   * script name ("script"). Removed derived summary fields (scriptsCount, topScript*, totals).
-   * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming
-   */
-  private observeLoAF(thresholdMs: number, onIssue: (event: PerformanceIssueEvent) => void): void {
-    if (!supportsEntryType('long-animation-frame')) {
-      return;
-    }
-
-    try {
-      this.loafObserver = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) {
-          if (this.destroyed) {
-            return;
-          }
-
-          const loaf = entry as LoAFEntry;
-          const durationMs = Math.round(loaf.duration);
-
-          if (durationMs < thresholdMs) {
-            continue;
-          }
-
-          const relevantScripts = loaf.scripts?.filter(
-            (s) => s.sourceURL || s.sourceFunctionName || s.invoker
-          ) ?? [];
-
-          if (relevantScripts.length === 0) {
-            continue;
-          }
-
-          const scripts = relevantScripts.reduce<Json>((acc, script, i) => {
-            acc[`script_${i}`] = serializeScriptTiming(script);
-
-            return acc;
-          }, {});
-
-          const details = compactJson([
-            ['frameStartTimeMs', Math.round(loaf.startTime)],
-            ['frameDurationMs', durationMs],
-            ['frameBlockingDurationMs', positiveOrNull(loaf.blockingDuration)],
-            ['renderStartTimeMs', loaf.renderStart != null ? Math.round(loaf.renderStart) : null],
-            ['styleAndLayoutStartTimeMs', loaf.styleAndLayoutStart != null ? Math.round(loaf.styleAndLayoutStart) : null],
-            ['firstUIEventTimeMs', positiveOrNull(loaf.firstUIEventTimestamp)],
-            ['scripts', scripts],
-          ]);
-
-          const topScript = relevantScripts[0];
-          const culprit = topScript?.sourceFunctionName
-            || topScript?.invoker
-            || topScript?.sourceURL
-            || '';
-
-          onIssue({
-            title: 'Long Animation Frame' + (culprit ? ` — ${culprit}` : ''),
-            addons: { longAnimationFrame: details },
-          });
-        }
-      });
-
-      this.loafObserver.observe({ type: 'long-animation-frame', buffered: true });
-    } catch {
-      this.loafObserver = null;
-    }
-  }
-
-  private observeWebVitals(onIssue: (event: PerformanceIssueEvent) => void): void {
-    if (this.destroyed) {
-      return;
-    }
-
-    const reportedPoorMetrics = new Set<string>();
-
-    const reportPoorMetric = (metric: { name: string; value: number; rating: WebVitalRating; delta: number }): void => {
-      if (this.destroyed || metric.rating !== 'poor') {
-        return;
-      }
-
-      if (reportedPoorMetrics.has(metric.name)) {
-        return;
-      }
-
-      reportedPoorMetrics.add(metric.name);
-
-      onIssue({
-        title: `Poor Web Vital: ${metric.name}`,
-        addons: {
-          webVitals: serializeWebVitalMetric(metric),
-        },
-      });
-    };
-
-    onCLS(reportPoorMetric);
-    onINP(reportPoorMetric);
-    onLCP(reportPoorMetric);
-    onFCP(reportPoorMetric);
-    onTTFB(reportPoorMetric);
-  }
-}
-
-function supportsEntryType(type: string): boolean {
-  try {
-    return (
-      typeof PerformanceObserver !== 'undefined' &&
-      typeof PerformanceObserver.supportedEntryTypes !== 'undefined' &&
-      PerformanceObserver.supportedEntryTypes.includes(type)
-    );
-  } catch {
-    return false;
-  }
+interface ValidatedLongTask {
+  task: LongTaskPerformanceEntry;
+  durationMs: number;
+  primary: LongTaskAttribution;
+  containerIdentifier: string;
 }
 
 /**
- * Returns rounded value only when > 0; otherwise null (stripped by compactJson).
- * Avoids sending noise like blockingDuration=0, pauseDuration=0, etc.
+ * Extracted and validated data from a PerformanceLongAnimationFrameTiming entry.
+ * Passed from {@link validateLoAF} to {@link serializeLoAFEvent}.
  */
-function positiveOrNull(value: number | null | undefined): number | null {
-  if (value == null || value <= 0) {
+interface ValidatedLoAF {
+  loaf: LoAFEntry;
+  durationMs: number;
+  relevantScripts: LoAFScript[];
+}
+
+/**
+ * Validates a Long Task entry and extracts reportable data.
+ *
+ * A task is reportable when:
+ * - duration >= threshold
+ * - primary attribution name is not "self" (cross-origin / iframe task)
+ * - at least one of containerSrc / containerId / containerName is present
+ *
+ * @param task - PerformanceLongTaskTiming entry from the observer
+ * @param thresholdMs - minimum duration to consider the task reportable
+ * @returns validated data bundle or null if the entry should be skipped
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongTaskTiming
+ */
+function validateLongTask(task: LongTaskPerformanceEntry, thresholdMs: number): ValidatedLongTask | null {
+  const durationMs = Math.round(task.duration);
+
+  if (durationMs < thresholdMs) {
     return null;
   }
 
-  return Math.round(value);
-}
+  const primary = (task.attribution ?? [])[0];
 
-function resolveThreshold(value: number | undefined, fallback: number): number {
-  if (typeof value !== 'number' || Number.isNaN(value)) {
-    return Math.max(MIN_ISSUE_THRESHOLD_MS, fallback);
+  if (!primary || primary.name === 'self') {
+    return null;
   }
 
-  return Math.max(MIN_ISSUE_THRESHOLD_MS, Math.round(value));
-}
+  const containerIdentifier = primary.containerSrc || primary.containerId || primary.containerName;
 
-function resolveThresholdOption(value: boolean | { thresholdMs?: number } | undefined): number | undefined {
-  if (typeof value === 'object' && value !== null) {
-    return value.thresholdMs;
+  if (!containerIdentifier) {
+    return null;
   }
 
-  return undefined;
+  return { task, durationMs, primary, containerIdentifier };
 }
 
 /**
- * Serialize a PerformanceScriptTiming entry.
- * Removed always-constant `name` field (always "script").
+ * Validates a Long Animation Frame entry and extracts reportable data.
+ *
+ * A frame is reportable when:
+ * - duration >= threshold
+ * - at least one script has an identifiable source (sourceURL, sourceFunctionName, or invoker)
+ *
+ * @param loaf - PerformanceLongAnimationFrameTiming entry from the observer
+ * @param thresholdMs - minimum duration to consider the frame reportable
+ * @returns validated data bundle or null if the entry should be skipped
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming
+ */
+function validateLoAF(loaf: LoAFEntry, thresholdMs: number): ValidatedLoAF | null {
+  const durationMs = Math.round(loaf.duration);
+
+  if (durationMs < thresholdMs) {
+    return null;
+  }
+
+  const relevantScripts = loaf.scripts?.filter(
+    (s) => s.sourceURL || s.sourceFunctionName || s.invoker
+  ) ?? [];
+
+  if (relevantScripts.length === 0) {
+    return null;
+  }
+
+  return { loaf, durationMs, relevantScripts };
+}
+
+/**
+ * Checks whether a Web Vital metric should be reported.
+ * Only poor-rated metrics are reported, and each metric name is reported at most once.
+ *
+ * @param metric - metric object from the web-vitals library
+ * @param reported - set of already reported metric names (dedup guard)
+ * @param metricName - metric name to check
+ */
+function isReportableWebVital(
+  metric: { rating: string },
+  reported: Set<string>,
+  metricName: string
+): boolean {
+  return metric.rating === 'poor' && !reported.has(metricName);
+}
+
+/**
+ * Builds a {@link PerformanceIssueEvent} from a validated Long Task.
+ * Addon key: "Long Task".
+ *
+ * @param data - validated Long Task data
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongTaskTiming
+ */
+function serializeLongTaskEvent({ task, durationMs, primary, containerIdentifier }: ValidatedLongTask): PerformanceIssueEvent {
+  return {
+    title: 'Long Task — ' + containerIdentifier,
+    addons: {
+      'Long Task': compactJson([
+        ['taskStartTimeMs', Math.round(task.startTime)],
+        ['taskDurationMs', durationMs],
+        ['attributionSourceType', primary.name],
+        ['containerElementType', primary.containerType],
+        ['containerSourceUrl', primary.containerSrc],
+        ['containerElementId', primary.containerId],
+        ['containerElementName', primary.containerName],
+      ]),
+    },
+  };
+}
+
+/**
+ * Builds a {@link PerformanceIssueEvent} from a validated Long Animation Frame.
+ * Addon key: "Long Animation Frame".
+ *
+ * @param data - validated LoAF data
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming
+ */
+function serializeLoAFEvent({ loaf, durationMs, relevantScripts }: ValidatedLoAF): PerformanceIssueEvent {
+  const topScript = relevantScripts[0];
+  const culprit = topScript?.sourceFunctionName
+    || topScript?.invoker
+    || topScript?.sourceURL
+    || '';
+
+  return {
+    title: 'Long Animation Frame' + (culprit ? ` — ${culprit}` : ''),
+    addons: {
+      'Long Animation Frame': compactJson([
+        ['frameStartTimeMs', Math.round(loaf.startTime)],
+        ['frameDurationMs', durationMs],
+        ['frameBlockingDurationMs', loaf.blockingDuration != null ? Math.round(loaf.blockingDuration) : null],
+        ['renderStartTimeMs', loaf.renderStart != null ? Math.round(loaf.renderStart) : null],
+        ['styleAndLayoutStartTimeMs', loaf.styleAndLayoutStart != null ? Math.round(loaf.styleAndLayoutStart) : null],
+        ['firstUIEventTimeMs', loaf.firstUIEventTimestamp != null ? Math.round(loaf.firstUIEventTimestamp) : null],
+        ['scripts', relevantScripts.reduce<Json>((acc, s, i) => {
+          acc[`script_${i}`] = serializeScriptTiming(s);
+
+          return acc;
+        }, {})],
+      ]),
+    },
+  };
+}
+
+/**
+ * Builds a {@link PerformanceIssueEvent} from a poor Web Vital metric.
+ * Addon key: "Web Vitals".
+ *
+ * @param metric - metric object from the web-vitals library
+ */
+function serializeWebVitalEvent(metric: { name: string; value: number; rating: string; delta: number }): PerformanceIssueEvent {
+  return {
+    title: `Poor Web Vital: ${metric.name}`,
+    addons: {
+      'Web Vitals': compactJson([
+        ['metricName', metric.name],
+        ['metricValue', metric.value],
+        ['metricRating', metric.rating],
+        ['metricDelta', metric.delta],
+      ]),
+    },
+  };
+}
+
+/**
+ * Serializes a single PerformanceScriptTiming entry into a compact JSON payload.
+ *
+ * @param script - LoAF script timing entry
  * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceScriptTiming
  */
 function serializeScriptTiming(script: LoAFScript): Json {
@@ -295,17 +216,178 @@ function serializeScriptTiming(script: LoAFScript): Json {
     ['scriptStartTimeMs', Math.round(script.startTime)],
     ['scriptDurationMs', Math.round(script.duration)],
     ['executionStartTimeMs', script.executionStart != null ? Math.round(script.executionStart) : null],
-    ['forcedStyleAndLayoutDurationMs', positiveOrNull(script.forcedStyleAndLayoutDuration)],
-    ['pauseDurationMs', positiveOrNull(script.pauseDuration)],
+    ['forcedStyleAndLayoutDurationMs', script.forcedStyleAndLayoutDuration != null ? Math.round(script.forcedStyleAndLayoutDuration) : null],
+    ['pauseDurationMs', script.pauseDuration != null ? Math.round(script.pauseDuration) : null],
     ['windowAttribution', script.windowAttribution],
   ]);
 }
 
-function serializeWebVitalMetric(metric: { name: string; value: number; rating: string; delta: number }): Json {
-  return compactJson([
-    ['metricName', metric.name],
-    ['metricValue', metric.value],
-    ['metricRating', metric.rating],
-    ['metricDelta', metric.delta],
-  ]);
+/**
+ * Performance issues monitor.
+ *
+ * Observes browser Performance API entries and Web Vitals metrics,
+ * validates them against configured thresholds and filtering rules,
+ * and emits structured {@link PerformanceIssueEvent} payloads.
+ *
+ * Supported detectors:
+ * - **Long Tasks** — cross-origin / iframe tasks with identifiable container
+ * - **Long Animation Frames** — frames with at least one identifiable script
+ * - **Web Vitals** — poor-rated Core Web Vitals (LCP, FCP, TTFB, INP, CLS)
+ */
+export class PerformanceIssuesMonitor {
+  private longTaskObserver: PerformanceObserver | null = null;
+  private loafObserver: PerformanceObserver | null = null;
+  private isInitialized = false;
+  private destroyed = false;
+
+  /**
+   * Initializes enabled detectors based on the provided options.
+   * Safe to call only once — subsequent calls are ignored until {@link destroy} resets the state.
+   *
+   * @param options - detector configuration (longTasks, longAnimationFrames, webVitals)
+   * @param onIssue - callback invoked for each detected performance issue
+   */
+  public init(options: PerformanceIssuesOptions, onIssue: (event: PerformanceIssueEvent) => void): void {
+    if (this.isInitialized) {
+      return;
+    }
+
+    this.isInitialized = true;
+    this.destroyed = false;
+
+    const detectors = [
+      {
+        option: options.longTasks,
+        type: 'longtask',
+        defaultMs: DEFAULT_LONG_TASK_THRESHOLD_MS,
+        process(entry: PerformanceEntry, ms: number): PerformanceIssueEvent | null {
+          const data = validateLongTask(entry as LongTaskPerformanceEntry, ms);
+
+          return data ? serializeLongTaskEvent(data) : null;
+        },
+      },
+      {
+        option: options.longAnimationFrames,
+        type: 'long-animation-frame',
+        defaultMs: DEFAULT_LOAF_THRESHOLD_MS,
+        process(entry: PerformanceEntry, ms: number): PerformanceIssueEvent | null {
+          const data = validateLoAF(entry as LoAFEntry, ms);
+
+          return data ? serializeLoAFEvent(data) : null;
+        },
+      },
+    ];
+
+    [this.longTaskObserver, this.loafObserver] = detectors.map(({ option, type, defaultMs, process }) => {
+      if (option === false) {
+        return null;
+      }
+
+      const custom = typeof option === 'object' ? option?.thresholdMs : undefined;
+      const thresholdMs = Math.max(MIN_ISSUE_THRESHOLD_MS,
+        typeof custom === 'number' && !Number.isNaN(custom) ? Math.round(custom) : defaultMs);
+
+      return this.observe(type, (entry) => {
+        const event = process(entry, thresholdMs);
+
+        if (event) {
+          onIssue(event);
+        }
+      });
+    });
+
+    if (options.webVitals !== false) {
+      this.observeWebVitals(onIssue);
+    }
+  }
+
+  /**
+   * Disconnects all active observers and resets the monitor state.
+   * After calling destroy, the monitor can be re-initialized via {@link init}.
+   */
+  public destroy(): void {
+    this.destroyed = true;
+    this.isInitialized = false;
+    this.longTaskObserver?.disconnect();
+    this.loafObserver?.disconnect();
+    this.longTaskObserver = null;
+    this.loafObserver = null;
+  }
+
+  /**
+   * Creates a PerformanceObserver for the given entry type.
+   * Returns null if the browser does not support the entry type or the observer fails.
+   *
+   * @param type - performance entry type (e.g. "longtask", "long-animation-frame")
+   * @param onEntry - callback invoked for each observed entry
+   */
+  private observe(type: string, onEntry: (entry: PerformanceEntry) => void): PerformanceObserver | null {
+    if (!supportsEntryType(type)) {
+      return null;
+    }
+
+    try {
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (this.destroyed) {
+            return;
+          }
+
+          onEntry(entry);
+        }
+      });
+
+      observer.observe({ type, buffered: true });
+
+      return observer;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Subscribes to Core Web Vitals via the web-vitals library.
+   * Emits one issue per poor-rated metric; each metric name is reported at most once.
+   *
+   * @param onIssue - callback invoked for each poor metric
+   */
+  private observeWebVitals(onIssue: (event: PerformanceIssueEvent) => void): void {
+    if (this.destroyed) {
+      return;
+    }
+
+    const reported = new Set<string>();
+
+    const report = (metric: { name: string; value: number; rating: WebVitalRating; delta: number }): void => {
+      if (this.destroyed || !isReportableWebVital(metric, reported, metric.name)) {
+        return;
+      }
+
+      reported.add(metric.name);
+      onIssue(serializeWebVitalEvent(metric));
+    };
+
+    onCLS(report);
+    onINP(report);
+    onLCP(report);
+    onFCP(report);
+    onTTFB(report);
+  }
+}
+
+/**
+ * Checks whether the browser supports a given performance entry type.
+ *
+ * @param type - entry type to check (e.g. "longtask", "long-animation-frame")
+ */
+function supportsEntryType(type: string): boolean {
+  try {
+    return (
+      typeof PerformanceObserver !== 'undefined' &&
+      typeof PerformanceObserver.supportedEntryTypes !== 'undefined' &&
+      PerformanceObserver.supportedEntryTypes.includes(type)
+    );
+  } catch {
+    return false;
+  }
 }

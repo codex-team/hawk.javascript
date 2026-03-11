@@ -144,9 +144,9 @@ export interface WebVitalMetric {
  * Addons payload shape for performance issue events.
  */
 export interface PerformanceIssueAddons {
-  longTask?: Json;
-  longAnimationFrame?: Json;
-  webVitals?: Json;
+  'Long Task'?: Json;
+  'Long Animation Frame'?: Json;
+  'Web Vitals'?: Json;
 }
 
 /**
