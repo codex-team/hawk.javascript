@@ -145,7 +145,7 @@ export interface WebVitalMetric {
  */
 export interface PerformanceIssueAddons {
   'Long Task'?: Json;
-  'Long Animation Frame'?: Json;
+  'Long Frame'?: Json;
   'Web Vitals'?: Json;
 }
 

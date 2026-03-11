@@ -124,7 +124,7 @@ function serializeLoAFEvent(loaf: LoAFEntry): PerformanceIssueEvent {
   return {
     title: 'Long Animation Frame' + (culprit ? ` — ${culprit}` : ''),
     addons: {
-      'Long Animation Frame': compactJson([
+      'Long Frame': compactJson([
         ['frameStartTimeMs', Math.round(loaf.startTime)],
         ['frameDurationMs', Math.round(loaf.duration)],
         ['frameBlockingDurationMs', loaf.blockingDuration != null ? Math.round(loaf.blockingDuration) : null],
