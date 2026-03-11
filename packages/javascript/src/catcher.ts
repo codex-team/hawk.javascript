@@ -14,7 +14,8 @@ import type {
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
-import { isErrorProcessed, markErrorAsProcessed, getErrorFromEvent } from './utils/event';
+import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
+import { getErrorFromErrorEvent } from './utils/error';
 import { BrowserRandomGenerator } from './utils/random';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
@@ -331,7 +332,7 @@ export default class Catcher {
       this.consoleCatcher!.addErrorEvent(event);
     }
 
-    const error = getErrorFromEvent(event);
+    const error = getErrorFromErrorEvent(event);
 
     void this.formatAndSend(error);
   }
