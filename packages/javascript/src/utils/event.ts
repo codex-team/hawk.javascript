@@ -80,3 +80,22 @@ export function getErrorFromEvent(event: ErrorEvent | PromiseRejectionEvent): Er
 
   return Sanitizer.sanitize(error);
 }
+
+/**
+ * Converts a promise rejection reason to a string message.
+ *
+ * String(obj) gives "[object Object]" and JSON.stringify("str")
+ * adds unwanted quotes.
+ *
+ * @param reason - The rejection reason from PromiseRejectionEvent
+ */
+export function stringifyRejectionReason(reason: unknown): string {
+  if (reason instanceof Error) {
+    return reason.message;
+  }
+  if (typeof reason === 'string') {
+    return reason;
+  }
+
+  return JSON.stringify(Sanitizer.sanitize(reason));
+}

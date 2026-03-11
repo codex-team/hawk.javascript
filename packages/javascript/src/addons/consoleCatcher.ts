@@ -3,6 +3,7 @@
  */
 import type { ConsoleLogEvent } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
+import { stringifyRejectionReason } from 'src/utils/event';
 
 /**
  * Maximum number of console logs to store
@@ -190,25 +191,6 @@ export class ConsoleCatcher {
   }
 
   /**
-   * Converts a promise rejection reason to a string message.
-   *
-   * String(obj) gives "[object Object]" and JSON.stringify("str")
-   * adds unwanted quotes.
-   *
-   * @param reason - The rejection reason from PromiseRejectionEvent
-   */
-  private stringifyReason(reason: unknown): string {
-    if (reason instanceof Error) {
-      return reason.message;
-    }
-    if (typeof reason === 'string') {
-      return reason;
-    }
-
-    return JSON.stringify(Sanitizer.sanitize(reason));
-  }
-
-  /**
    * Creates a console log event from an error or promise rejection
    *
    * @param event - The error event or promise rejection event to convert
@@ -231,7 +213,7 @@ export class ConsoleCatcher {
       method: 'error',
       timestamp: new Date(),
       type: 'UnhandledRejection',
-      message: this.stringifyReason(event.reason),
+      message: stringifyRejectionReason(event.reason),
       stack: event.reason?.stack || '',
       fileLine: '',
     };
