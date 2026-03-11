@@ -3,7 +3,7 @@
  */
 import type { ConsoleLogEvent } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
-import { stringifyRejectionReason } from 'src/utils/event';
+import { stringifyRejectionReason } from '../utils/event';
 
 /**
  * Maximum number of console logs to store
