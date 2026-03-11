@@ -2,25 +2,6 @@
 import { isPlainObject } from '../utils/validation';
 
 /**
- * Custom type handler for Sanitizer.
- *
- * Allows user to register their own formatters from external packages.
- */
-export interface SanitizerTypeHandler {
-  /**
-   * Checks if this handler should be applied to given value
-   *
-   * @returns `true`
-   */
-  check: (target: any) => boolean;
-
-  /**
-   * Formats the value into a sanitized representation
-   */
-  format: (target: any) => any;
-}
-
-/**
  * This class provides methods for preparing data to sending to Hawk
  * - trim long strings
  * - represent big objects as "<big object>"
@@ -49,33 +30,6 @@ export class Sanitizer {
   private static readonly maxArrayLength: number = 10;
 
   /**
-   * Custom type handlers registered via {@link registerHandler}.
-   *
-   * Checked in {@link sanitize} before built-in type checks.
-   */
-  private static readonly customHandlers: SanitizerTypeHandler[] = [];
-
-  /**
-   * Check if passed variable is an object
-   *
-   * @param target - variable to check
-   */
-  public static isObject(target: any): boolean {
-    return isPlainObject(target);
-  }
-
-  /**
-   * Register a custom type handler.
-   * Handlers are checked before built-in type checks, in reverse registration order
-   * (last registered = highest priority).
-   *
-   * @param handler - handler to register
-   */
-  public static registerHandler(handler: SanitizerTypeHandler): void {
-    Sanitizer.customHandlers.unshift(handler);
-  }
-
-  /**
    * Apply sanitizing for array/object/primitives
    *
    * @param data - any object to sanitize
@@ -100,38 +54,22 @@ export class Sanitizer {
       return this.sanitizeArray(data, depth + 1, seen);
     }
 
-    // Check additional handlers provided by env-specific modules or users
-    // to sanitize some additional cases (e.g. specific object types)
-    for (const handler of Sanitizer.customHandlers) {
-      if (handler.check(data)) {
-        return handler.format(data);
-      }
+    const formattedData = Sanitizer.format(data);
+    if (formattedData) {
+      return formattedData;
     }
 
     /**
-     * If values is a not-constructed class, it will be formatted as "<class SomeClass>"
-     * class Editor {...} -> <class Editor>
+     * If values is an object, do recursive call
      */
-    if (Sanitizer.isClassPrototype(data)) {
-      return Sanitizer.formatClassPrototype(data);
-
-      /**
-       * If values is a some class instance, it will be formatted as "<instance of SomeClass>"
-       * new Editor() -> <instance of Editor>
-       */
-    } else if (Sanitizer.isClassInstance(data)) {
-      return Sanitizer.formatClassInstance(data);
-
-      /**
-       * If values is an object, do recursive call
-       */
-    } else if (Sanitizer.isObject(data)) {
+    if (Sanitizer.isObject(data)) {
       return Sanitizer.sanitizeObject(data, depth + 1, seen);
+    }
 
-      /**
-       * If values is a string, trim it for max-length
-       */
-    } else if (Sanitizer.isString(data)) {
+    /**
+     * If values is a string, trim it for max-length
+     */
+    if (Sanitizer.isString(data)) {
       return Sanitizer.trimString(data);
     }
 
@@ -139,6 +77,34 @@ export class Sanitizer {
      * If values is a number, boolean and other primitive, leave as is
      */
     return data;
+  }
+
+
+  public static format(data: any): any {
+    /**
+     * If values is a not-constructed class, it will be formatted as "<class SomeClass>"
+     * class Editor {...} -> <class Editor>
+     */
+    if (Sanitizer.isClassPrototype(data)) {
+      return Sanitizer.formatClassPrototype(data);
+    }
+    /**
+     * If values is a some class instance, it will be formatted as "<instance of SomeClass>"
+     * new Editor() -> <instance of Editor>
+     */
+    if (Sanitizer.isClassInstance(data)) {
+      return Sanitizer.formatClassInstance(data);
+    }
+    return null;
+  }
+
+  /**
+   * Check if passed variable is an object
+   *
+   * @param target - variable to check
+   */
+  public static isObject(target: any): boolean {
+    return isPlainObject(target);
   }
 
   /**
