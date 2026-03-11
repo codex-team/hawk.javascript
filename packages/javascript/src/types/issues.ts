@@ -138,6 +138,7 @@ export interface WebVitalMetric {
   value: number;
   rating: WebVitalRating;
   delta: number;
+  navigationType?: string;
 }
 
 /**

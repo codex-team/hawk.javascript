@@ -6,7 +6,7 @@ import type {
   LoAFEntry,
   LoAFScript,
   LongTaskPerformanceEntry,
-  WebVitalRating
+  WebVitalMetric
 } from '../types/issues';
 import { compactJson } from '../utils/compactJson';
 
@@ -147,7 +147,7 @@ function serializeLoAFEvent(loaf: LoAFEntry): PerformanceIssueEvent {
  *
  * @param metric - metric object from the web-vitals library
  */
-function serializeWebVitalEvent(metric: { name: string; value: number; rating: string; delta: number }): PerformanceIssueEvent {
+function serializeWebVitalEvent(metric: WebVitalMetric): PerformanceIssueEvent {
   return {
     title: `Poor Web Vital: ${metric.name}`,
     addons: {
@@ -156,6 +156,7 @@ function serializeWebVitalEvent(metric: { name: string; value: number; rating: s
         ['metricValue', metric.value],
         ['metricRating', metric.rating],
         ['metricDelta', metric.delta],
+        ['metricNavigationType', metric.navigationType],
       ]),
     },
   };
@@ -319,7 +320,7 @@ export class PerformanceIssuesMonitor {
 
     const reported = new Set<string>();
 
-    const report = (metric: { name: string; value: number; rating: WebVitalRating; delta: number }): void => {
+    const report = (metric: WebVitalMetric): void => {
       if (this.destroyed || !isReportableWebVital(metric, reported, metric.name)) {
         return;
       }
