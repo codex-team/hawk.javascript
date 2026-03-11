@@ -5,7 +5,6 @@ import type {
   PerformanceIssuesOptions,
   LoAFEntry,
   LoAFScript,
-  LongTaskAttribution,
   LongTaskPerformanceEntry,
   WebVitalRating
 } from '../types/issues';
@@ -21,89 +20,45 @@ export const DEFAULT_LOAF_THRESHOLD_MS = 200;
 export const MIN_ISSUE_THRESHOLD_MS = 50;
 
 /**
- * Extracted and validated data from a PerformanceLongTaskTiming entry.
- * Passed from {@link validateLongTask} to {@link serializeLongTaskEvent}.
- */
-interface ValidatedLongTask {
-  task: LongTaskPerformanceEntry;
-  durationMs: number;
-  primary: LongTaskAttribution;
-  containerIdentifier: string;
-}
-
-/**
- * Extracted and validated data from a PerformanceLongAnimationFrameTiming entry.
- * Passed from {@link validateLoAF} to {@link serializeLoAFEvent}.
- */
-interface ValidatedLoAF {
-  loaf: LoAFEntry;
-  durationMs: number;
-  relevantScripts: LoAFScript[];
-}
-
-/**
- * Validates a Long Task entry and extracts reportable data.
+ * Checks whether a Long Task entry is worth reporting.
  *
- * A task is reportable when:
+ * Reportable when:
  * - duration >= threshold
- * - primary attribution name is not "self" (cross-origin / iframe task)
- * - at least one of containerSrc / containerId / containerName is present
+ * - has at least one attribution with containerSrc, containerId, or containerName
  *
  * @param task - PerformanceLongTaskTiming entry from the observer
  * @param thresholdMs - minimum duration to consider the task reportable
- * @returns validated data bundle or null if the entry should be skipped
  * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongTaskTiming
  */
-function validateLongTask(task: LongTaskPerformanceEntry, thresholdMs: number): ValidatedLongTask | null {
-  const durationMs = Math.round(task.duration);
-
-  if (durationMs < thresholdMs) {
-    return null;
+function isReportableLongTask(task: LongTaskPerformanceEntry, thresholdMs: number): boolean {
+  if (Math.round(task.duration) < thresholdMs) {
+    return false;
   }
 
   const primary = (task.attribution ?? [])[0];
 
-  if (!primary || primary.name === 'self') {
-    return null;
-  }
-
-  const containerIdentifier = primary.containerSrc || primary.containerId || primary.containerName;
-
-  if (!containerIdentifier) {
-    return null;
-  }
-
-  return { task, durationMs, primary, containerIdentifier };
+  return !!primary && !!(primary.containerSrc || primary.containerId || primary.containerName);
 }
 
 /**
- * Validates a Long Animation Frame entry and extracts reportable data.
+ * Checks whether a Long Animation Frame entry is worth reporting.
  *
- * A frame is reportable when:
+ * Reportable when:
  * - duration >= threshold
- * - at least one script has an identifiable source (sourceURL, sourceFunctionName, or invoker)
+ * - at least one script has sourceURL, sourceFunctionName, or invoker
  *
  * @param loaf - PerformanceLongAnimationFrameTiming entry from the observer
  * @param thresholdMs - minimum duration to consider the frame reportable
- * @returns validated data bundle or null if the entry should be skipped
  * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming
  */
-function validateLoAF(loaf: LoAFEntry, thresholdMs: number): ValidatedLoAF | null {
-  const durationMs = Math.round(loaf.duration);
-
-  if (durationMs < thresholdMs) {
-    return null;
+function isReportableLoAF(loaf: LoAFEntry, thresholdMs: number): boolean {
+  if (Math.round(loaf.duration) < thresholdMs) {
+    return false;
   }
 
-  const relevantScripts = loaf.scripts?.filter(
+  return (loaf.scripts ?? []).some(
     (s) => s.sourceURL || s.sourceFunctionName || s.invoker
-  ) ?? [];
-
-  if (relevantScripts.length === 0) {
-    return null;
-  }
-
-  return { loaf, durationMs, relevantScripts };
+  );
 }
 
 /**
@@ -123,19 +78,22 @@ function isReportableWebVital(
 }
 
 /**
- * Builds a {@link PerformanceIssueEvent} from a validated Long Task.
+ * Builds a {@link PerformanceIssueEvent} from a Long Task entry.
  * Addon key: "Long Task".
  *
- * @param data - validated Long Task data
+ * @param task - PerformanceLongTaskTiming entry (already validated)
  * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongTaskTiming
  */
-function serializeLongTaskEvent({ task, durationMs, primary, containerIdentifier }: ValidatedLongTask): PerformanceIssueEvent {
+function serializeLongTaskEvent(task: LongTaskPerformanceEntry): PerformanceIssueEvent {
+  const primary = task.attribution![0];
+  const containerIdentifier = primary.containerSrc || primary.containerId || primary.containerName;
+
   return {
     title: 'Long Task — ' + containerIdentifier,
     addons: {
       'Long Task': compactJson([
         ['taskStartTimeMs', Math.round(task.startTime)],
-        ['taskDurationMs', durationMs],
+        ['taskDurationMs', Math.round(task.duration)],
         ['attributionSourceType', primary.name],
         ['containerElementType', primary.containerType],
         ['containerSourceUrl', primary.containerSrc],
@@ -147,14 +105,17 @@ function serializeLongTaskEvent({ task, durationMs, primary, containerIdentifier
 }
 
 /**
- * Builds a {@link PerformanceIssueEvent} from a validated Long Animation Frame.
+ * Builds a {@link PerformanceIssueEvent} from a Long Animation Frame entry.
  * Addon key: "Long Animation Frame".
  *
- * @param data - validated LoAF data
+ * @param loaf - PerformanceLongAnimationFrameTiming entry (already validated)
  * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming
  */
-function serializeLoAFEvent({ loaf, durationMs, relevantScripts }: ValidatedLoAF): PerformanceIssueEvent {
-  const topScript = relevantScripts[0];
+function serializeLoAFEvent(loaf: LoAFEntry): PerformanceIssueEvent {
+  const scripts = (loaf.scripts ?? []).filter(
+    (s) => s.sourceURL || s.sourceFunctionName || s.invoker
+  );
+  const topScript = scripts[0];
   const culprit = topScript?.sourceFunctionName
     || topScript?.invoker
     || topScript?.sourceURL
@@ -165,12 +126,12 @@ function serializeLoAFEvent({ loaf, durationMs, relevantScripts }: ValidatedLoAF
     addons: {
       'Long Animation Frame': compactJson([
         ['frameStartTimeMs', Math.round(loaf.startTime)],
-        ['frameDurationMs', durationMs],
+        ['frameDurationMs', Math.round(loaf.duration)],
         ['frameBlockingDurationMs', loaf.blockingDuration != null ? Math.round(loaf.blockingDuration) : null],
         ['renderStartTimeMs', loaf.renderStart != null ? Math.round(loaf.renderStart) : null],
         ['styleAndLayoutStartTimeMs', loaf.styleAndLayoutStart != null ? Math.round(loaf.styleAndLayoutStart) : null],
         ['firstUIEventTimeMs', loaf.firstUIEventTimestamp != null ? Math.round(loaf.firstUIEventTimestamp) : null],
-        ['scripts', relevantScripts.reduce<Json>((acc, s, i) => {
+        ['scripts', scripts.reduce<Json>((acc, s, i) => {
           acc[`script_${i}`] = serializeScriptTiming(s);
 
           return acc;
@@ -261,9 +222,9 @@ export class PerformanceIssuesMonitor {
         type: 'longtask',
         defaultMs: DEFAULT_LONG_TASK_THRESHOLD_MS,
         process(entry: PerformanceEntry, ms: number): PerformanceIssueEvent | null {
-          const data = validateLongTask(entry as LongTaskPerformanceEntry, ms);
+          const task = entry as LongTaskPerformanceEntry;
 
-          return data ? serializeLongTaskEvent(data) : null;
+          return isReportableLongTask(task, ms) ? serializeLongTaskEvent(task) : null;
         },
       },
       {
@@ -271,9 +232,9 @@ export class PerformanceIssuesMonitor {
         type: 'long-animation-frame',
         defaultMs: DEFAULT_LOAF_THRESHOLD_MS,
         process(entry: PerformanceEntry, ms: number): PerformanceIssueEvent | null {
-          const data = validateLoAF(entry as LoAFEntry, ms);
+          const loaf = entry as LoAFEntry;
 
-          return data ? serializeLoAFEvent(data) : null;
+          return isReportableLoAF(loaf, ms) ? serializeLoAFEvent(loaf) : null;
         },
       },
     ];
