@@ -148,8 +148,17 @@ function serializeLoAFEvent(loaf: LoAFEntry): PerformanceIssueEvent {
  * @param metric - metric object from the web-vitals library
  */
 function serializeWebVitalEvent(metric: WebVitalMetric): PerformanceIssueEvent {
+  const metricLabels = new Map<string, string>([
+    ['CLS', 'Cumulative Layout Shift'],
+    ['INP', 'Interaction to Next Paint'],
+    ['LCP', 'Largest Contentful Paint'],
+    ['FCP', 'First Contentful Paint'],
+    ['TTFB', 'Time to First Byte'],
+  ]);
+  const metricLabel = metricLabels.get(metric.name) ?? metric.name;
+
   return {
-    title: `Poor Web Vital: ${metric.name}`,
+    title: `Poor Web Vital: ${metric.name} (${metricLabel})`,
     addons: {
       'Web Vitals': compactJson([
         ['metricName', metric.name],
