@@ -154,18 +154,6 @@ export interface WebVitalMetric {
 }
 
 /**
- * Aggregated Web Vitals report.
- */
-export interface WebVitalsReport {
-  /** Human-readable summary of poor metrics */
-  summary: string;
-  /** Number of poor metrics in this report */
-  poorCount: number;
-  /** Full metrics map by metric name */
-  metrics: Record<string, WebVitalMetric>;
-}
-
-/**
  * Payload sent by issues monitor to the catcher.
  */
 export interface PerformanceIssueEvent {

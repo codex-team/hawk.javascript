@@ -256,7 +256,17 @@ When `issues.webVitals` is enabled, Hawk listens to Core Web Vitals (`LCP`, `FCP
 
 ### Disabling
 
-Disable global errors handling:
+Disable all automatic issue tracking (errors, Web Vitals, Long Tasks, LoAF).
+Manual sending via `hawk.send()` still works:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  issues: false
+});
+```
+
+Disable only global errors handling:
 
 ```js
 const hawk = new HawkCatcher({

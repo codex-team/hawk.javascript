@@ -105,6 +105,9 @@ export interface HawkInitialSettings {
   /**
    * Issues configuration:
    * `errors`, `webVitals`, `longTasks`, `longAnimationFrames`.
+   *
+   * Pass `false` to disable all automatic issue tracking.
+   * Manual sending via `.send()` still works.
    */
-  issues?: IssuesOptions;
+  issues?: false | IssuesOptions;
 }

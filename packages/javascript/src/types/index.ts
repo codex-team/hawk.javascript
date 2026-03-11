@@ -2,16 +2,7 @@ import type { CatcherMessage } from './catcher-message';
 import type { HawkInitialSettings } from './hawk-initial-settings';
 import type {
   IssuesOptions,
-  PerformanceIssuesOptions,
   PerformanceIssueThresholdOptions,
-  PerformanceIssueEvent,
-  LongTaskAttribution,
-  LongTaskPerformanceEntry,
-  LoAFScript,
-  LoAFEntry,
-  WebVitalMetric,
-  WebVitalRating,
-  WebVitalsReport
 } from './issues';
 import type { Transport } from './transport';
 import type { HawkJavaScriptEvent } from './event';
@@ -21,13 +12,7 @@ export type {
   CatcherMessage,
   HawkInitialSettings,
   IssuesOptions,
-  PerformanceIssuesOptions,
   PerformanceIssueThresholdOptions,
-  PerformanceIssueEvent,
-  LongTaskAttribution,
-  LongTaskPerformanceEntry,
-  LoAFScript,
-  LoAFEntry,
   Transport,
   HawkJavaScriptEvent,
   VueIntegrationData,
@@ -35,7 +20,4 @@ export type {
   NuxtIntegrationAddons,
   JavaScriptCatcherIntegrations,
   BreadcrumbsAPI,
-  WebVitalMetric,
-  WebVitalRating,
-  WebVitalsReport
 };
