@@ -6,7 +6,10 @@ import type {
   LoAFEntry,
   LoAFScript,
   LongTaskPerformanceEntry,
-  WebVitalMetric
+  WebVitalName,
+  WebVitalMetric,
+  WebVitalOptions,
+  WebVitalRatingThresholds
 } from '../types/issues';
 import { compactJson } from '../utils/compactJson';
 
@@ -18,6 +21,14 @@ export const DEFAULT_LOAF_THRESHOLD_MS = 300;
 
 /** Global minimum threshold guard — prevents overly aggressive configuration and event spam. */
 export const MIN_ISSUE_THRESHOLD_MS = 50;
+
+const DEFAULT_WEB_VITAL_THRESHOLDS: Record<WebVitalName, WebVitalRatingThresholds> = {
+  CLS: { official: [0.1, 0.25], reportPoorAbove: 0.35 },
+  INP: { official: [200, 500], reportPoorAbove: 700 },
+  LCP: { official: [2500, 4000], reportPoorAbove: 5000 },
+  FCP: { official: [1800, 3000], reportPoorAbove: 4000 },
+  TTFB: { official: [800, 1800], reportPoorAbove: 2500 },
+};
 
 /**
  * Checks whether a Long Task entry is worth reporting.
@@ -67,14 +78,28 @@ function isReportableLoAF(loaf: LoAFEntry, thresholdMs: number): boolean {
  *
  * @param metric - metric object from the web-vitals library
  * @param reported - set of already reported metric names (dedup guard)
- * @param metricName - metric name to check
  */
 function isReportableWebVital(
-  metric: { rating: string },
+  metric: WebVitalMetric,
   reported: Set<string>,
-  metricName: string
+  webVitalsOptions?: WebVitalOptions
 ): boolean {
-  return metric.rating === 'poor' && !reported.has(metricName);
+  return metric.value > getWebVitalRatingThresholds(metric.name, webVitalsOptions).reportPoorAbove
+    && !reported.has(metric.name);
+}
+
+function getWebVitalRatingThresholds(metricName: WebVitalName, webVitalsOptions?: WebVitalOptions): WebVitalRatingThresholds {
+  const defaults = DEFAULT_WEB_VITAL_THRESHOLDS[metricName];
+  const override = webVitalsOptions?.reportPoorAbove?.[metricName];
+
+  if (typeof override !== 'number' || Number.isNaN(override)) {
+    return defaults;
+  }
+
+  return {
+    official: defaults.official,
+    reportPoorAbove: override,
+  };
 }
 
 /**
@@ -268,7 +293,7 @@ export class PerformanceIssuesMonitor {
     });
 
     if (options.webVitals !== false) {
-      this.observeWebVitals(onIssue);
+      this.observeWebVitals(onIssue, typeof options.webVitals === 'object' ? options.webVitals : undefined);
     }
   }
 
@@ -322,7 +347,7 @@ export class PerformanceIssuesMonitor {
    *
    * @param onIssue - callback invoked for each poor metric
    */
-  private observeWebVitals(onIssue: (event: PerformanceIssueEvent) => void): void {
+  private observeWebVitals(onIssue: (event: PerformanceIssueEvent) => void, webVitalsOptions?: WebVitalOptions): void {
     if (this.destroyed) {
       return;
     }
@@ -330,7 +355,7 @@ export class PerformanceIssuesMonitor {
     const reported = new Set<string>();
 
     const report = (metric: WebVitalMetric): void => {
-      if (this.destroyed || !isReportableWebVital(metric, reported, metric.name)) {
+      if (this.destroyed || !isReportableWebVital(metric, reported, webVitalsOptions)) {
         return;
       }
 

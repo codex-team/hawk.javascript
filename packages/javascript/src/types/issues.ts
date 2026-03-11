@@ -17,10 +17,13 @@ export interface PerformanceIssueThresholdOptions {
 export interface PerformanceIssuesOptions {
   /**
    * Enable aggregated Web Vitals monitoring.
+   * `false` disables the feature.
+   * Any other value enables it.
+   * You can override per-metric poor-report thresholds via `reportPoorAbove`.
    *
    * @default true
    */
-  webVitals?: boolean;
+  webVitals?: boolean | WebVitalOptions;
 
   /**
    * Long Tasks options.
@@ -129,12 +132,34 @@ export interface LoAFEntry extends PerformanceEntry {
  * Web Vitals rating level.
  */
 export type WebVitalRating = 'good' | 'needs-improvement' | 'poor';
+export type WebVitalName = 'CLS' | 'INP' | 'LCP' | 'FCP' | 'TTFB';
+
+export interface WebVitalOptions {
+  /**
+   * Per-metric thresholds for reporting poor Web Vitals.
+   * Metric is reported only when `value > reportPoorAbove[metricName]`.
+   */
+  reportPoorAbove?: Partial<Record<WebVitalName, number>>;
+}
+
+export interface WebVitalRatingThresholds {
+  /**
+   * Official web-vitals thresholds:
+   * [good upper bound, poor lower bound]
+   */
+  official: readonly [number, number];
+  /**
+   * Hawk reporting thresholds:
+   * Report only when value > reportPoorAbove.
+   */
+  reportPoorAbove: number;
+}
 
 /**
  * Single Web Vital metric.
  */
 export interface WebVitalMetric {
-  name: string;
+  name: WebVitalName;
   value: number;
   rating: WebVitalRating;
   delta: number;

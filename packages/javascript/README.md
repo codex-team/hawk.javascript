@@ -242,8 +242,8 @@ The `issues` option configures automatic performance and error tracking.
 | detector | key | default threshold | what it reports |
 |---|---|---|---|
 | **Errors** | `issues.errors` | — | Global runtime errors (`window.onerror`, `unhandledrejection`) |
-| **Web Vitals** | `issues.webVitals` | — | Poor-rated Core Web Vitals (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) |
-| **Long Tasks** | `issues.longTasks` | `100 ms` | Cross-origin / iframe tasks with identifiable container (`containerSrc`, `containerId`, or `containerName`). Tasks attributed to `"self"` are skipped |
+| **Web Vitals** | `issues.webVitals` | custom `reportPoorAbove` per metric | Core Web Vitals that pass Hawk report thresholds (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) |
+| **Long Tasks** | `issues.longTasks` | `100 ms` | Tasks with identifiable container (`containerSrc`, `containerId`, or `containerName`) |
 | **Long Animation Frames** | `issues.longAnimationFrames` | `300 ms` | Frames where at least one script attribution has `sourceURL`, `sourceFunctionName`, or `invoker` |
 
 All detectors are enabled by default.
@@ -253,7 +253,36 @@ Performance data is transmitted in the event **addons** (keys: `Long Task`, `Lon
 
 ### Web Vitals
 
-When `issues.webVitals` is enabled, Hawk subscribes to Core Web Vitals via the `web-vitals` library and sends a dedicated issue event for each metric rated as `poor`. Each metric name is reported at most once per page load.
+When `issues.webVitals` is enabled, Hawk subscribes to Core Web Vitals via the `web-vitals` library and sends one issue per metric name per page load when metric value exceeds the configured `reportPoorAbove` threshold.
+
+Default `reportPoorAbove` values:
+
+| metric | default `reportPoorAbove` |
+|---|---|
+| `CLS` | `0.35` |
+| `INP` | `700` |
+| `LCP` | `5000` |
+| `FCP` | `4000` |
+| `TTFB` | `2500` |
+
+You can override them:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  issues: {
+    webVitals: {
+      reportPoorAbove: {
+        CLS: 0.3,
+        INP: 600,
+        LCP: 4500,
+        FCP: 3500,
+        TTFB: 2200,
+      }
+    }
+  }
+});
+```
 
 `web-vitals` is included in the SDK dependencies — no extra installation required.
 
@@ -289,7 +318,11 @@ const hawk = new HawkCatcher({
   token: 'INTEGRATION_TOKEN',
   issues: {
     errors: true,
-    webVitals: true,
+    webVitals: {
+      reportPoorAbove: {
+        INP: 600
+      }
+    },
     longTasks: {
       thresholdMs: 70
     },

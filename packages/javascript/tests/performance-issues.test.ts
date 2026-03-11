@@ -97,8 +97,8 @@ function loafEntry(duration: number, scripts?: Array<{ sourceURL?: string; sourc
 
 function mockWebVitals() {
   return {
-    emit(metric: Metric): void {
-      webVitalsCallbacks[metric.name]?.(metric);
+    emit(metric: Pick<Metric, 'name' | 'value' | 'rating' | 'delta'> & Partial<Metric>): void {
+      webVitalsCallbacks[metric.name]?.(metric as Metric);
     },
   };
 }
@@ -188,7 +188,7 @@ describe('PerformanceIssuesMonitor', () => {
     monitor.init({ longTasks: { thresholdMs: 50 }, longAnimationFrames: false, webVitals: false }, onIssue);
     const observer = MockPerformanceObserver.byType('longtask');
 
-    observer!.emit([longTaskEntry(120, { name: 'cross-origin-ancestor' })]);
+    observer!.emit([longTaskEntry(120, { name: 'cross-origin-ancestor', containerSrc: '' })]);
     expect(onIssue).not.toHaveBeenCalled();
   });
 
@@ -268,8 +268,8 @@ describe('PerformanceIssuesMonitor', () => {
 
     observer!.emit([loafEntry(250)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
-    expect(onIssue.mock.calls[0][0].addons).toHaveProperty('Long Animation Frame');
-    expect(onIssue.mock.calls[0][0].addons['Long Animation Frame']).toHaveProperty('frameDurationMs', 250);
+    expect(onIssue.mock.calls[0][0].addons).toHaveProperty('Long Frame');
+    expect(onIssue.mock.calls[0][0].addons['Long Frame']).toHaveProperty('frameDurationMs', 250);
   });
 
   it('should report poor web vital metric in addons', async () => {
@@ -281,7 +281,7 @@ describe('PerformanceIssuesMonitor', () => {
     monitor.init({ longTasks: false, longAnimationFrames: false, webVitals: true }, onIssue);
     await vi.dynamicImportSettled();
 
-    webVitals.emit({ name: 'LCP', value: 5000, rating: 'poor', delta: 5000 });
+    webVitals.emit({ name: 'LCP', value: 5001, rating: 'poor', delta: 5001 });
 
     expect(onIssue).toHaveBeenCalledTimes(1);
     expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vital');
@@ -289,7 +289,7 @@ describe('PerformanceIssuesMonitor', () => {
     expect(onIssue.mock.calls[0][0].addons['Web Vitals']).toHaveProperty('metricName', 'LCP');
   });
 
-  it('should report poor INP metric', async () => {
+  it('should report poor INP metric when it exceeds default reportPoorAbove threshold', async () => {
     const webVitals = mockWebVitals();
     const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
     const onIssue = vi.fn();
@@ -298,10 +298,83 @@ describe('PerformanceIssuesMonitor', () => {
     monitor.init({ longTasks: false, longAnimationFrames: false, webVitals: true }, onIssue);
     await vi.dynamicImportSettled();
 
-    webVitals.emit({ name: 'INP', value: 600, rating: 'poor', delta: 600 });
+    webVitals.emit({ name: 'INP', value: 800, rating: 'poor', delta: 800 });
 
     expect(onIssue).toHaveBeenCalledTimes(1);
     expect(onIssue.mock.calls[0][0].title).toContain('Poor Web Vital');
+  });
+
+  it('should allow overriding web vitals reportPoorAbove threshold', async () => {
+    const webVitals = mockWebVitals();
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const onIssue = vi.fn();
+    const monitor = new PerformanceIssuesMonitor();
+
+    monitor.init({
+      longTasks: false,
+      longAnimationFrames: false,
+      webVitals: {
+        reportPoorAbove: {
+          INP: 500,
+        },
+      },
+    }, onIssue);
+    await vi.dynamicImportSettled();
+
+    webVitals.emit({ name: 'INP', value: 600, rating: 'poor', delta: 600 });
+
+    expect(onIssue).toHaveBeenCalledTimes(1);
+    expect(onIssue.mock.calls[0][0].addons['Web Vitals']).toHaveProperty('metricName', 'INP');
+  });
+
+  it('should not report Web Vital when value equals reportPoorAbove threshold', async () => {
+    const webVitals = mockWebVitals();
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const onIssue = vi.fn();
+    const monitor = new PerformanceIssuesMonitor();
+
+    monitor.init({ longTasks: false, longAnimationFrames: false, webVitals: true }, onIssue);
+    await vi.dynamicImportSettled();
+
+    webVitals.emit({ name: 'LCP', value: 5000, rating: 'poor', delta: 5000 });
+
+    expect(onIssue).not.toHaveBeenCalled();
+  });
+
+  it('should fallback to default threshold when custom reportPoorAbove is NaN', async () => {
+    const webVitals = mockWebVitals();
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const onIssue = vi.fn();
+    const monitor = new PerformanceIssuesMonitor();
+
+    monitor.init({
+      longTasks: false,
+      longAnimationFrames: false,
+      webVitals: {
+        reportPoorAbove: {
+          INP: Number.NaN,
+        },
+      },
+    }, onIssue);
+    await vi.dynamicImportSettled();
+
+    webVitals.emit({ name: 'INP', value: 650, rating: 'poor', delta: 650 });
+
+    expect(onIssue).not.toHaveBeenCalled();
+  });
+
+  it('should not subscribe to web vitals when webVitals is false', async () => {
+    const webVitals = mockWebVitals();
+    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const onIssue = vi.fn();
+    const monitor = new PerformanceIssuesMonitor();
+
+    monitor.init({ longTasks: false, longAnimationFrames: false, webVitals: false }, onIssue);
+    await vi.dynamicImportSettled();
+
+    webVitals.emit({ name: 'LCP', value: 9000, rating: 'poor', delta: 9000 });
+
+    expect(onIssue).not.toHaveBeenCalled();
   });
 
   it('should not emit event for non-poor web vital metric', async () => {
