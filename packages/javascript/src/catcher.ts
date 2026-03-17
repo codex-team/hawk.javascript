@@ -1,5 +1,5 @@
+import './modules/element-sanitizer';
 import Socket from './modules/socket';
-import Sanitizer from './modules/sanitizer';
 import StackParser from './modules/stackParser';
 import type { BreadcrumbsAPI, CatcherMessage, HawkInitialSettings, HawkJavaScriptEvent, Transport } from './types';
 import { VueIntegration } from './integrations/vue';
@@ -18,8 +18,16 @@ import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { BrowserRandomGenerator } from './utils/random';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
-import { isValidEventPayload, validateContext, validateUser } from '@hawk.so/core';
-import { HawkUserManager, isLoggerSet, log, setLogger } from '@hawk.so/core';
+import {
+  HawkUserManager,
+  isLoggerSet,
+  isValidEventPayload,
+  log,
+  Sanitizer,
+  setLogger,
+  validateContext,
+  validateUser
+} from '@hawk.so/core';
 import { HawkLocalStorage } from './storages/hawk-local-storage';
 import { createBrowserLogger } from './logger/logger';
 

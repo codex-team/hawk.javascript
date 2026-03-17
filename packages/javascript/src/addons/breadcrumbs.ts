@@ -2,9 +2,8 @@
  * @file Breadcrumbs module - captures chronological trail of events before an error
  */
 import type { Breadcrumb, BreadcrumbLevel, BreadcrumbType, Json, JsonNode } from '@hawk.so/types';
-import Sanitizer from '../modules/sanitizer';
+import { isValidBreadcrumb, log, Sanitizer } from '@hawk.so/core';
 import { buildElementSelector } from '../utils/selector';
-import { isValidBreadcrumb, log } from '@hawk.so/core';
 
 /**
  * Default maximum number of breadcrumbs to store
