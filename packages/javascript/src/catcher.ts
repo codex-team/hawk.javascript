@@ -18,7 +18,7 @@ import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { BrowserRandomGenerator } from './utils/random';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
-import { isValidEventPayload, validateContext, validateUser } from './utils/validation';
+import { isValidEventPayload, validateContext, validateUser } from '@hawk.so/core';
 import { HawkUserManager, isLoggerSet, log, setLogger } from '@hawk.so/core';
 import { HawkLocalStorage } from './storages/hawk-local-storage';
 import { createBrowserLogger } from './logger/logger';
