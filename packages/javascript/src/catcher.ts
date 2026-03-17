@@ -15,6 +15,7 @@ import type {
 import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
+import { getErrorFromErrorEvent } from './utils/error';
 import { BrowserRandomGenerator } from './utils/random';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
@@ -331,21 +332,7 @@ export default class Catcher {
       this.consoleCatcher!.addErrorEvent(event);
     }
 
-    /**
-     * Promise rejection reason is recommended to be an Error, but it can be a string:
-     * - Promise.reject(new Error('Reason message')) ——— recommended
-     * - Promise.reject('Reason message')
-     */
-    let error = (event as ErrorEvent).error || (event as PromiseRejectionEvent).reason;
-
-    /**
-     * Case when error triggered in external script
-     * We can't access event error object because of CORS
-     * Event message will be 'Script error.'
-     */
-    if (event instanceof ErrorEvent && error === undefined) {
-      error = (event as ErrorEvent).message;
-    }
+    const error = getErrorFromErrorEvent(event);
 
     void this.formatAndSend(error);
   }

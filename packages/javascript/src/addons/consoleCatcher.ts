@@ -3,6 +3,7 @@
  */
 import type { ConsoleLogEvent } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
+import { stringifyRejectionReason } from '../utils/event';
 
 /**
  * Maximum number of console logs to store
@@ -212,7 +213,7 @@ export class ConsoleCatcher {
       method: 'error',
       timestamp: new Date(),
       type: 'UnhandledRejection',
-      message: event.reason?.message || String(event.reason),
+      message: stringifyRejectionReason(event.reason),
       stack: event.reason?.stack || '',
       fileLine: '',
     };
