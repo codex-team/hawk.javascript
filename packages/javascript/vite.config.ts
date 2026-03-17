@@ -26,7 +26,6 @@ export default defineConfig(() => {
         fileName: 'hawk',
       },
       rollupOptions: {
-        external: ['@hawk.so/core'],
         plugins: [
           license({
             thirdParty: {
@@ -37,8 +36,8 @@ export default defineConfig(() => {
                     return false;
                   }
 
-                  // Allow MIT and Apache-2.0 licenses.
-                  return ['MIT', 'Apache-2.0'].includes(dependency.license);
+                  // Allow MIT, Apache-2.0, and AGPL-3.0-only (first-party @hawk.so packages).
+                  return ['MIT', 'Apache-2.0', 'AGPL-3.0-only'].includes(dependency.license);
                 },
                 failOnUnlicensed: true,
                 failOnViolation: true,
@@ -56,6 +55,7 @@ export default defineConfig(() => {
     },
 
     resolve: {
+      conditions: ['source'],
       alias: {
         '@/types': path.resolve(__dirname, './src/types'),
       },
