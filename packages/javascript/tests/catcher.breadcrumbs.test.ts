@@ -21,7 +21,7 @@ describe('Catcher', () => {
   describe('breadcrumbs trail', () => {
     it('should include recorded breadcrumbs', async () => {
       const { sendSpy, transport } = createTransport();
-      const hawk = createCatcher(transport, { breadcrumbs: {} });
+      const hawk = createCatcher(transport, { breadcrumbs: { trackFetch: false } });
 
       hawk.breadcrumbs.add({ message: 'button clicked', timestamp: Date.now() });
       hawk.send(new Error('e'));
@@ -36,7 +36,7 @@ describe('Catcher', () => {
     it('should omit breadcrumbs when none have been recorded', async () => {
       const { sendSpy, transport } = createTransport();
 
-      createCatcher(transport, { breadcrumbs: {} }).send(new Error('e'));
+      createCatcher(transport, { breadcrumbs: { trackFetch: false } }).send(new Error('e'));
       await wait();
 
       expect(getLastPayload(sendSpy).breadcrumbs).toBeFalsy();
@@ -50,7 +50,7 @@ describe('Catcher', () => {
 
     it('should omit breadcrumbs cleared before payload was sent', async () => {
       const { sendSpy, transport } = createTransport();
-      const hawk = createCatcher(transport, { breadcrumbs: {} });
+      const hawk = createCatcher(transport, { breadcrumbs: { trackFetch: false } });
 
       hawk.breadcrumbs.add({ message: 'click', timestamp: Date.now() });
       hawk.breadcrumbs.clear();
