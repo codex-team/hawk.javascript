@@ -5,7 +5,7 @@ import * as core from '@hawk.so/core';
 
 function resetManager(): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (BrowserBreadcrumbStore as any).instance = null;
+  (BrowserBreadcrumbStore as any).instance?.destroy();
 }
 
 describe('BrowserBreadcrumbStore', () => {

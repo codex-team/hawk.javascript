@@ -122,7 +122,7 @@ export default class Catcher {
   private readonly consoleCatcher: ConsoleCatcher | null = null;
 
   /**
-   * Breadcrumb manager instance
+   * Breadcrumb store instance
    */
   private readonly breadcrumbStore: BrowserBreadcrumbStore | null;
 

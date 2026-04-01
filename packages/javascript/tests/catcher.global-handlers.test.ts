@@ -12,7 +12,7 @@ describe('Catcher', () => {
   beforeEach(() => {
     localStorage.clear();
     mockParse.mockResolvedValue([]);
-    (BrowserBreadcrumbStore as any).instance = null;
+    (BrowserBreadcrumbStore as any).instance?.destroy();
   });
 
   // ── Global error handlers ─────────────────────────────────────────────────
