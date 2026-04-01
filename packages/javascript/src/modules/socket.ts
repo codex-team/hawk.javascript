@@ -111,7 +111,10 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
     if (this.ws === null) {
       this.eventsQueue.push(message);
 
-      return this.init();
+      await this.init();
+      this.sendQueue();
+
+      return;
     }
 
     switch (this.ws.readyState) {
@@ -218,6 +221,7 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
       await this.init();
 
       log('Successfully reconnected.', 'info');
+      this.sendQueue();
     } catch (error) {
       this.reconnectionAttempts--;
 
