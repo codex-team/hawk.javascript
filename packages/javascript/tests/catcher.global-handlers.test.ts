@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Catcher from '../src/catcher';
-import { BreadcrumbManager } from '../src/addons/breadcrumbs';
+import { BrowserBreadcrumbStore } from '../src/addons/breadcrumbs';
 import { TEST_TOKEN, wait, createTransport, getLastPayload } from './catcher.helpers';
 
 const mockParse = vi.hoisted(() => vi.fn().mockResolvedValue([]));
@@ -12,7 +12,7 @@ describe('Catcher', () => {
   beforeEach(() => {
     localStorage.clear();
     mockParse.mockResolvedValue([]);
-    (BreadcrumbManager as any).instance = null;
+    (BrowserBreadcrumbStore as any).instance?.destroy();
   });
 
   // ── Global error handlers ─────────────────────────────────────────────────
