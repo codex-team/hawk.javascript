@@ -1,6 +1,6 @@
 import type { MessageProcessor, ProcessingPayload } from '@hawk.so/core';
-import type { BreadcrumbsOptions } from '../addons/breadcrumbs';
-import { BrowserBreadcrumbStore } from '../addons/breadcrumbs';
+import type { BreadcrumbsOptions } from './breadcrumbs';
+import { BrowserBreadcrumbStore } from './breadcrumbs';
 import type { ErrorsCatcherType } from '@hawk.so/types/src/catchers/catcher-message';
 
 /**

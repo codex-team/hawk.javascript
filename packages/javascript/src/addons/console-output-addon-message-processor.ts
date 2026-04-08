@@ -1,5 +1,5 @@
 import type { MessageProcessor, ProcessingPayload } from '@hawk.so/core';
-import type { ConsoleCatcher } from '../addons/consoleCatcher';
+import type { ConsoleCatcher } from './consoleCatcher';
 
 /**
  * Attaches captured console output to payload addons.

@@ -13,3 +13,6 @@ export { buildElementSelector } from './utils/selector';
 export { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 export type { BreadcrumbStore, BreadcrumbsAPI, BreadcrumbHint, BreadcrumbInput } from './types/breadcrumb-store';
 export type { MessageProcessor, ProcessingPayload } from './types/message-processor';
+export { BaseCatcher } from './catcher';
+export type { BeforeSendHook } from './catcher';
+export { decodeIntegrationId } from './utils/integration-id-decoder';

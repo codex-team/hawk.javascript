@@ -46,6 +46,8 @@ export interface PerformanceIssuesOptions {
 /**
  * Whether a performance detector is explicitly enabled (`true` or a non-empty options object).
  * `undefined` means off (default).
+ *
+ * @param option - performance detector option value (`true`, options object, `false`, or `undefined`).
  */
 export function isPerformanceIssueDetectorEnabled(
   option: boolean | PerformanceIssueThresholdOptions | WebVitalOptions | undefined
