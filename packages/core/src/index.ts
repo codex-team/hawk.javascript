@@ -13,3 +13,5 @@ export { buildElementSelector } from './utils/selector';
 export { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 export type { BreadcrumbStore, BreadcrumbsAPI, BreadcrumbHint, BreadcrumbInput } from './breadcrumbs/breadcrumb-store';
 export type { MessageProcessor, ProcessingPayload } from './messages/message-processor';
+export { BaseCatcher } from './catcher';
+export type { BeforeSendHook } from './catcher';
