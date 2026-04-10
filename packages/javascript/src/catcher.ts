@@ -10,12 +10,13 @@ import type {
   EventContext,
   JavaScriptAddons,
   Json,
-  VueIntegrationAddons
+  VueIntegrationAddons,
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from './types/integrations';
 import { EventRejectedError } from './errors';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
-import { getErrorFromErrorEvent } from './utils/error';
+import type { CapturedError } from './utils/error';
+import { fillCapturedError, getErrorFromErrorEvent } from './utils/error';
 import { BrowserRandomGenerator } from './utils/random';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
@@ -222,7 +223,7 @@ export default class Catcher {
    * @param [context] - any additional data to send
    */
   public send(message: Error | string, context?: EventContext): void {
-    void this.formatAndSend(message, undefined, context);
+    void this.formatAndSend(fillCapturedError(message), undefined, context);
   }
 
   /**
@@ -234,7 +235,7 @@ export default class Catcher {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public captureError(error: Error | string, addons?: JavaScriptCatcherIntegrations): void {
-    void this.formatAndSend(error, addons);
+    void this.formatAndSend(fillCapturedError(error), addons);
   }
 
   /**
@@ -247,7 +248,7 @@ export default class Catcher {
     this.vue = new VueIntegration(
       vue,
       (error: Error, addons: VueIntegrationAddons) => {
-        void this.formatAndSend(error, {
+        void this.formatAndSend(fillCapturedError(error), {
           vue: addons,
         });
       },
@@ -345,13 +346,13 @@ export default class Catcher {
    * @param context - any additional data passed by user
    */
   private async formatAndSend(
-    error: Error | string,
+    error: CapturedError,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     integrationAddons?: JavaScriptCatcherIntegrations,
     context?: EventContext
   ): Promise<void> {
     try {
-      const isAlreadySentError = isErrorProcessed(error);
+      const isAlreadySentError = isErrorProcessed(error.rawError);
 
       if (isAlreadySentError) {
         /**
@@ -359,7 +360,7 @@ export default class Catcher {
          */
         return;
       } else {
-        markErrorAsProcessed(error);
+        markErrorAsProcessed(error.rawError);
       }
 
       const errorFormatted = await this.prepareErrorFormatted(error, context);
@@ -402,16 +403,17 @@ export default class Catcher {
    * @param error - error to format
    * @param context - any additional data passed by user
    */
-  private async prepareErrorFormatted(error: Error | string, context?: EventContext): Promise<CatcherMessage> {
+  private async prepareErrorFormatted(error: CapturedError, context?: EventContext): Promise<CatcherMessage> {
+    const { title, type, rawError } = error;
     let payload: HawkJavaScriptEvent = {
-      title: this.getTitle(error),
-      type: this.getType(error),
+      title,
+      type,
       release: this.getRelease(),
       breadcrumbs: this.getBreadcrumbsForEvent(),
       context: this.getContext(context),
       user: this.getUser(),
-      addons: this.getAddons(error),
-      backtrace: await this.getBacktrace(error),
+      addons: this.getAddons(rawError),
+      backtrace: await this.getBacktrace(rawError),
       catcherVersion: this.version,
     };
 
@@ -461,44 +463,6 @@ export default class Catcher {
       catcherType: this.type,
       payload,
     };
-  }
-
-  /**
-   * Return event title
-   *
-   * @param error - event from which to get the title
-   */
-  private getTitle(error: Error | string): string {
-    const notAnError = !(error instanceof Error);
-
-    /**
-     * Case when error is 'reason' of PromiseRejectionEvent
-     * and reject() provided with text reason instead of Error()
-     */
-    if (notAnError) {
-      return error.toString() as string;
-    }
-
-    return (error as Error).message;
-  }
-
-  /**
-   * Return event type: TypeError, ReferenceError etc
-   *
-   * @param error - caught error
-   */
-  private getType(error: Error | string): HawkJavaScriptEvent['type'] {
-    const notAnError = !(error instanceof Error);
-
-    /**
-     * Case when error is 'reason' of PromiseRejectionEvent
-     * and reject() provided with text reason instead of Error()
-     */
-    if (notAnError) {
-      return null;
-    }
-
-    return (error as Error).name;
   }
 
   /**
@@ -590,7 +554,7 @@ export default class Catcher {
    *
    * @param error - event from which to get backtrace
    */
-  private async getBacktrace(error: Error | string): Promise<HawkJavaScriptEvent['backtrace']> {
+  private async getBacktrace(error: unknown): Promise<HawkJavaScriptEvent['backtrace']> {
     const notAnError = !(error instanceof Error);
 
     /**
@@ -613,9 +577,9 @@ export default class Catcher {
   /**
    * Return some details
    *
-   * @param {Error|string} error — caught error
+   * @param {Error} error — caught error
    */
-  private getAddons(error: Error | string): HawkJavaScriptEvent['addons'] {
+  private getAddons(error: unknown): HawkJavaScriptEvent['addons'] {
     const { innerWidth, innerHeight } = window;
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
@@ -649,9 +613,9 @@ export default class Catcher {
   /**
    * Compose raw data object
    *
-   * @param {Error|string} error — caught error
+   * @param {Error} error — caught error
    */
-  private getRawData(error: Error | string): Json | undefined {
+  private getRawData(error: unknown): Json | undefined {
     if (!(error instanceof Error)) {
       return;
     }
@@ -672,7 +636,10 @@ export default class Catcher {
    * @param errorFormatted - Hawk event prepared for sending
    * @param integrationAddons - extra addons
    */
-  private appendIntegrationAddons(errorFormatted: CatcherMessage, integrationAddons: JavaScriptCatcherIntegrations): void {
+  private appendIntegrationAddons(
+    errorFormatted: CatcherMessage,
+    integrationAddons: JavaScriptCatcherIntegrations
+  ): void {
     Object.assign(errorFormatted.payload.addons, integrationAddons);
   }
 }

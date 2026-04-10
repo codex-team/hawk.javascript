@@ -3,7 +3,7 @@
  */
 import type { ConsoleLogEvent } from '@hawk.so/types';
 import Sanitizer from '../modules/sanitizer';
-import { stringifyRejectionReason } from '../utils/event';
+import { getErrorFromErrorEvent } from '../utils/error';
 
 /**
  * Maximum number of console logs to store
@@ -196,13 +196,15 @@ export class ConsoleCatcher {
    * @param event - The error event or promise rejection event to convert
    */
   private createConsoleEventFromError(event: ErrorEvent | PromiseRejectionEvent): ConsoleLogEvent {
+    const capturedError = getErrorFromErrorEvent(event);
+
     if (event instanceof ErrorEvent) {
       return {
         method: 'error',
         timestamp: new Date(),
-        type: event.error?.name || 'Error',
-        message: event.error?.message || event.message,
-        stack: event.error?.stack || '',
+        type: capturedError.type || 'Error',
+        message: capturedError.title,
+        stack: (capturedError.rawError as Error)?.stack || '',
         fileLine: event.filename
           ? `${event.filename}:${event.lineno}:${event.colno}`
           : '',
@@ -213,8 +215,8 @@ export class ConsoleCatcher {
       method: 'error',
       timestamp: new Date(),
       type: 'UnhandledRejection',
-      message: stringifyRejectionReason(event.reason),
-      stack: event.reason?.stack || '',
+      message: capturedError.title,
+      stack: (capturedError.rawError as Error)?.stack || '',
       fileLine: '',
     };
   }

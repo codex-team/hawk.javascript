@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getErrorFromErrorEvent } from '../../src/utils/error';
 
-vi.mock('@hawk.so/core', () => ({ log: vi.fn(), isLoggerSet: vi.fn(() => true), setLogger: vi.fn() }));
-
-import Sanitizer from '../../src/modules/sanitizer';
+vi.mock('@hawk.so/core', () => ({
+  log: vi.fn(),
+  isLoggerSet: vi.fn(() => true),
+  setLogger: vi.fn(),
+}));
 
 describe('getErrorFromErrorEvent', () => {
   beforeEach(() => {
@@ -11,95 +13,129 @@ describe('getErrorFromErrorEvent', () => {
   });
 
   describe('ErrorEvent', () => {
-    it('should return the Error when event.error is an Error instance', () => {
+    it('should capture Error instance with correct fields', () => {
       const error = new Error('Test error');
       const event = new ErrorEvent('error', { error });
-
       const result = getErrorFromErrorEvent(event);
 
-      expect(result).toBe(error);
+      expect(result.rawError).toBe(error);
+      expect(result.title).toBe('Test error');
+      expect(result.type).toBe('Error');
     });
 
-    it('should return the DOMException when event.error is a DOMException', () => {
+    it('should capture DOMException with correct fields', () => {
       const error = new DOMException('Network error', 'NetworkError');
       const event = new ErrorEvent('error', { error });
-
       const result = getErrorFromErrorEvent(event);
 
-      expect(result).toBe('<instance of DOMException>');
+      expect(result.rawError).toBe(error);
+      expect(result.title).toBe('<instance of DOMException>');
     });
 
-    it('should return the message when event.error is not provided and message is a string', () => {
-      const event = new ErrorEvent('error', { message: 'Script error.' });
-
+    it('should fall back to event.message when event.error is not provided', () => {
+      const event = new ErrorEvent('error', {
+        message: 'Script error.',
+        filename: 'app.js',
+        lineno: 10,
+        colno: 5,
+      });
       const result = getErrorFromErrorEvent(event);
 
-      expect(result).toBe('Script error.');
+      expect(result.rawError).toBeNull();
+      expect(result.title).toContain('Script error.');
+      expect(result.title).toContain('app.js:10:5');
     });
 
-    it('should return empty string when event.error is not provided and message is empty', () => {
+    it('should return unknown error title when event.error and message are both absent', () => {
       const event = new ErrorEvent('error', { message: '' });
-
       const result = getErrorFromErrorEvent(event);
 
-      expect(result).toBe('');
+      expect(result.title).toBe('<unknown error>');
     });
   });
 
   describe('PromiseRejectionEvent', () => {
-    it('should return the Error when event.reason is an Error instance', () => {
+    it('should capture Error reason with correct fields', () => {
       const reason = new Error('Promise rejected');
-      const event = new PromiseRejectionEvent('unhandledrejection', { promise: Promise.resolve(), reason });
-
+      const event = new PromiseRejectionEvent('unhandledrejection', {
+        promise: Promise.resolve(),
+        reason,
+      });
       const result = getErrorFromErrorEvent(event);
 
-      expect(result).toBe(reason);
+      expect(result.rawError).toBe(reason);
+      expect(result.title).toBe('Promise rejected');
+      expect(result.type).toBe('Error');
     });
 
-    it('should return the string when event.reason is a string', () => {
-      const reason = 'Promise rejected with string';
-      const event = new PromiseRejectionEvent('unhandledrejection', { promise: Promise.resolve(), reason });
-
+    it('should capture string reason', () => {
+      const reason = 'Something went wrong';
+      const event = new PromiseRejectionEvent('unhandledrejection', {
+        promise: Promise.resolve(),
+        reason,
+      });
       const result = getErrorFromErrorEvent(event);
 
-      expect(result).toBe(reason);
+      expect(result.rawError).toBe(reason);
+      expect(result.title).toBe('Something went wrong');
+      expect(result.type).toBe('UnhandledRejection');
     });
 
-    it('should return stringified object when event.reason is a plain object', () => {
+    it('should capture plain object reason', () => {
       const reason = { code: 'ERR_001', details: 'Something went wrong' };
       const event = new PromiseRejectionEvent('unhandledrejection', { promise: Promise.resolve(), reason });
-
       const result = getErrorFromErrorEvent(event);
 
-      expect(result).toBe('Promise rejected with {"code":"ERR_001","details":"Something went wrong"}');
+      expect(result.rawError).toBe(reason);
+      expect(result.title).toBe('{"code":"ERR_001","details":"Something went wrong"}');
+      expect(result.type).toBe('UnhandledRejection');
     });
 
-    it('should return undefined when event.reason is not provided', () => {
-      const event = new PromiseRejectionEvent('unhandledrejection', { promise: Promise.resolve(), reason: undefined });
-
+    it('should handle undefined reason', () => {
+      const event = new PromiseRejectionEvent('unhandledrejection', {
+        promise: Promise.resolve(),
+        reason: undefined,
+      });
       const result = getErrorFromErrorEvent(event);
 
-      expect(result).toBeUndefined();
+      expect(result.rawError).toBeUndefined();
+      expect(result.title).toBe('<unknown error>');
     });
 
-    it('should return null when event.reason is null', () => {
-      const event = new PromiseRejectionEvent('unhandledrejection', { promise: Promise.resolve(), reason: null });
-
+    it('should handle null reason', () => {
+      const event = new PromiseRejectionEvent('unhandledrejection', {
+        promise: Promise.resolve(),
+        reason: null,
+      });
       const result = getErrorFromErrorEvent(event);
 
-      expect(result).toBeNull();
+      expect(result.rawError).toBeNull();
+      expect(result.title).toBe('<unknown error>');
     });
 
     it('should handle circular references in object reason', () => {
       const circularObj: Record<string, unknown> = { name: 'test' };
       circularObj.self = circularObj;
-
-      const event = new PromiseRejectionEvent('unhandledrejection', { promise: Promise.resolve(), reason: circularObj });
-
+      const event = new PromiseRejectionEvent('unhandledrejection', {
+        promise: Promise.resolve(),
+        reason: circularObj,
+      });
       const result = getErrorFromErrorEvent(event);
 
-      expect(result).toContain('Promise rejected with');
-      expect(result).toContain('<circular>');
+      expect(result.rawError).toBe(circularObj);
+      expect(result.title).toContain('<circular>');
+    });
+  });
+
+  describe('deduplication identity', () => {
+    it('rawError should preserve reference to the original object for deduplication', () => {
+      const error = new Error('Test');
+      const event = new ErrorEvent('error', { error });
+      const result1 = getErrorFromErrorEvent(event);
+      const result2 = getErrorFromErrorEvent(event);
+
+      expect(result1.rawError).toBe(result2.rawError);
+      expect(result1.rawError).toBe(error);
     });
   });
 });
