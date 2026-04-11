@@ -22,16 +22,16 @@ export type CapturedError = {
  * Prefers `.message` on objects, falls back to the value itself for strings,
  * and serializes everything else.
  *
- * @param safeError - Sanitized error value (any shape)
+ * @param sanitizedError - Value returned by `Sanitizer.sanitize(error)`
  * @returns A non-empty string title, or undefined if the value is nullish or empty
  */
-function getTitleFromError(safeError: unknown): string | undefined {
-  if (safeError == null) {
+function getTitleFromError(sanitizedError: unknown): string | undefined {
+  if (sanitizedError == null) {
     return undefined;
   }
 
   const message =
-    typeof safeError === 'object' && 'message' in safeError ? (safeError as Error).message : safeError;
+    typeof sanitizedError === 'object' && 'message' in sanitizedError ? (sanitizedError as Error).message : sanitizedError;
 
   if (typeof message === 'string') {
     return message || undefined;
@@ -49,23 +49,22 @@ function getTitleFromError(safeError: unknown): string | undefined {
  * Extracts an error type name from an unknown sanitized error.
  * Returns `.name` only when it is a non-empty string (e.g. 'TypeError').
  *
- * @param safeError - Sanitized error value (any shape)
+ * @param sanitizedError - Value returned by `Sanitizer.sanitize(error)`
  * @returns The error name string, or undefined if absent or empty
  */
-function getTypeFromError(safeError: unknown): string | undefined {
-  const name = (safeError as Error)?.name;
-
-  return name || undefined;
+function getTypeFromError(sanitizedError: unknown): string | undefined {
+  return (sanitizedError as Error)?.name;
 }
 
 /**
  * Constructs a CapturedError from an unknown error value and optional fallbacks.
+ * The thrown value is first passed through `Sanitizer.sanitize(error)`.
  *
  * @param error - Any value thrown or rejected
  * @param fallbackValues - Fallback values from event if they can't be extracted from the error
  * @returns A normalized `CapturedError` object
  */
-export function fillCapturedError(
+export function composeCapturedError(
   error: unknown,
   fallbackValues: { title?: string; type?: string } = {}
 ): CapturedError {
@@ -89,18 +88,22 @@ export function getErrorFromErrorEvent(event: ErrorEvent | PromiseRejectionEvent
   if (event.type === 'error') {
     event = event as ErrorEvent;
 
-    return fillCapturedError(event.error, {
-      title: event.message && `'${event.message}' at ${event.filename || '<unknown file>'}:${event.lineno}:${event.colno}`,
+    return composeCapturedError(event.error, {
+      title: event.message && (event.filename ? `'${event.message}' at ${event.filename}:${event.lineno}:${event.colno}` : event.message),
     });
   }
 
   if (event.type === 'unhandledrejection') {
     event = event as PromiseRejectionEvent;
 
-    return fillCapturedError(event.reason, {
+    return composeCapturedError(event.reason, {
       type: 'UnhandledRejection',
     });
   }
 
-  return fillCapturedError(undefined);
+  /*
+  Fallback case: ensures function always returns CapturedError.
+  composeCapturedError(undefined) yields object with undefined fields.
+  */
+  return composeCapturedError(undefined);
 }

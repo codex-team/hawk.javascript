@@ -31,7 +31,7 @@ import {
 import { HawkLocalStorage } from './storages/hawk-local-storage';
 import { createBrowserLogger } from './logger/logger';
 import { BrowserRandomGenerator } from './utils/random';
-import { type CapturedError, fillCapturedError, getErrorFromErrorEvent } from './utils/error';
+import { type CapturedError, composeCapturedError, getErrorFromErrorEvent } from './utils/error';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -231,7 +231,7 @@ export default class Catcher {
    * @param [context] - any additional data to send
    */
   public send(message: Error | string, context?: EventContext): void {
-    void this.formatAndSend(fillCapturedError(message), undefined, context);
+    void this.formatAndSend(composeCapturedError(message), undefined, context);
   }
 
   /**
@@ -243,7 +243,7 @@ export default class Catcher {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public captureError(error: Error | string, addons?: JavaScriptCatcherIntegrations): void {
-    void this.formatAndSend(fillCapturedError(error), addons);
+    void this.formatAndSend(composeCapturedError(error), addons);
   }
 
   /**
@@ -256,7 +256,7 @@ export default class Catcher {
     this.vue = new VueIntegration(
       vue,
       (error: Error, addons: VueIntegrationAddons) => {
-        void this.formatAndSend(fillCapturedError(error), {
+        void this.formatAndSend(composeCapturedError(error), {
           vue: addons,
         });
       },

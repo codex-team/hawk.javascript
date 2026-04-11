@@ -80,7 +80,7 @@ describe('Catcher', () => {
       await wait();
 
       expect(sendSpy).toHaveBeenCalledOnce();
-      expect(getLastPayload(sendSpy).title).toBe("'Script error.' at <unknown file>:0:0");
+      expect(getLastPayload(sendSpy).title).toBe("Script error.");
     });
 
     it('should capture unhandled promise rejections', async () => {
