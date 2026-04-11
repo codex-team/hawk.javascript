@@ -49,21 +49,6 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
   private ws: WebSocket | null;
 
   /**
-   * Reconnection tryings Timeout
-   */
-  private reconnectionTimer: unknown;
-
-  /**
-   * Time between reconnection attempts
-   */
-  private readonly reconnectionTimeout: number;
-
-  /**
-   * How many times we should attempt reconnection
-   */
-  private reconnectionAttempts: number;
-
-  /**
    * Page hide event handler reference (for removal)
    */
   private pageHideHandler: () => void;
@@ -94,22 +79,18 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
    */
   constructor({
     collectorEndpoint,
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-    onMessage = (message: MessageEvent): void => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    onMessage = (_message: MessageEvent): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     onClose = (): void => {},
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     onOpen = (): void => {},
-    reconnectionAttempts = 5,
-    reconnectionTimeout = 10000, // 10 * 1000 ms = 10 sec
     connectionIdleMs = 10000, // 10 sec — close connection if no new errors arrive
   }) {
     this.url = collectorEndpoint;
     this.onMessage = onMessage;
     this.onClose = onClose;
     this.onOpen = onOpen;
-    this.reconnectionTimeout = reconnectionTimeout;
-    this.reconnectionAttempts = reconnectionAttempts;
     this.connectionIdleMs = connectionIdleMs;
 
     this.pageHideHandler = () => {
@@ -134,20 +115,16 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
   public async send(message: CatcherMessage<T>): Promise<void> {
     this.eventsQueue.push(message);
 
+    if (this.ws !== null && this.ws.readyState === WebSocket.CLOSED) {
+      this.closeAndDetachSocket();
+    }
+
     if (this.ws === null) {
       await this.initOnce();
     }
 
-    if (this.ws === null) {
-      return;
-    }
-
-    switch (this.ws.readyState) {
-      case WebSocket.OPEN:
-        return this.sendQueue();
-
-      case WebSocket.CLOSED:
-        return this.reconnect();
+    if (this.ws !== null && this.ws.readyState === WebSocket.OPEN) {
+      this.sendQueue();
     }
   }
 
@@ -171,7 +148,7 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
    */
   private openConnection(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.detachSocket();
+      this.closeAndDetachSocket();
       this.ws = new WebSocket(this.url);
 
       /**
@@ -193,15 +170,14 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
          * Code 1000 = Normal Closure (intentional), 1001 = Going Away (page unload/navigation).
          * These are expected and should not be reported as a lost connection.
          * Any other code (e.g. 1006 = Abnormal Closure from idle timeout or infrastructure drop)
-         * means the connection was lost unexpectedly — notify and reconnect if there are
-         * queued events waiting to be sent.
+         * means the connection was lost unexpectedly.
          */
         const isExpectedClose = [WS_CLOSE_NORMAL, WS_CLOSE_GOING_AWAY].includes(event.code);
 
         if (!isExpectedClose) {
           /**
            * Cancel the idle timer — it belongs to the now-dead connection.
-           * A reconnect will set a fresh timer once the new connection is sending.
+           * A fresh timer will be set once the next send() opens a new connection.
            */
           if (this.connectionIdleTimer !== null) {
             clearTimeout(this.connectionIdleTimer);
@@ -210,10 +186,6 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
 
           if (typeof this.onClose === 'function') {
             this.onClose(event);
-          }
-
-          if (this.eventsQueue.length > 0) {
-            void this.reconnect();
           }
         }
       };
@@ -248,15 +220,15 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
       this.connectionIdleTimer = null;
     }
 
-    this.detachSocket();
+    this.closeAndDetachSocket();
   }
 
   /**
-   * Detach handlers and close the previous socket before opening a new one.
+   * Closes the WebSocket and nulls all event handlers before releasing the reference.
    * Without this, the old connection stays open and its onclose/onerror
    * handlers keep firing, causing duplicate reconnect attempts and log noise.
    */
-  private detachSocket(): void {
+  private closeAndDetachSocket(): void {
     if (this.ws === null) {
       return;
     }
@@ -289,37 +261,6 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
       this.connectionIdleTimer = null;
       this.close();
     }, this.connectionIdleMs);
-  }
-
-  /**
-   * Tries to reconnect to the server for specified number of times with the interval
-   *
-   * @param isForcedCall - call function despite on timer
-   */
-  private async reconnect(isForcedCall = false): Promise<void> {
-    if (this.reconnectionTimer && !isForcedCall) {
-      return;
-    }
-
-    this.reconnectionTimer = null;
-
-    try {
-      await this.initOnce();
-
-      log('Successfully reconnected. Sending queued events...', 'info');
-
-      return this.sendQueue();
-    } catch (error) {
-      this.reconnectionAttempts--;
-
-      if (this.reconnectionAttempts === 0) {
-        return;
-      }
-
-      this.reconnectionTimer = setTimeout(() => {
-        void this.reconnect(true);
-      }, this.reconnectionTimeout);
-    }
   }
 
   /**
