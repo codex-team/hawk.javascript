@@ -269,6 +269,12 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
     this.ws.onmessage = null;
     this.ws.close();
     this.ws = null;
+
+    /**
+     * onclose is nulled above so it won't fire — call destroyListeners() directly
+     * to ensure the pagehide listener is always removed on explicit close.
+     */
+    this.destroyListeners();
   }
 
   /**

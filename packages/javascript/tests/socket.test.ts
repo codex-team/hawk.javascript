@@ -52,15 +52,18 @@ describe('Socket', () => {
       this.onmessage = undefined;
       webSocket = this;
     });
+    patchWebSocketMockConstructor(WebSocketConstructor);
     globalThis.WebSocket = WebSocketConstructor;
 
     const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
     const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
 
-    // initialize socket and open fake websocket connection
+    // Connection is lazy — trigger it via send()
     const socket = new Socket({ collectorEndpoint: MOCK_WEBSOCKET_URL });
+    const initSendPromise = socket.send({ foo: 'init' } as CatcherMessage);
     webSocket.readyState = WebSocket.OPEN;
     webSocket.onopen?.(new Event('open'));
+    await initSendPromise;
 
     // capture pagehide handler to verify it's properly removed
     const pagehideCall = addEventListenerSpy.mock.calls.find(([event]) => event === 'pagehide');
@@ -127,14 +130,19 @@ describe('Socket — events queue after connection loss', () => {
       reconnectionTimeout: 10,
     });
 
+    // Connection is lazy — trigger it via send() so ws1 is created
+    const payload = { type: 'errors/javascript', title: 'queued-after-drop' } as unknown as CatcherMessage<'errors/javascript'>;
+    const firstSendPromise = socket.send(payload);
+
     const ws1 = sockets[0];
+    expect(ws1).toBeDefined();
     ws1.readyState = WebSocket.OPEN;
     ws1.onopen?.(new Event('open'));
-    await Promise.resolve();
+    await firstSendPromise;
 
+    // Simulate connection drop (readyState only, no onclose — tests the CLOSED branch in send())
     ws1.readyState = WebSocket.CLOSED;
 
-    const payload = { type: 'errors/javascript', title: 'queued-after-drop' } as unknown as CatcherMessage<'errors/javascript'>;
     const sendPromise = socket.send(payload);
 
     const ws2 = sockets[1];
@@ -157,10 +165,12 @@ describe('Socket — events queue after connection loss', () => {
     const WebSocketConstructor = mockWebSocketFactory(sockets, closeSpy);
     globalThis.WebSocket = WebSocketConstructor as unknown as typeof WebSocket;
 
+    // Connection is lazy — trigger it via send() so sockets[0] is created
     const socket = new Socket({ collectorEndpoint: MOCK_WEBSOCKET_URL });
+    const initSendPromise = socket.send({ foo: 'init' } as CatcherMessage);
     sockets[0].readyState = WebSocket.OPEN;
     sockets[0].onopen?.(new Event('open'));
-    await Promise.resolve();
+    await initSendPromise;
 
     window.dispatchEvent(new Event('pagehide'));
 
