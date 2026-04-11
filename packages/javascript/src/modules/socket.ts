@@ -2,6 +2,7 @@ import type { Transport } from '@hawk.so/core';
 import { log } from '@hawk.so/core';
 import type { CatcherMessage } from '@/types';
 import type { CatcherMessageType } from '@hawk.so/types';
+import { singleFlight } from '../utils/single-flight';
 
 /**
  * WebSocket close codes that represent an intentional, expected closure.
@@ -81,6 +82,12 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
   private readonly connectionIdleMs: number;
 
   /**
+   * Deduplicates concurrent openConnection() calls — all callers share the
+   * same in-flight Promise so only one WebSocket is ever created at a time.
+   */
+  private readonly initOnce: () => Promise<void>;
+
+  /**
    * Creates new Socket instance. Setup initial socket params.
    *
    * @param options — constructor options for catcher initialization
@@ -111,6 +118,7 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
 
     this.eventsQueue = [];
     this.ws = null;
+    this.initOnce = singleFlight(() => this.openConnection());
 
     /**
      * Connection is not opened eagerly — it is created on the first send()
@@ -127,7 +135,7 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
     this.eventsQueue.push(message);
 
     if (this.ws === null) {
-      await this.init();
+      await this.initOnce();
     }
 
     if (this.ws === null) {
@@ -136,8 +144,6 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
 
     switch (this.ws.readyState) {
       case WebSocket.OPEN:
-        this.resetIdleTimer();
-
         return this.sendQueue();
 
       case WebSocket.CLOSED:
@@ -164,9 +170,10 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
   }
 
   /**
-   * Create new WebSocket connection and setup socket event listeners
+   * Create new WebSocket connection and setup socket event listeners.
+   * Always call initOnce() instead — it deduplicates concurrent calls.
    */
-  private init(): Promise<void> {
+  private openConnection(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.detachSocket();
       this.ws = new WebSocket(this.url);
@@ -301,7 +308,7 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
     this.reconnectionTimer = null;
 
     try {
-      await this.init();
+      await this.initOnce();
 
       log('Successfully reconnected. Sending queued events...', 'info');
 
@@ -328,6 +335,8 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
     if (this.ws === null || this.ws.readyState !== WebSocket.OPEN) {
       return;
     }
+
+    this.resetIdleTimer();
 
     while (this.eventsQueue.length) {
       const event = this.eventsQueue.shift();
