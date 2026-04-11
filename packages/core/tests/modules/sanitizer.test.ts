@@ -1,33 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import Sanitizer from '../../src/modules/sanitizer';
+import { describe, expect, it } from 'vitest';
+import { Sanitizer } from '../../src';
 
 describe('Sanitizer', () => {
-  describe('isObject', () => {
-    it('should return true for a plain object', () => {
-      expect(Sanitizer.isObject({})).toBe(true);
-    });
-
-    it('should return false for an array', () => {
-      expect(Sanitizer.isObject([])).toBe(false);
-    });
-
-    it('should return false for a string', () => {
-      expect(Sanitizer.isObject('x')).toBe(false);
-    });
-
-    it('should return false for a boolean', () => {
-      expect(Sanitizer.isObject(true)).toBe(false);
-    });
-
-    it('should return false for null', () => {
-      expect(Sanitizer.isObject(null)).toBe(false);
-    });
-
-    it('should return false for undefined', () => {
-      expect(Sanitizer.isObject(undefined)).toBe(false);
-    });
-  });
-
   describe('sanitize', () => {
     it('should pass through strings within the length limit', () => {
       expect(Sanitizer.sanitize('hello')).toBe('hello');
@@ -83,14 +57,6 @@ describe('Sanitizer', () => {
       const result = Sanitizer.sanitize(deep);
 
       expect(result.a.b.c.d.e).toBe('<deep object>');
-    });
-
-    it('should format HTML elements as a string starting with tag', () => {
-      const el = document.createElement('div');
-      const result = Sanitizer.sanitize(el);
-
-      expect(typeof result).toBe('string');
-      expect(result).toMatch(/^<div/);
     });
 
     it('should format a class (not constructed) as "<class Name>"', () => {

@@ -1,4 +1,5 @@
-import Sanitizer from '../modules/sanitizer';
+import { HawkJavaScriptEvent } from '@/types';
+import { Sanitizer } from '@hawk.so/core';
 
 /**
  * Represents a captured error in a normalized form.
@@ -10,8 +11,8 @@ import Sanitizer from '../modules/sanitizer';
 export type CapturedError = {
   /** Human-readable error message used as a title in the dashboard */
   title: string;
-  /** Error type (e.g. 'TypeError', 'NetworkError'), or null if unknown */
-  type: string | null;
+  /** Error type (e.g. 'TypeError', 'NetworkError'), or undefined if unknown */
+  type: HawkJavaScriptEvent['type'];
   /** The original (unsanitized) value — use for instanceof checks and backtrace parsing only */
   rawError: unknown;
 };
@@ -72,7 +73,7 @@ export function fillCapturedError(
 
   return {
     title: getTitleFromError(sanitizedError) || fallbackValues.title || '<unknown error>',
-    type: getTypeFromError(sanitizedError) || fallbackValues.type || null,
+    type: getTypeFromError(sanitizedError) || fallbackValues.type,
     rawError: error,
   };
 }

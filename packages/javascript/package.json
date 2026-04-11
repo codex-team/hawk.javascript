@@ -1,6 +1,6 @@
 {
   "name": "@hawk.so/javascript",
-  "version": "3.2.18",
+  "version": "3.2.20",
   "description": "JavaScript errors tracking for Hawk.so",
   "files": [
     "dist"
@@ -40,10 +40,10 @@
   },
   "homepage": "https://github.com/codex-team/hawk.javascript#readme",
   "dependencies": {
-    "@hawk.so/core": "workspace:^",
     "error-stack-parser": "^2.1.4"
   },
   "devDependencies": {
+    "@hawk.so/core": "workspace:^",
     "@hawk.so/types": "0.5.8",
     "@vitest/coverage-v8": "^4.0.18",
     "jsdom": "^28.0.0",

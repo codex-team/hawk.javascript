@@ -1,21 +1,7 @@
-import type { HawkJavaScriptEvent } from './event';
+import type { CatcherMessage as HawkCatcherMessage } from '@hawk.so/types';
+import type { CatcherMessageType } from '@hawk.so/types/src/catchers/catcher-message';
 
 /**
  * Structure describing a message sending by Catcher
  */
-export interface CatcherMessage {
-  /**
-   * User project's Integration Token
-   */
-  token: string;
-
-  /**
-   * Hawk Catcher name
-   */
-  catcherType: string;
-
-  /**
-   * All information about the event
-   */
-  payload: HawkJavaScriptEvent;
-}
+export type CatcherMessage<T extends CatcherMessageType = 'errors/javascript'> = HawkCatcherMessage<T>;

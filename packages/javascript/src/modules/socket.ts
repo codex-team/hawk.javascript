@@ -1,13 +1,14 @@
+import type { Transport } from '@hawk.so/core';
 import { log } from '@hawk.so/core';
 import type { CatcherMessage } from '@/types';
-import type { Transport } from '../types/transport';
+import type { CatcherMessageType } from '@hawk.so/types';
 
 /**
  * Custom WebSocket wrapper class
  *
  * @copyright CodeX
  */
-export default class Socket implements Transport {
+export default class Socket<T extends CatcherMessageType = 'errors/javascript'> implements Transport<T> {
   /**
    * Socket connection endpoint
    */
@@ -32,7 +33,7 @@ export default class Socket implements Transport {
    * Queue of events collected while socket is not connected
    * They will be sent when connection will be established
    */
-  private eventsQueue: CatcherMessage[];
+  private eventsQueue: CatcherMessage<T>[];
 
   /**
    * Websocket instance
@@ -106,11 +107,14 @@ export default class Socket implements Transport {
    *
    * @param message - event data in Hawk Format
    */
-  public async send(message: CatcherMessage): Promise<void> {
+  public async send(message: CatcherMessage<T>): Promise<void> {
     if (this.ws === null) {
       this.eventsQueue.push(message);
 
-      return this.init();
+      await this.init();
+      this.sendQueue();
+
+      return;
     }
 
     switch (this.ws.readyState) {
@@ -217,6 +221,7 @@ export default class Socket implements Transport {
       await this.init();
 
       log('Successfully reconnected.', 'info');
+      this.sendQueue();
     } catch (error) {
       this.reconnectionAttempts--;
 
