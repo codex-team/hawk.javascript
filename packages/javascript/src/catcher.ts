@@ -31,7 +31,7 @@ import {
 import { HawkLocalStorage } from './storages/hawk-local-storage';
 import { createBrowserLogger } from './logger/logger';
 import { BrowserRandomGenerator } from './utils/random';
-import { CapturedError, fillCapturedError, getErrorFromErrorEvent } from './utils/error';
+import { type CapturedError, fillCapturedError, getErrorFromErrorEvent } from './utils/error';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack

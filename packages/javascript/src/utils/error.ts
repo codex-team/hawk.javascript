@@ -1,4 +1,4 @@
-import { HawkJavaScriptEvent } from '@/types';
+import type { HawkJavaScriptEvent } from '@/types';
 import { Sanitizer } from '@hawk.so/core';
 
 /**

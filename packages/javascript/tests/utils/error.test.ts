@@ -1,11 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getErrorFromErrorEvent } from '../../src/utils/error';
 
-vi.mock('@hawk.so/core', () => ({
-  log: vi.fn(),
-  isLoggerSet: vi.fn(() => true),
-  setLogger: vi.fn(),
-}));
+vi.mock('@hawk.so/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@hawk.so/core')>();
+
+  return {
+    ...actual,
+    log: vi.fn(),
+    isLoggerSet: vi.fn(() => true),
+    setLogger: vi.fn(),
+  };
+});
 
 describe('getErrorFromErrorEvent', () => {
   beforeEach(() => {
