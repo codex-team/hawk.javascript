@@ -124,12 +124,13 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
    * @param message - event data in Hawk Format
    */
   public async send(message: CatcherMessage<T>): Promise<void> {
+    this.eventsQueue.push(message);
+
     if (this.ws === null) {
-      this.eventsQueue.push(message);
-
       await this.init();
-      this.sendQueue();
+    }
 
+    if (this.ws === null) {
       return;
     }
 
@@ -137,16 +138,14 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
       case WebSocket.OPEN:
         this.resetIdleTimer();
 
-        return this.ws.send(JSON.stringify(message));
+        return this.sendQueue();
 
       case WebSocket.CLOSED:
-        this.eventsQueue.push(message);
-
         return this.reconnect();
 
       case WebSocket.CONNECTING:
       case WebSocket.CLOSING:
-        this.eventsQueue.push(message);
+        break;
     }
   }
 
@@ -169,20 +168,7 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
    */
   private init(): Promise<void> {
     return new Promise((resolve, reject) => {
-      /**
-       * Detach handlers and close the previous socket before opening a new one.
-       * Without this, the old connection stays open and its onclose/onerror
-       * handlers keep firing, causing duplicate reconnect attempts and log noise.
-       */
-      if (this.ws !== null) {
-        this.ws.onopen = null;
-        this.ws.onclose = null;
-        this.ws.onerror = null;
-        this.ws.onmessage = null;
-        this.ws.close();
-        this.ws = null;
-      }
-
+      this.detachSocket();
       this.ws = new WebSocket(this.url);
 
       /**
@@ -259,6 +245,15 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
       this.connectionIdleTimer = null;
     }
 
+    this.detachSocket();
+  }
+
+  /**
+   * Detach handlers and close the previous socket before opening a new one.
+   * Without this, the old connection stays open and its onclose/onerror
+   * handlers keep firing, causing duplicate reconnect attempts and log noise.
+   */
+  private detachSocket(): void {
     if (this.ws === null) {
       return;
     }
@@ -308,8 +303,9 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
     try {
       await this.init();
 
-      log('Successfully reconnected.', 'info');
-      this.sendQueue();
+      log('Successfully reconnected. Sending queued events...', 'info');
+
+      return this.sendQueue();
     } catch (error) {
       this.reconnectionAttempts--;
 
@@ -324,9 +320,15 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
   }
 
   /**
-   * Sends all queued events one-by-one
+   * Sends all queued events directly via the WebSocket.
+   * Bypasses send() intentionally — send() always enqueues first,
+   * so calling it here would cause infinite recursion.
    */
   private sendQueue(): void {
+    if (this.ws === null || this.ws.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
     while (this.eventsQueue.length) {
       const event = this.eventsQueue.shift();
 
@@ -334,10 +336,11 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
         continue;
       }
 
-      this.send(event)
-        .catch((sendingError) => {
-          log('WebSocket sending error', 'error', sendingError);
-        });
+      try {
+        this.ws.send(JSON.stringify(event));
+      } catch (sendingError) {
+        log('WebSocket sending error', 'error', sendingError);
+      }
     }
   }
 }
