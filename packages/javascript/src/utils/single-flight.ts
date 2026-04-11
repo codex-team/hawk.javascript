@@ -1,10 +1,8 @@
 /**
- * Returns a version of the given async function where concurrent calls
- * are merged — all callers share the same in-flight Promise rather than
- * starting independent executions. Once the Promise settles, the next
- * call starts fresh.
+ * Wraps an async function so that concurrent calls share the same in-flight
+ * Promise. Once the Promise settles, the next call starts fresh.
  *
- * @param fn - The async function to deduplicate
+ * @param fn - The async function to guard against concurrent execution
  * @returns {Function} A wrapped version of fn that never runs concurrently with itself
  */
 export function singleFlight<T>(fn: () => Promise<T>): () => Promise<T> {

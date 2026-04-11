@@ -148,10 +148,6 @@ export default class Socket<T extends CatcherMessageType = 'errors/javascript'> 
 
       case WebSocket.CLOSED:
         return this.reconnect();
-
-      case WebSocket.CONNECTING:
-      case WebSocket.CLOSING:
-        break;
     }
   }
 
