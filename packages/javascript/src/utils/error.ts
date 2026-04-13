@@ -53,7 +53,7 @@ function getTitleFromError(sanitizedError: unknown): string | undefined {
  * @returns The error name string, or undefined if absent or empty
  */
 function getTypeFromError(sanitizedError: unknown): string | undefined {
-  return (sanitizedError as Error)?.name;
+  return (sanitizedError as {name: string})?.name;
 }
 
 /**
@@ -68,6 +68,9 @@ export function composeCapturedError(
   error: unknown,
   fallbackValues: { title?: string; type?: string } = {}
 ): CapturedError {
+  /**
+   * @todo we should consider moving Sanitizer to utils
+  */
   const sanitizedError = Sanitizer.sanitize(error);
 
   return {

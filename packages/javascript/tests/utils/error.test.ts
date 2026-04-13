@@ -132,6 +132,17 @@ describe('getErrorFromErrorEvent', () => {
     });
   });
 
+  describe('fallback branch', () => {
+    it('should return a normalized unknown error for unsupported event types', () => {
+      const event = { type: 'custom' } as ErrorEvent | PromiseRejectionEvent;
+      const result = getErrorFromErrorEvent(event);
+
+      expect(result.rawError).toBeUndefined();
+      expect(result.title).toBe('<unknown error>');
+      expect(result.type).toBeUndefined();
+    });
+  });
+
   describe('deduplication identity', () => {
     it('rawError should preserve reference to the original object for deduplication', () => {
       const error = new Error('Test');
