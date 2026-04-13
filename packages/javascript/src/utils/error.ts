@@ -9,7 +9,7 @@ import { Sanitizer } from '@hawk.so/core';
  * - Fields can be filled from an event or from the error itself.
  */
 export type CapturedError = {
-  /** Human-readable error message used as a title in the dashboard */
+  /** Human-readable non-empty error message used as a title in the dashboard */
   title: string;
   /** Error type (e.g. 'TypeError', 'NetworkError'), or undefined if unknown */
   type: HawkJavaScriptEvent['type'];
@@ -23,15 +23,17 @@ export type CapturedError = {
  * and serializes everything else.
  *
  * @param sanitizedError - Value returned by `Sanitizer.sanitize(error)`
- * @returns A non-empty string title, or undefined if the value is nullish or empty
+ * @returns The error title string, or undefined if absent or empty
  */
 function getTitleFromError(sanitizedError: unknown): string | undefined {
   if (sanitizedError == null) {
     return undefined;
   }
 
-  const message =
-    typeof sanitizedError === 'object' && 'message' in sanitizedError ? (sanitizedError as Error).message : sanitizedError;
+  let message: unknown = sanitizedError;
+  if (typeof sanitizedError === 'object' && 'message' in sanitizedError) {
+    message = (sanitizedError as {message: unknown}).message;
+  }
 
   if (typeof message === 'string') {
     return message || undefined;
@@ -40,20 +42,22 @@ function getTitleFromError(sanitizedError: unknown): string | undefined {
   try {
     return JSON.stringify(message);
   } catch {
-    // If no JSON global is available, fall back to string conversion
+    /**
+     * If no JSON global is available or serialization fails,
+     * fall back to string conversion
+     */
     return String(message);
   }
 }
 
 /**
  * Extracts an error type name from an unknown sanitized error.
- * Returns `.name` only when it is a non-empty string (e.g. 'TypeError').
  *
  * @param sanitizedError - Value returned by `Sanitizer.sanitize(error)`
  * @returns The error name string, or undefined if absent or empty
  */
 function getTypeFromError(sanitizedError: unknown): string | undefined {
-  return (sanitizedError as {name: string})?.name;
+  return (sanitizedError as {name: string})?.name || undefined;
 }
 
 /**
