@@ -31,7 +31,7 @@ import {
 import { HawkLocalStorage } from './storages/hawk-local-storage';
 import { createBrowserLogger } from './logger/logger';
 import { BrowserRandomGenerator } from './utils/random';
-import { type CapturedError, composeCapturedError, getErrorFromErrorEvent } from './utils/error';
+import { type ErrorSource, getErrorFromErrorEvent, getTitleFromError, getTypeFromError } from './utils/error';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -231,7 +231,7 @@ export default class Catcher {
    * @param [context] - any additional data to send
    */
   public send(message: Error | string, context?: EventContext): void {
-    void this.formatAndSend(composeCapturedError(message), undefined, context);
+    void this.formatAndSend({ rawError: message }, undefined, context);
   }
 
   /**
@@ -243,7 +243,7 @@ export default class Catcher {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public captureError(error: Error | string, addons?: JavaScriptCatcherIntegrations): void {
-    void this.formatAndSend(composeCapturedError(error), addons);
+    void this.formatAndSend({ rawError: error }, addons);
   }
 
   /**
@@ -256,7 +256,7 @@ export default class Catcher {
     this.vue = new VueIntegration(
       vue,
       (error: Error, addons: VueIntegrationAddons) => {
-        void this.formatAndSend(composeCapturedError(error), {
+        void this.formatAndSend({ rawError: error }, {
           vue: addons,
         });
       },
@@ -354,7 +354,7 @@ export default class Catcher {
    * @param context - any additional data passed by user
    */
   private async formatAndSend(
-    error: CapturedError,
+    error: ErrorSource,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     integrationAddons?: JavaScriptCatcherIntegrations,
     context?: EventContext
@@ -411,8 +411,13 @@ export default class Catcher {
    * @param error - error to format
    * @param context - any additional data passed by user
    */
-  private async prepareErrorFormatted(error: CapturedError, context?: EventContext): Promise<CatcherMessage<typeof Catcher.type>> {
-    const { title, type, rawError } = error;
+  private async prepareErrorFormatted(error: ErrorSource, context?: EventContext): Promise<CatcherMessage<typeof Catcher.type>> {
+    const { rawError, fallbackTitle, fallbackType } = error;
+    const sanitizedError = Sanitizer.sanitize(rawError);
+    const throwableError = rawError instanceof Error ? rawError : undefined;
+    const title = getTitleFromError(sanitizedError) ?? fallbackTitle ?? '<unknown error>';
+    const type = getTypeFromError(sanitizedError) ?? fallbackType;
+
     let payload: HawkJavaScriptEvent = {
       title,
       type,
@@ -420,8 +425,8 @@ export default class Catcher {
       breadcrumbs: this.getBreadcrumbsForEvent(),
       context: this.getContext(context),
       user: this.getUser(),
-      addons: this.getAddons(rawError),
-      backtrace: await this.getBacktrace(rawError),
+      addons: this.getAddons(throwableError),
+      backtrace: await this.getBacktrace(throwableError),
       catcherVersion: this.version,
     };
 
@@ -560,21 +565,15 @@ export default class Catcher {
   /**
    * Return parsed backtrace information
    *
-   * @param error - event from which to get backtrace
+   * @param {Error} error - event from which to get backtrace
    */
-  private async getBacktrace(error: unknown): Promise<HawkJavaScriptEvent['backtrace']> {
-    const notAnError = !(error instanceof Error);
-
-    /**
-     * Case when error is 'reason' of PromiseRejectionEvent
-     * and reject() provided with text reason instead of Error()
-     */
-    if (notAnError) {
+  private async getBacktrace(error?: Error): Promise<HawkJavaScriptEvent['backtrace']> {
+    if (!error) {
       return undefined;
     }
 
     try {
-      return await this.stackParser.parse(error as Error);
+      return await this.stackParser.parse(error);
     } catch (e) {
       log('Can not parse stack:', 'warn', e);
 
@@ -587,7 +586,7 @@ export default class Catcher {
    *
    * @param {Error} error — caught error
    */
-  private getAddons(error: unknown): HawkJavaScriptEvent['addons'] {
+  private getAddons(error?: Error): HawkJavaScriptEvent['addons'] {
     const { innerWidth, innerHeight } = window;
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
@@ -623,8 +622,8 @@ export default class Catcher {
    *
    * @param {Error} error — caught error
    */
-  private getRawData(error: unknown): Json | undefined {
-    if (!(error instanceof Error)) {
+  private getRawData(error?: Error): Json | undefined {
+    if (!error) {
       return;
     }
 

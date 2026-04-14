@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getErrorFromErrorEvent } from '../../src/utils/error';
+import { Sanitizer } from '@hawk.so/core';
+import { getErrorFromErrorEvent, getTitleFromError, getTypeFromError } from '../../src/utils/error';
 
 vi.mock('@hawk.so/core', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@hawk.so/core')>();
@@ -18,23 +19,24 @@ describe('getErrorFromErrorEvent', () => {
   });
 
   describe('ErrorEvent', () => {
-    it('should capture Error instance with correct fields', () => {
+    it('should capture Error instance raw error without fallbacks', () => {
       const error = new Error('Test error');
       const event = new ErrorEvent('error', { error });
       const result = getErrorFromErrorEvent(event);
 
       expect(result.rawError).toBe(error);
-      expect(result.title).toBe('Test error');
-      expect(result.type).toBe('Error');
+      expect(result.fallbackTitle).toBeUndefined();
+      expect(result.fallbackType).toBeUndefined();
     });
 
-    it('should capture DOMException with correct fields', () => {
+    it('should preserve DOMException instance for downstream normalization', () => {
       const error = new DOMException('Network error', 'NetworkError');
       const event = new ErrorEvent('error', { error });
       const result = getErrorFromErrorEvent(event);
 
       expect(result.rawError).toBe(error);
-      expect(result.title).toBe('<instance of DOMException>');
+      expect(result.fallbackTitle).toBeUndefined();
+      expect(result.fallbackType).toBeUndefined();
     });
 
     it('should fall back to event.message when event.error is not provided', () => {
@@ -47,20 +49,23 @@ describe('getErrorFromErrorEvent', () => {
       const result = getErrorFromErrorEvent(event);
 
       expect(result.rawError).toBeNull();
-      expect(result.title).toContain('Script error.');
-      expect(result.title).toContain('app.js:10:5');
+      expect(result.fallbackTitle).toContain('Script error.');
+      expect(result.fallbackTitle).toContain('app.js:10:5');
+      expect(result.fallbackType).toBeUndefined();
     });
 
-    it('should return unknown error title when event.error and message are both absent', () => {
+    it('should omit fallback title when event.error and message are both absent', () => {
       const event = new ErrorEvent('error', { message: '' });
       const result = getErrorFromErrorEvent(event);
 
-      expect(result.title).toBe('<unknown error>');
+      expect(result.rawError).toBeNull();
+      expect(result.fallbackTitle).toBeUndefined();
+      expect(result.fallbackType).toBeUndefined();
     });
   });
 
   describe('PromiseRejectionEvent', () => {
-    it('should capture Error reason with correct fields', () => {
+    it('should capture Error reason and rejection fallback type', () => {
       const reason = new Error('Promise rejected');
       const event = new PromiseRejectionEvent('unhandledrejection', {
         promise: Promise.resolve(),
@@ -69,8 +74,8 @@ describe('getErrorFromErrorEvent', () => {
       const result = getErrorFromErrorEvent(event);
 
       expect(result.rawError).toBe(reason);
-      expect(result.title).toBe('Promise rejected');
-      expect(result.type).toBe('Error');
+      expect(result.fallbackTitle).toBeUndefined();
+      expect(result.fallbackType).toBe('UnhandledRejection');
     });
 
     it('should capture string reason', () => {
@@ -82,8 +87,8 @@ describe('getErrorFromErrorEvent', () => {
       const result = getErrorFromErrorEvent(event);
 
       expect(result.rawError).toBe(reason);
-      expect(result.title).toBe('Something went wrong');
-      expect(result.type).toBe('UnhandledRejection');
+      expect(result.fallbackTitle).toBeUndefined();
+      expect(result.fallbackType).toBe('UnhandledRejection');
     });
 
     it('should capture plain object reason', () => {
@@ -92,8 +97,8 @@ describe('getErrorFromErrorEvent', () => {
       const result = getErrorFromErrorEvent(event);
 
       expect(result.rawError).toBe(reason);
-      expect(result.title).toBe('{"code":"ERR_001","details":"Something went wrong"}');
-      expect(result.type).toBe('UnhandledRejection');
+      expect(result.fallbackTitle).toBeUndefined();
+      expect(result.fallbackType).toBe('UnhandledRejection');
     });
 
     it('should handle undefined reason', () => {
@@ -104,7 +109,8 @@ describe('getErrorFromErrorEvent', () => {
       const result = getErrorFromErrorEvent(event);
 
       expect(result.rawError).toBeUndefined();
-      expect(result.title).toBe('<unknown error>');
+      expect(result.fallbackTitle).toBeUndefined();
+      expect(result.fallbackType).toBe('UnhandledRejection');
     });
 
     it('should handle null reason', () => {
@@ -115,31 +121,19 @@ describe('getErrorFromErrorEvent', () => {
       const result = getErrorFromErrorEvent(event);
 
       expect(result.rawError).toBeNull();
-      expect(result.title).toBe('<unknown error>');
-    });
-
-    it('should handle circular references in object reason', () => {
-      const circularObj: Record<string, unknown> = { name: 'test' };
-      circularObj.self = circularObj;
-      const event = new PromiseRejectionEvent('unhandledrejection', {
-        promise: Promise.resolve(),
-        reason: circularObj,
-      });
-      const result = getErrorFromErrorEvent(event);
-
-      expect(result.rawError).toBe(circularObj);
-      expect(result.title).toContain('<circular>');
+      expect(result.fallbackTitle).toBeUndefined();
+      expect(result.fallbackType).toBe('UnhandledRejection');
     });
   });
 
   describe('fallback branch', () => {
-    it('should return a normalized unknown error for unsupported event types', () => {
+    it('should return an empty error source for unsupported event types', () => {
       const event = { type: 'custom' } as ErrorEvent | PromiseRejectionEvent;
       const result = getErrorFromErrorEvent(event);
 
       expect(result.rawError).toBeUndefined();
-      expect(result.title).toBe('<unknown error>');
-      expect(result.type).toBeUndefined();
+      expect(result.fallbackTitle).toBeUndefined();
+      expect(result.fallbackType).toBeUndefined();
     });
   });
 
@@ -153,5 +147,54 @@ describe('getErrorFromErrorEvent', () => {
       expect(result1.rawError).toBe(result2.rawError);
       expect(result1.rawError).toBe(error);
     });
+  });
+});
+
+describe('getTitleFromError', () => {
+  it('should return Error message from sanitized Error', () => {
+    const sanitizedError = Sanitizer.sanitize(new Error('Test error'));
+
+    expect(getTitleFromError(sanitizedError)).toBe('Test error');
+  });
+
+  it('should return class instance placeholder for sanitized DOMException', () => {
+    const sanitizedError = Sanitizer.sanitize(new DOMException('Network error', 'NetworkError'));
+
+    expect(getTitleFromError(sanitizedError)).toBe('<instance of DOMException>');
+  });
+
+  it('should serialize sanitized plain objects', () => {
+    const sanitizedError = Sanitizer.sanitize({ code: 'ERR_001', details: 'Something went wrong' });
+
+    expect(getTitleFromError(sanitizedError)).toBe('{"code":"ERR_001","details":"Something went wrong"}');
+  });
+
+  it('should handle circular references after sanitization', () => {
+    const circularObj: Record<string, unknown> = { name: 'test' };
+    circularObj.self = circularObj;
+    const sanitizedError = Sanitizer.sanitize(circularObj);
+
+    expect(getTitleFromError(sanitizedError)).toContain('<circular>');
+  });
+
+  it('should return undefined for nullish values', () => {
+    expect(getTitleFromError(undefined)).toBeUndefined();
+    expect(getTitleFromError(null)).toBeUndefined();
+  });
+});
+
+describe('getTypeFromError', () => {
+  it('should return Error name from sanitized Error', () => {
+    const sanitizedError = Sanitizer.sanitize(new Error('Test error'));
+
+    expect(getTypeFromError(sanitizedError)).toBe('Error');
+  });
+
+  it('should return undefined for sanitized strings', () => {
+    expect(getTypeFromError(Sanitizer.sanitize('Something went wrong'))).toBeUndefined();
+  });
+
+  it('should return undefined when name is absent', () => {
+    expect(getTypeFromError(Sanitizer.sanitize({ code: 'ERR_001' }))).toBeUndefined();
   });
 });
