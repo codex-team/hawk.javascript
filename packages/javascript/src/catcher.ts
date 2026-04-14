@@ -405,12 +405,14 @@ export default class Catcher {
         markErrorAsProcessed(error);
       }
 
-      const hint = { error,
-        breadcrumbs: this.breadcrumbStore?.get() };
+      const snapshot = {
+        error,
+        breadcrumbs: this.breadcrumbStore?.get()
+      };
       let processingPayload = await this.buildBasePayload(error, context);
 
       for (const processor of this.messageProcessors) {
-        const result = processor.apply(processingPayload, hint);
+        const result = processor.apply(processingPayload, snapshot);
 
         if (result === null) {
           return;
@@ -428,16 +430,16 @@ export default class Catcher {
         };
       }
 
-      const filtered = this.applyBeforeSendHook(payload);
+      const payloadPostBeforeSend = this.applyBeforeSendHook(payload);
 
-      if (filtered === null) {
+      if (payloadPostBeforeSend === null) {
         return;
       }
 
       this.sendMessage({
         token: this.token,
         catcherType: Catcher.type,
-        payload: filtered,
+        payload: payloadPostBeforeSend,
       } as CatcherMessage<typeof Catcher.type>);
     } catch (e) {
       log('Unable to send error. Seems like it is Hawk internal bug. Please, report it here: https://github.com/codex-team/hawk.javascript/issues/new', 'warn', e);

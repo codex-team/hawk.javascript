@@ -5,7 +5,7 @@ import { makePayload } from './message-processor.helpers';
 describe('BreadcrumbsMessageProcessor', () => {
   const processor = new BreadcrumbsMessageProcessor();
 
-  it('should attach breadcrumbs from hint to payload', () => {
+  it('should attach breadcrumbs from snapshot to payload', () => {
     const breadcrumbs = [{ message: 'click', timestamp: 1 }];
 
     const result = processor.apply(makePayload(), { breadcrumbs });
@@ -13,13 +13,13 @@ describe('BreadcrumbsMessageProcessor', () => {
     expect(result?.breadcrumbs).toEqual(breadcrumbs);
   });
 
-  it('should not set payload breadcrumbs when hint has empty array', () => {
+  it('should not set payload breadcrumbs when snapshot has empty array', () => {
     const result = processor.apply(makePayload(), { breadcrumbs: [] });
 
     expect(result?.breadcrumbs).toBeUndefined();
   });
 
-  it('should not set payload breadcrumbs when hint is absent', () => {
+  it('should not set payload breadcrumbs when snapshot is absent', () => {
     const result = processor.apply(makePayload());
 
     expect(result?.breadcrumbs).toBeUndefined();

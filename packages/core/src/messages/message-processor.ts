@@ -25,7 +25,7 @@ export type ProcessingPayload<T extends CatcherMessageType> =
  * Snapshot of event context captured synchronously at error time,
  * before any processing.
  */
-export interface MessageHint {
+export interface ErrorSnapshot {
   /**
    * Original caught error.
    */
@@ -47,11 +47,11 @@ export interface MessageProcessor<T extends CatcherMessageType = CatcherMessageT
    * Handles input message. May mutate or replace it.
    *
    * @param payload - processed event message payload with partially-built addons
-   * @param hint - additional context about original error
+   * @param snapshot - additional context with original error
    * @returns modified payload, or `null` to drop event
    */
   apply(
     payload: ProcessingPayload<T>,
-    hint?: MessageHint,
+    snapshot?: ErrorSnapshot,
   ): ProcessingPayload<T> | null
 }

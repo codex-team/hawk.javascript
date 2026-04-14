@@ -1,22 +1,22 @@
-import type { MessageHint, MessageProcessor, ProcessingPayload } from './message-processor';
+import type { ErrorSnapshot, MessageProcessor, ProcessingPayload } from './message-processor';
 
 /**
- * Attaches breadcrumbs snapshot from {@link hint} to payload.
+ * Attaches breadcrumbs to payload.
  */
 export class BreadcrumbsMessageProcessor implements MessageProcessor<'errors/javascript'> {
   /**
-   * Sets `payload.breadcrumbs` from hint snapshot if non-empty; skips otherwise.
+   * Sets `payload.breadcrumbs` from snapshot if non-empty; skips otherwise.
    *
    * @param payload - event message payload to enrich
-   * @param hint - hint carrying breadcrumbs snapshot captured at error time
+   * @param snapshot - snapshot carrying breadcrumbs captured at error time
    * @returns modified payload with breadcrumbs set, or original payload unchanged
    */
   public apply(
     payload: ProcessingPayload<'errors/javascript'>,
-    hint?: MessageHint
+    snapshot?: ErrorSnapshot
   ): ProcessingPayload<'errors/javascript'> | null {
-    if (hint?.breadcrumbs && hint.breadcrumbs.length > 0) {
-      payload.breadcrumbs = hint.breadcrumbs;
+    if (snapshot?.breadcrumbs && snapshot.breadcrumbs.length > 0) {
+      payload.breadcrumbs = snapshot.breadcrumbs;
     }
 
     return payload;
