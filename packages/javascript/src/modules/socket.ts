@@ -6,7 +6,8 @@ import { singleFlight } from '../utils/single-flight';
 
 /**
  * WebSocket close codes that represent an intentional, expected closure.
- * See: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
  */
 const WS_CLOSE_NORMAL = 1000;
 const WS_CLOSE_GOING_AWAY = 1001;
