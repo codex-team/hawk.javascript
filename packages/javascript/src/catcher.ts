@@ -9,7 +9,7 @@ import type {
   EventContext,
   JavaScriptAddons,
   Json,
-  VueIntegrationAddons
+  VueIntegrationAddons,
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from '@/types';
 import { ConsoleCatcher } from './addons/consoleCatcher';
@@ -31,6 +31,7 @@ import {
 import { HawkLocalStorage } from './storages/hawk-local-storage';
 import { createBrowserLogger } from './logger/logger';
 import { BrowserRandomGenerator } from './utils/random';
+import { type ErrorSource, getErrorFromErrorEvent, getTitleFromError, getTypeFromError } from './utils/error';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -230,7 +231,7 @@ export default class Catcher {
    * @param [context] - any additional data to send
    */
   public send(message: Error | string, context?: EventContext): void {
-    void this.formatAndSend(message, undefined, context);
+    void this.formatAndSend({ rawError: message }, undefined, context);
   }
 
   /**
@@ -242,7 +243,7 @@ export default class Catcher {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public captureError(error: Error | string, addons?: JavaScriptCatcherIntegrations): void {
-    void this.formatAndSend(error, addons);
+    void this.formatAndSend({ rawError: error }, addons);
   }
 
   /**
@@ -255,7 +256,7 @@ export default class Catcher {
     this.vue = new VueIntegration(
       vue,
       (error: Error, addons: VueIntegrationAddons) => {
-        void this.formatAndSend(error, {
+        void this.formatAndSend({ rawError: error }, {
           vue: addons,
         });
       },
@@ -340,21 +341,7 @@ export default class Catcher {
       this.consoleCatcher!.addErrorEvent(event);
     }
 
-    /**
-     * Promise rejection reason is recommended to be an Error, but it can be a string:
-     * - Promise.reject(new Error('Reason message')) ——— recommended
-     * - Promise.reject('Reason message')
-     */
-    let error = (event as ErrorEvent).error || (event as PromiseRejectionEvent).reason;
-
-    /**
-     * Case when error triggered in external script
-     * We can't access event error object because of CORS
-     * Event message will be 'Script error.'
-     */
-    if (event instanceof ErrorEvent && error === undefined) {
-      error = (event as ErrorEvent).message;
-    }
+    const error = getErrorFromErrorEvent(event);
 
     void this.formatAndSend(error);
   }
@@ -367,13 +354,13 @@ export default class Catcher {
    * @param context - any additional data passed by user
    */
   private async formatAndSend(
-    error: Error | string,
+    error: ErrorSource,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     integrationAddons?: JavaScriptCatcherIntegrations,
     context?: EventContext
   ): Promise<void> {
     try {
-      const isAlreadySentError = isErrorProcessed(error);
+      const isAlreadySentError = isErrorProcessed(error.rawError);
 
       if (isAlreadySentError) {
         /**
@@ -381,7 +368,7 @@ export default class Catcher {
          */
         return;
       } else {
-        markErrorAsProcessed(error);
+        markErrorAsProcessed(error.rawError);
       }
 
       const errorFormatted = await this.prepareErrorFormatted(error, context);
@@ -424,16 +411,22 @@ export default class Catcher {
    * @param error - error to format
    * @param context - any additional data passed by user
    */
-  private async prepareErrorFormatted(error: Error | string, context?: EventContext): Promise<CatcherMessage<typeof Catcher.type>> {
+  private async prepareErrorFormatted(error: ErrorSource, context?: EventContext): Promise<CatcherMessage<typeof Catcher.type>> {
+    const { rawError, fallbackTitle, fallbackType } = error;
+    const sanitizedError = Sanitizer.sanitize(rawError);
+    const throwableError = rawError instanceof Error ? rawError : undefined;
+    const title = getTitleFromError(sanitizedError) ?? fallbackTitle ?? '<unknown error>';
+    const type = getTypeFromError(sanitizedError) ?? fallbackType;
+
     let payload: HawkJavaScriptEvent = {
-      title: this.getTitle(error),
-      type: this.getType(error),
+      title,
+      type,
       release: this.getRelease(),
       breadcrumbs: this.getBreadcrumbsForEvent(),
       context: this.getContext(context),
       user: this.getUser(),
-      addons: this.getAddons(error),
-      backtrace: await this.getBacktrace(error),
+      addons: this.getAddons(throwableError),
+      backtrace: await this.getBacktrace(throwableError),
       catcherVersion: this.version,
     };
 
@@ -483,44 +476,6 @@ export default class Catcher {
       catcherType: Catcher.type,
       payload,
     };
-  }
-
-  /**
-   * Return event title
-   *
-   * @param error - event from which to get the title
-   */
-  private getTitle(error: Error | string): string {
-    const notAnError = !(error instanceof Error);
-
-    /**
-     * Case when error is 'reason' of PromiseRejectionEvent
-     * and reject() provided with text reason instead of Error()
-     */
-    if (notAnError) {
-      return error.toString() as string;
-    }
-
-    return (error as Error).message;
-  }
-
-  /**
-   * Return event type: TypeError, ReferenceError etc
-   *
-   * @param error - caught error
-   */
-  private getType(error: Error | string): HawkJavaScriptEvent['type'] {
-    const notAnError = !(error instanceof Error);
-
-    /**
-     * Case when error is 'reason' of PromiseRejectionEvent
-     * and reject() provided with text reason instead of Error()
-     */
-    if (notAnError) {
-      return undefined;
-    }
-
-    return (error as Error).name;
   }
 
   /**
@@ -610,21 +565,15 @@ export default class Catcher {
   /**
    * Return parsed backtrace information
    *
-   * @param error - event from which to get backtrace
+   * @param {Error} error - event from which to get backtrace
    */
-  private async getBacktrace(error: Error | string): Promise<HawkJavaScriptEvent['backtrace']> {
-    const notAnError = !(error instanceof Error);
-
-    /**
-     * Case when error is 'reason' of PromiseRejectionEvent
-     * and reject() provided with text reason instead of Error()
-     */
-    if (notAnError) {
+  private async getBacktrace(error?: Error): Promise<HawkJavaScriptEvent['backtrace']> {
+    if (!error) {
       return undefined;
     }
 
     try {
-      return await this.stackParser.parse(error as Error);
+      return await this.stackParser.parse(error);
     } catch (e) {
       log('Can not parse stack:', 'warn', e);
 
@@ -635,9 +584,9 @@ export default class Catcher {
   /**
    * Return some details
    *
-   * @param {Error|string} error — caught error
+   * @param {Error} error — caught error
    */
-  private getAddons(error: Error | string): HawkJavaScriptEvent['addons'] {
+  private getAddons(error?: Error): HawkJavaScriptEvent['addons'] {
     const { innerWidth, innerHeight } = window;
     const userAgent = window.navigator.userAgent;
     const location = window.location.href;
@@ -671,10 +620,10 @@ export default class Catcher {
   /**
    * Compose raw data object
    *
-   * @param {Error|string} error — caught error
+   * @param {Error} error — caught error
    */
-  private getRawData(error: Error | string): Json | undefined {
-    if (!(error instanceof Error)) {
+  private getRawData(error?: Error): Json | undefined {
+    if (!error) {
       return;
     }
 
