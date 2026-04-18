@@ -246,8 +246,18 @@ The `issues` option configures automatic performance and error tracking.
 | **Long Tasks** | `issues.longTasks` | `100 ms` | Tasks with identifiable container (`containerSrc`, `containerId`, or `containerName`) |
 | **Long Animation Frames** | `issues.longAnimationFrames` | `300 ms` | Frames where at least one script attribution has `sourceURL`, `sourceFunctionName`, or `invoker` |
 
-All detectors are enabled by default.
-If the browser does not support a specific Performance API (`longtask`, `long-animation-frame`), the corresponding detector is silently skipped.
+Default `issues` (when you omit the option or pass `{}`) is opt-in for performance detectors; global error listeners stay on:
+
+```js
+issues: {
+  errors: true,           // implied: register window error / unhandledrejection unless issues.errors === false
+  webVitals: false,       // omit or false — off
+  longTasks: false,       // omit or false — off
+  longAnimationFrames: false // omit or false — off
+}
+```
+
+Pass `true` or an options object for any detector you want. If the browser does not support a specific Performance API (`longtask`, `long-animation-frame`), the corresponding detector is silently skipped.
 
 Performance data is transmitted in the event **addons** (keys: `Long Task`, `Long Animation Frame`, `Web Vitals`).
 

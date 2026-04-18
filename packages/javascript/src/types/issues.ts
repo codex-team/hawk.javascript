@@ -17,33 +17,40 @@ export interface PerformanceIssueThresholdOptions {
 export interface PerformanceIssuesOptions {
   /**
    * Enable aggregated Web Vitals monitoring.
-   * `false` disables the feature.
-   * Any other value enables it.
-   * You can override per-metric poor-report thresholds via `reportPoorAbove`.
+   * `false` or omitted disables the feature.
+   * Pass `true` or an options object to enable (threshold overrides via `reportPoorAbove`).
    *
-   * @default true
+   * @default false
    */
   webVitals?: boolean | WebVitalOptions;
 
   /**
    * Long Tasks options.
-   * `false` disables the feature.
-   * Any other value enables it with default threshold.
-   * If `thresholdMs` is a valid number greater than or equal to 50, it is used.
+   * `false` or omitted disables the feature.
+   * Pass `true` or `{ thresholdMs }` to enable (`thresholdMs` clamped to ≥ 50).
    *
-   * @default true
+   * @default false
    */
   longTasks?: boolean | PerformanceIssueThresholdOptions;
 
   /**
    * Long Animation Frames options.
-   * `false` disables the feature.
-   * Any other value enables it with default threshold.
-   * If `thresholdMs` is a valid number greater than or equal to 50, it is used.
+   * `false` or omitted disables the feature.
+   * Pass `true` or `{ thresholdMs }` to enable (`thresholdMs` clamped to ≥ 50).
    *
-   * @default true
+   * @default false
    */
   longAnimationFrames?: boolean | PerformanceIssueThresholdOptions;
+}
+
+/**
+ * Whether a performance detector is explicitly enabled (`true` or a non-empty options object).
+ * `undefined` means off (default).
+ */
+export function isPerformanceIssueDetectorEnabled(
+  option: boolean | PerformanceIssueThresholdOptions | WebVitalOptions | undefined
+): boolean {
+  return option !== undefined && option !== false;
 }
 
 /**

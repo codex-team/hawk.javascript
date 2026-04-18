@@ -1,6 +1,7 @@
 import type { Json } from '@hawk.so/types';
 import { onCLS, onINP, onLCP, onFCP, onTTFB } from 'web-vitals';
 import {
+  isPerformanceIssueDetectorEnabled,
   PERFORMANCE_ISSUE_ADDON_KEYS,
   type PerformanceIssueEvent,
   type PerformanceIssuesOptions,
@@ -287,7 +288,7 @@ export class PerformanceIssuesMonitor {
     ];
 
     [this.longTaskObserver, this.loafObserver] = detectors.map(({ option, type, defaultMs, process }) => {
-      if (option === false) {
+      if (!isPerformanceIssueDetectorEnabled(option)) {
         return null;
       }
 
@@ -304,7 +305,7 @@ export class PerformanceIssuesMonitor {
       });
     });
 
-    if (options.webVitals !== false) {
+    if (isPerformanceIssueDetectorEnabled(options.webVitals)) {
       this.observeWebVitals(onIssue, typeof options.webVitals === 'object' ? options.webVitals : undefined);
     }
   }

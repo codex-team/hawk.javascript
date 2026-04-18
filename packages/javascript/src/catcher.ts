@@ -1,6 +1,7 @@
 import './modules/element-sanitizer';
 import Socket from './modules/socket';
 import type { BreadcrumbsAPI, CatcherMessage, HawkInitialSettings, HawkJavaScriptEvent, Transport } from './types';
+import { isPerformanceIssueDetectorEnabled } from './types/issues';
 import { VueIntegration } from './integrations/vue';
 import type {
   AffectedUser,
@@ -332,9 +333,9 @@ export default class Catcher {
 
     const issues = settings.issues ?? {};
     const shouldHandleGlobalErrors = settings.disableGlobalErrorsHandling !== true && issues.errors !== false;
-    const shouldDetectPerformanceIssues = issues.longTasks !== false
-      || issues.longAnimationFrames !== false
-      || issues.webVitals === true;
+    const shouldDetectPerformanceIssues = isPerformanceIssueDetectorEnabled(issues.longTasks)
+      || isPerformanceIssueDetectorEnabled(issues.longAnimationFrames)
+      || isPerformanceIssueDetectorEnabled(issues.webVitals);
 
     if (shouldHandleGlobalErrors) {
       this.initGlobalHandlers();
