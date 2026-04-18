@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/codex-team/hawk.javascript#readme",
   "dependencies": {
-    "@hawk.so/javascript": "^3.0.0"
+    "@hawk.so/javascript": "workspace:^"
   },
   "devDependencies": {
     "vite": "^7.3.1",
