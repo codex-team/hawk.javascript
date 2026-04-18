@@ -1,15 +1,16 @@
 import type { Json } from '@hawk.so/types';
 import { onCLS, onINP, onLCP, onFCP, onTTFB } from 'web-vitals';
-import type {
-  PerformanceIssueEvent,
-  PerformanceIssuesOptions,
-  LoAFEntry,
-  LoAFScript,
-  LongTaskPerformanceEntry,
-  WebVitalName,
-  WebVitalMetric,
-  WebVitalOptions,
-  WebVitalRatingThresholds
+import {
+  PERFORMANCE_ISSUE_ADDON_KEYS,
+  type PerformanceIssueEvent,
+  type PerformanceIssuesOptions,
+  type LoAFEntry,
+  type LoAFScript,
+  type LongTaskPerformanceEntry,
+  type WebVitalName,
+  type WebVitalMetric,
+  type WebVitalOptions,
+  type WebVitalRatingThresholds
 } from '../types/issues';
 import { compactJson } from '../utils/compactJson';
 
@@ -23,11 +24,16 @@ export const DEFAULT_LOAF_THRESHOLD_MS = 300;
 export const MIN_ISSUE_THRESHOLD_MS = 50;
 
 const DEFAULT_WEB_VITAL_THRESHOLDS: Record<WebVitalName, WebVitalRatingThresholds> = {
-  CLS: { official: [0.1, 0.25], reportPoorAbove: 0.35 },
-  INP: { official: [200, 500], reportPoorAbove: 700 },
-  LCP: { official: [2500, 4000], reportPoorAbove: 5000 },
-  FCP: { official: [1800, 3000], reportPoorAbove: 4000 },
-  TTFB: { official: [800, 1800], reportPoorAbove: 2500 },
+  CLS: { official: [0.1, 0.25],
+    reportPoorAbove: 0.35 },
+  INP: { official: [200, 500],
+    reportPoorAbove: 700 },
+  LCP: { official: [2500, 4000],
+    reportPoorAbove: 5000 },
+  FCP: { official: [1800, 3000],
+    reportPoorAbove: 4000 },
+  TTFB: { official: [800, 1800],
+    reportPoorAbove: 2500 },
 };
 
 /**
@@ -78,6 +84,7 @@ function isReportableLoAF(loaf: LoAFEntry, thresholdMs: number): boolean {
  *
  * @param metric - metric object from the web-vitals library
  * @param reported - set of already reported metric names (dedup guard)
+ * @param webVitalsOptions
  */
 function isReportableWebVital(
   metric: WebVitalMetric,
@@ -88,6 +95,11 @@ function isReportableWebVital(
     && !reported.has(metric.name);
 }
 
+/**
+ *
+ * @param metricName
+ * @param webVitalsOptions
+ */
 function getWebVitalRatingThresholds(metricName: WebVitalName, webVitalsOptions?: WebVitalOptions): WebVitalRatingThresholds {
   const defaults = DEFAULT_WEB_VITAL_THRESHOLDS[metricName];
   const override = webVitalsOptions?.reportPoorAbove?.[metricName];
@@ -100,6 +112,28 @@ function getWebVitalRatingThresholds(metricName: WebVitalName, webVitalsOptions?
     official: defaults.official,
     reportPoorAbove: override,
   };
+}
+
+/**
+ * Serializes a single PerformanceScriptTiming entry into a compact JSON payload.
+ *
+ * @param script - LoAF script timing entry
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceScriptTiming
+ */
+function serializeScriptTiming(script: LoAFScript): Json {
+  return compactJson([
+    ['invokerName', script.invoker],
+    ['invokerType', script.invokerType],
+    ['sourceUrl', script.sourceURL],
+    ['sourceFunctionName', script.sourceFunctionName],
+    ['sourceCharPosition', script.sourceCharPosition != null && script.sourceCharPosition >= 0 ? script.sourceCharPosition : null],
+    ['scriptStartTimeMs', Math.round(script.startTime)],
+    ['scriptDurationMs', Math.round(script.duration)],
+    ['executionStartTimeMs', script.executionStart != null ? Math.round(script.executionStart) : null],
+    ['forcedStyleAndLayoutDurationMs', script.forcedStyleAndLayoutDuration != null ? Math.round(script.forcedStyleAndLayoutDuration) : null],
+    ['pauseDurationMs', script.pauseDuration != null ? Math.round(script.pauseDuration) : null],
+    ['windowAttribution', script.windowAttribution],
+  ]);
 }
 
 /**
@@ -116,7 +150,7 @@ function serializeLongTaskEvent(task: LongTaskPerformanceEntry): PerformanceIssu
   return {
     title: 'Long Task — ' + containerIdentifier,
     addons: {
-      'Long Task': compactJson([
+      [PERFORMANCE_ISSUE_ADDON_KEYS.longTask]: compactJson([
         ['taskStartTimeMs', Math.round(task.startTime)],
         ['taskDurationMs', Math.round(task.duration)],
         ['attributionSourceType', primary.name],
@@ -149,7 +183,7 @@ function serializeLoAFEvent(loaf: LoAFEntry): PerformanceIssueEvent {
   return {
     title: 'Long Animation Frame' + (culprit ? ` — ${culprit}` : ''),
     addons: {
-      'Long Frame': compactJson([
+      [PERFORMANCE_ISSUE_ADDON_KEYS.longFrame]: compactJson([
         ['frameStartTimeMs', Math.round(loaf.startTime)],
         ['frameDurationMs', Math.round(loaf.duration)],
         ['frameBlockingDurationMs', loaf.blockingDuration != null ? Math.round(loaf.blockingDuration) : null],
@@ -185,7 +219,7 @@ function serializeWebVitalEvent(metric: WebVitalMetric): PerformanceIssueEvent {
   return {
     title: `Poor Web Vital: ${metric.name} (${metricLabel})`,
     addons: {
-      'Web Vitals': compactJson([
+      [PERFORMANCE_ISSUE_ADDON_KEYS.webVitals]: compactJson([
         ['metricName', metric.name],
         ['metricValue', metric.value],
         ['metricRating', metric.rating],
@@ -194,28 +228,6 @@ function serializeWebVitalEvent(metric: WebVitalMetric): PerformanceIssueEvent {
       ]),
     },
   };
-}
-
-/**
- * Serializes a single PerformanceScriptTiming entry into a compact JSON payload.
- *
- * @param script - LoAF script timing entry
- * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceScriptTiming
- */
-function serializeScriptTiming(script: LoAFScript): Json {
-  return compactJson([
-    ['invokerName', script.invoker],
-    ['invokerType', script.invokerType],
-    ['sourceUrl', script.sourceURL],
-    ['sourceFunctionName', script.sourceFunctionName],
-    ['sourceCharPosition', script.sourceCharPosition != null && script.sourceCharPosition >= 0 ? script.sourceCharPosition : null],
-    ['scriptStartTimeMs', Math.round(script.startTime)],
-    ['scriptDurationMs', Math.round(script.duration)],
-    ['executionStartTimeMs', script.executionStart != null ? Math.round(script.executionStart) : null],
-    ['forcedStyleAndLayoutDurationMs', script.forcedStyleAndLayoutDuration != null ? Math.round(script.forcedStyleAndLayoutDuration) : null],
-    ['pauseDurationMs', script.pauseDuration != null ? Math.round(script.pauseDuration) : null],
-    ['windowAttribution', script.windowAttribution],
-  ]);
 }
 
 /**
@@ -333,7 +345,8 @@ export class PerformanceIssuesMonitor {
         }
       });
 
-      observer.observe({ type, buffered: true });
+      observer.observe({ type,
+        buffered: true });
 
       return observer;
     } catch {
@@ -346,6 +359,7 @@ export class PerformanceIssuesMonitor {
    * Emits one issue per poor-rated metric; each metric name is reported at most once.
    *
    * @param onIssue - callback invoked for each poor metric
+   * @param webVitalsOptions
    */
   private observeWebVitals(onIssue: (event: PerformanceIssueEvent) => void, webVitalsOptions?: WebVitalOptions): void {
     if (this.destroyed) {

@@ -2,7 +2,7 @@ import type { CatcherMessage } from './catcher-message';
 import type { HawkInitialSettings } from './hawk-initial-settings';
 import type {
   IssuesOptions,
-  PerformanceIssueThresholdOptions,
+  PerformanceIssueThresholdOptions
 } from './issues';
 import type { Transport } from '@hawk.so/core';
 import type { HawkJavaScriptEvent } from './event';
@@ -19,5 +19,5 @@ export type {
   NuxtIntegrationData,
   NuxtIntegrationAddons,
   JavaScriptCatcherIntegrations,
-  BreadcrumbsAPI,
+  BreadcrumbsAPI
 };

@@ -60,6 +60,7 @@ export interface IssuesOptions extends PerformanceIssuesOptions {
 
 /**
  * Long Task attribution from the Performance API (TaskAttributionTiming).
+ *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongTaskTiming
  */
 export interface LongTaskAttribution {
@@ -84,6 +85,7 @@ export interface LongTaskPerformanceEntry extends PerformanceEntry {
 
 /**
  * PerformanceScriptTiming — script that contributed to a Long Animation Frame.
+ *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceScriptTiming
  */
 export interface LoAFScript {
@@ -113,6 +115,7 @@ export interface LoAFScript {
 
 /**
  * PerformanceLongAnimationFrameTiming entry.
+ *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming
  */
 export interface LoAFEntry extends PerformanceEntry {
@@ -167,13 +170,22 @@ export interface WebVitalMetric {
 }
 
 /**
+ * Addon keys as attached to Hawk performance issue events (wire format; do not rename).
+ */
+export const PERFORMANCE_ISSUE_ADDON_KEYS = {
+  longTask: 'Long Task',
+  longFrame: 'Long Frame',
+  webVitals: 'Web Vitals',
+} as const;
+
+/** Union of {@link PERFORMANCE_ISSUE_ADDON_KEYS} values. */
+export type PerformanceIssueAddonWireKey =
+  (typeof PERFORMANCE_ISSUE_ADDON_KEYS)[keyof typeof PERFORMANCE_ISSUE_ADDON_KEYS];
+
+/**
  * Addons payload shape for performance issue events.
  */
-export interface PerformanceIssueAddons {
-  'Long Task'?: Json;
-  'Long Frame'?: Json;
-  'Web Vitals'?: Json;
-}
+export type PerformanceIssueAddons = Partial<Record<PerformanceIssueAddonWireKey, Json>>;
 
 /**
  * Payload sent by issues monitor to the catcher.
