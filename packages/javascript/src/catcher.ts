@@ -129,6 +129,8 @@ export default class Catcher {
    * Issues monitor instance
    */
   private readonly issuesMonitor = new PerformanceIssuesMonitor();
+
+  /**
    * Manages currently authenticated user identity.
    */
   private readonly userManager: HawkUserManager = new HawkUserManager(
@@ -722,6 +724,9 @@ export default class Catcher {
    * @param integrationAddons - extra addons
    */
   private appendIntegrationAddons(errorFormatted: CatcherMessage<typeof Catcher.type>, integrationAddons: JavaScriptCatcherIntegrations): void {
+    if (errorFormatted.payload.addons === undefined) {
+      errorFormatted.payload.addons = {} as JavaScriptAddons;
+    }
     Object.assign(errorFormatted.payload.addons, integrationAddons);
   }
 }
