@@ -14,6 +14,9 @@ export default defineConfig(() => {
         external: ['sveltekit', '@hawk.so/javascript'],
       },
     },
+    resolve: {
+      conditions: ['source'],
+    },
     plugins: [
       dts({
         tsconfigPath: './tsconfig.json',

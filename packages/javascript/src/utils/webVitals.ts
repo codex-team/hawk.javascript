@@ -1,7 +1,7 @@
 /**
  * @file Web Vitals check — collects metrics and reports poor ones via callback
  */
-import log from './log';
+import { log } from '@hawk.so/core';
 
 type WebVitalRating = 'good' | 'needs-improvement' | 'poor';
 
