@@ -437,6 +437,7 @@ export default class Catcher {
       const payloadPostBeforeSend = this.applyBeforeSendHook(payload);
 
       if (payloadPostBeforeSend === null) {
+        // Event was rejected by user using the beforeSend method
         return;
       }
 
