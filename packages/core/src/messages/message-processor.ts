@@ -44,11 +44,13 @@ export interface ErrorSnapshot {
  */
 export interface MessageProcessor<T extends CatcherMessageType = CatcherMessageType> {
   /**
-   * Handles input message. May mutate or replace it.
+   * Handles input message. May mutate, replace or drop it.
+   *
+   * Dropped message won't be sent.
    *
    * @param payload - processed event message payload with partially-built addons
    * @param snapshot - additional context with original error
-   * @returns modified payload, or `null` to drop event
+   * @returns modified payload, or `null` to drop message
    */
   apply(
     payload: ProcessingPayload<T>,

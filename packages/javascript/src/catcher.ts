@@ -217,6 +217,10 @@ export default class Catcher {
       this.messageProcessors.push(new DebugAddonMessageProcessor());
     }
 
+    if (settings.messageProcessors) {
+      this.messageProcessors.push(...settings.messageProcessors);
+    }
+
     /**
      * Set global handlers
      */
