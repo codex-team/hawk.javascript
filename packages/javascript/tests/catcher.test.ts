@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Catcher from '../src/catcher';
-import { BreadcrumbManager } from '../src/addons/breadcrumbs';
-import { TEST_TOKEN, wait, createTransport, getLastPayload, createCatcher } from './catcher.helpers';
+import { BrowserBreadcrumbStore } from '../src/addons/breadcrumbs';
+import { createCatcher, createTransport, getLastPayload, TEST_TOKEN, wait } from './catcher.helpers';
 
 // StackParser is mocked to prevent real network calls to source files in the jsdom environment.
 const mockParse = vi.hoisted(() => vi.fn().mockResolvedValue([]));
@@ -17,7 +17,7 @@ describe('Catcher', () => {
   beforeEach(() => {
     localStorage.clear();
     mockParse.mockResolvedValue([]);
-    (BreadcrumbManager as any).instance = null;
+    (BrowserBreadcrumbStore as any).instance?.destroy();
   });
 
   // ── Constructor variants ──────────────────────────────────────────────────

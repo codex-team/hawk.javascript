@@ -2,6 +2,7 @@
  * @file Breadcrumbs module - captures chronological trail of events before an error
  */
 import type { Breadcrumb, BreadcrumbLevel, BreadcrumbType, Json, JsonNode } from '@hawk.so/types';
+import type { BreadcrumbHint, BreadcrumbInput, BreadcrumbStore } from '@hawk.so/core';
 import { buildElementSelector, isValidBreadcrumb, log, Sanitizer } from '@hawk.so/core';
 
 /**
@@ -10,9 +11,10 @@ import { buildElementSelector, isValidBreadcrumb, log, Sanitizer } from '@hawk.s
 const DEFAULT_MAX_BREADCRUMBS = 15;
 
 /**
- * Hint object passed to beforeBreadcrumb callback
+ * Hint object passed to beforeBreadcrumb callback.
+ * Extends generic {@link BreadcrumbHint} with browser-specific data.
  */
-export interface BreadcrumbHint {
+export interface BrowserBreadcrumbHint extends BreadcrumbHint {
   /**
    * Original event that triggered the breadcrumb (if any)
    */
@@ -51,7 +53,7 @@ export interface BreadcrumbsOptions {
    * - Return `false` — the breadcrumb will be discarded.
    * - Any other value is invalid — the original breadcrumb is stored as-is (a warning is logged).
    */
-  beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | false | void;
+  beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BrowserBreadcrumbHint) => Breadcrumb | false | void;
 
   /**
    * Enable automatic fetch/XHR breadcrumbs
@@ -76,12 +78,6 @@ export interface BreadcrumbsOptions {
 }
 
 /**
- * Breadcrumb input type - breadcrumb data with optional timestamp
- * (timestamp will be auto-generated if not provided)
- */
-export type BreadcrumbInput = Omit<Breadcrumb, 'timestamp'> & { timestamp?: Breadcrumb['timestamp'] };
-
-/**
  * Internal breadcrumbs options - all fields except 'beforeBreadcrumb' are required
  * (they have default values and are always set during init)
  */
@@ -90,17 +86,18 @@ interface InternalBreadcrumbsOptions {
   trackFetch: boolean;
   trackNavigation: boolean;
   trackClicks: boolean;
-  beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BreadcrumbHint) => Breadcrumb | false | void;
+  beforeBreadcrumb?: (breadcrumb: Breadcrumb, hint?: BrowserBreadcrumbHint) => Breadcrumb | false | void;
 }
 
 /**
- * BreadcrumbManager - singleton that manages breadcrumb collection and storage
+ * Browser implementation of BreadcrumbStore.
+ * Singleton that manages breadcrumb collection and storage.
  */
-export class BreadcrumbManager {
+export class BrowserBreadcrumbStore implements BreadcrumbStore {
   /**
    * Singleton instance
    */
-  private static instance: BreadcrumbManager | null = null;
+  private static instance: BrowserBreadcrumbStore | null = null;
 
   /**
    * Breadcrumbs buffer (FIFO)
@@ -167,10 +164,10 @@ export class BreadcrumbManager {
   /**
    * Get singleton instance
    */
-  public static getInstance(): BreadcrumbManager {
-    BreadcrumbManager.instance ??= new BreadcrumbManager();
+  public static getInstance(): BrowserBreadcrumbStore {
+    BrowserBreadcrumbStore.instance ??= new BrowserBreadcrumbStore();
 
-    return BreadcrumbManager.instance;
+    return BrowserBreadcrumbStore.instance;
   }
 
   /**
@@ -180,8 +177,6 @@ export class BreadcrumbManager {
    */
   public init(options: BreadcrumbsOptions = {}): void {
     if (this.isInitialized) {
-      log('[BreadcrumbManager] init has already been called; breadcrumb configuration is global and subsequent init options are ignored.', 'warn');
-
       return;
     }
 
@@ -219,7 +214,7 @@ export class BreadcrumbManager {
    * @param hint - Optional hint object with original event data (Event, Response, XMLHttpRequest, etc.)
    *               Used by beforeBreadcrumb callback to access original event context
    */
-  public addBreadcrumb(breadcrumb: BreadcrumbInput, hint?: BreadcrumbHint): void {
+  public add(breadcrumb: BreadcrumbInput, hint?: BrowserBreadcrumbHint): void {
     /**
      * Ensure timestamp
      */
@@ -293,14 +288,14 @@ export class BreadcrumbManager {
   /**
    * Get current breadcrumbs snapshot (oldest to newest)
    */
-  public getBreadcrumbs(): Breadcrumb[] {
+  public get(): Breadcrumb[] {
     return [ ...this.breadcrumbs ];
   }
 
   /**
    * Clear all breadcrumbs
    */
-  public clearBreadcrumbs(): void {
+  public clear(): void {
     this.breadcrumbs.length = 0;
   }
 
@@ -358,9 +353,9 @@ export class BreadcrumbManager {
       this.popstateHandler = null;
     }
 
-    this.clearBreadcrumbs();
+    this.clear();
     this.isInitialized = false;
-    BreadcrumbManager.instance = null;
+    BrowserBreadcrumbStore.instance = null;
   }
 
 
@@ -399,7 +394,7 @@ export class BreadcrumbManager {
 
         const duration = Date.now() - startTime;
 
-        manager.addBreadcrumb({
+        manager.add({
           type: 'request',
           category: 'fetch',
           message: `${response.status} ${method} ${url}`,
@@ -419,7 +414,7 @@ export class BreadcrumbManager {
       } catch (error) {
         const duration = Date.now() - startTime;
 
-        manager.addBreadcrumb({
+        manager.add({
           type: 'request',
           category: 'fetch',
           message: `[FAIL] ${method} ${url}`,
@@ -483,7 +478,7 @@ export class BreadcrumbManager {
           const url = this.hawkUrl || '';
           const status = this.status;
 
-          manager.addBreadcrumb({
+          manager.add({
             type: 'request',
             category: 'xhr',
             message: `${status} ${method} ${url}`,
@@ -529,7 +524,7 @@ export class BreadcrumbManager {
 
       lastUrl = to;
 
-      manager.addBreadcrumb({
+      manager.add({
         type: 'navigation',
         category: 'navigation',
         message: `Navigated to ${to}`,
@@ -599,7 +594,7 @@ export class BreadcrumbManager {
        */
       const text = (target.textContent || target.innerText || '').trim().substring(0, 50);
 
-      manager.addBreadcrumb({
+      manager.add({
         type: 'ui',
         category: 'ui.click',
         message: `Click on ${selector}`,

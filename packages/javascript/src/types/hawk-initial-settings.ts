@@ -1,6 +1,6 @@
 import type { AffectedUser, EventContext } from '@hawk.so/types';
 import type { HawkJavaScriptEvent } from './event';
-import type { Transport } from '@hawk.so/core';
+import type { MessageProcessor, Transport } from '@hawk.so/core';
 import type { BreadcrumbsOptions } from '../addons/breadcrumbs';
 
 /**
@@ -98,4 +98,11 @@ export interface HawkInitialSettings {
    * If not provided, default WebSocket transport is used.
    */
   transport?: Transport;
+
+  /**
+   * Custom message processors.
+   * Used to prepare event message before send.
+   * May modify original event payload or return null to drop it.
+   */
+  messageProcessors?: MessageProcessor<'errors/javascript'>[];
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BreadcrumbManager } from '../src/addons/breadcrumbs';
+import { BrowserBreadcrumbStore } from '../src/addons/breadcrumbs';
 import { wait, createTransport, getLastPayload, createCatcher } from './catcher.helpers';
 
 const mockParse = vi.hoisted(() => vi.fn().mockResolvedValue([]));
@@ -11,7 +11,7 @@ describe('Catcher', () => {
   beforeEach(() => {
     localStorage.clear();
     mockParse.mockResolvedValue([]);
-    (BreadcrumbManager as any).instance = null;
+    (BrowserBreadcrumbStore as any).instance?.destroy();
   });
 
   // ── Context enrichment ────────────────────────────────────────────────────

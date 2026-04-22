@@ -10,5 +10,7 @@ export type { Transport } from './transports/transport';
 export type { SanitizerTypeHandler } from './modules/sanitizer';
 export { StackParser } from './modules/stack-parser';
 export { buildElementSelector } from './utils/selector';
-export { EventRejectedError } from './errors';
 export { isErrorProcessed, markErrorAsProcessed } from './utils/event';
+export type { BreadcrumbStore, BreadcrumbsAPI, BreadcrumbHint, BreadcrumbInput } from './breadcrumbs/breadcrumb-store';
+export type { ErrorSnapshot, MessageProcessor, ProcessingPayload } from './messages/message-processor';
+export { BreadcrumbsMessageProcessor } from './messages/breadcrumbs-message-processor';
