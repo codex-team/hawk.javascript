@@ -14,3 +14,5 @@ export { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 export type { BreadcrumbStore, BreadcrumbsAPI, BreadcrumbHint, BreadcrumbInput } from './breadcrumbs/breadcrumb-store';
 export type { ErrorSnapshot, MessageProcessor, ProcessingPayload } from './messages/message-processor';
 export { BreadcrumbsMessageProcessor } from './messages/breadcrumbs-message-processor';
+export { BaseCatcher } from './catcher';
+export type { BeforeSendHook } from './catcher';
