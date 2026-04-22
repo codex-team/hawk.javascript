@@ -177,7 +177,7 @@ export class BrowserBreadcrumbStore implements BreadcrumbStore {
    */
   public init(options: BreadcrumbsOptions = {}): void {
     if (this.isInitialized) {
-      log('[BrowserBreadcrumbStore] init has already been called; breadcrumb configuration is global and subsequent init options are ignored.', 'warn');
+      log('Breadcrumbs store already initialized', 'warn');
 
       return;
     }
