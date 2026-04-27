@@ -249,10 +249,10 @@ Default `issues` behavior (when omitted or set to `{}`): performance detectors a
 
 ```js
 issues: {
-  errors: true,           // implied: register window error / unhandledrejection unless issues.errors === false
-  webVitals: false,       // omit or false — off
-  longTasks: false,       // omit or false — off
-  longAnimationFrames: false // omit or false — off
+  errors: true,
+  webVitals: false,
+  longTasks: false,
+  longAnimationFrames: false
 }
 ```
 
