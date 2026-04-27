@@ -11,9 +11,8 @@ Error tracking for JavaScript/TypeScript applications.
 - 🛡️ Sensitive data filtering
 - 🌟 Source maps consuming
 - 💬 Console logs tracking
-- 🧊 Main-thread blocking detection (Long Tasks + LoAF, Chromium-only)
+- 🧊 Performance issues detection (Long Tasks + Long Animation Frames)
 - 📊 Web Vitals issues monitoring
-- ⚙️ Unified `issues` configuration (errors + performance detectors)
 - <img src="https://cdn.svglogos.dev/logos/vue.svg" width="16" height="16"> &nbsp;Vue support
 - <img src="https://cdn.svglogos.dev/logos/react.svg" width="16" height="16">  &nbsp;React support
 
@@ -246,7 +245,7 @@ The `issues` option configures automatic performance and error tracking.
 | **Long Tasks** | `issues.longTasks` | `100 ms` | Tasks with identifiable container (`containerSrc`, `containerId`, or `containerName`) |
 | **Long Animation Frames** | `issues.longAnimationFrames` | `300 ms` | Frames where at least one script attribution has `sourceURL`, `sourceFunctionName`, or `invoker` |
 
-Default `issues` (when you omit the option or pass `{}`) is opt-in for performance detectors; global error listeners stay on:
+Default `issues` behavior (when omitted or set to `{}`): performance detectors are off, global error listeners are on.
 
 ```js
 issues: {
@@ -260,6 +259,15 @@ issues: {
 Pass `true` or an options object for any detector you want. If the browser does not support a specific Performance API (`longtask`, `long-animation-frame`), the corresponding detector is silently skipped.
 
 Performance data is transmitted in the event **addons** (keys: `Long Task`, `Long Animation Frame`, `Web Vitals`).
+
+> [!WARNING]
+> To avoid overloading your event list, set a Grouping Pattern in Project Settings to merge all `Long Task: ...` / `Long Animation Frame: ...` issues.
+>
+> Example:
+> ```regex
+> Long Task.+
+> Long Animation Frame.+
+> ```
 
 ### Web Vitals
 
