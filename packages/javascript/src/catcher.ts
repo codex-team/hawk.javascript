@@ -1,6 +1,7 @@
 import './modules/element-sanitizer';
 import Socket from './modules/socket';
 import type { BreadcrumbsAPI, CatcherMessage, HawkInitialSettings, HawkJavaScriptEvent, Transport } from './types';
+import { isPerformanceIssueDetectorEnabled } from './types/issues';
 import { VueIntegration } from './integrations/vue';
 import type {
   AffectedUser,
@@ -14,6 +15,7 @@ import type {
 import type { JavaScriptCatcherIntegrations } from '@/types';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BreadcrumbManager } from './addons/breadcrumbs';
+import { PerformanceIssuesMonitor } from './addons/performance-issues';
 import {
   EventRejectedError,
   HawkUserManager,
@@ -31,7 +33,6 @@ import {
 import { HawkLocalStorage } from './storages/hawk-local-storage';
 import { createBrowserLogger } from './logger/logger';
 import { BrowserRandomGenerator } from './utils/random';
-
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
  */
@@ -126,6 +127,11 @@ export default class Catcher {
   private readonly breadcrumbManager: BreadcrumbManager | null;
 
   /**
+   * Issues monitor instance
+   */
+  private issuesMonitor: PerformanceIssuesMonitor | null = null;
+
+  /**
    * Manages currently authenticated user identity.
    */
   private readonly userManager: HawkUserManager = new HawkUserManager(
@@ -201,12 +207,7 @@ export default class Catcher {
       this.breadcrumbManager = null;
     }
 
-    /**
-     * Set global handlers
-     */
-    if (!settings.disableGlobalErrorsHandling) {
-      this.initGlobalHandlers();
-    }
+    this.configureIssues(settings);
 
     if (settings.vue) {
       this.connectVue(settings.vue);
@@ -316,6 +317,36 @@ export default class Catcher {
     }
 
     this.context = context;
+  }
+
+  /**
+   * Configure issues-related features:
+   * - global errors handling
+   * - performance issue detectors (Long Tasks / LoAF)
+   *
+   * @param settings
+   */
+  private configureIssues(settings: HawkInitialSettings): void {
+    if (settings.issues === false) {
+      return;
+    }
+
+    const issues = settings.issues ?? {};
+    const shouldHandleGlobalErrors = settings.disableGlobalErrorsHandling !== true && issues.errors !== false;
+    const shouldDetectPerformanceIssues = isPerformanceIssueDetectorEnabled(issues.longTasks)
+      || isPerformanceIssueDetectorEnabled(issues.longAnimationFrames)
+      || isPerformanceIssueDetectorEnabled(issues.webVitals);
+
+    if (shouldHandleGlobalErrors) {
+      this.initGlobalHandlers();
+    }
+
+    if (shouldDetectPerformanceIssues) {
+      this.issuesMonitor ??= new PerformanceIssuesMonitor();
+      this.issuesMonitor.init(issues, (entry) => {
+        void this.formatAndSend(entry.title, entry.addons);
+      });
+    }
   }
 
   /**
@@ -695,6 +726,9 @@ export default class Catcher {
    * @param integrationAddons - extra addons
    */
   private appendIntegrationAddons(errorFormatted: CatcherMessage<typeof Catcher.type>, integrationAddons: JavaScriptCatcherIntegrations): void {
+    if (errorFormatted.payload.addons === undefined) {
+      errorFormatted.payload.addons = {} as JavaScriptAddons;
+    }
     Object.assign(errorFormatted.payload.addons, integrationAddons);
   }
 }

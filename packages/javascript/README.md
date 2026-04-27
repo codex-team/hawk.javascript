@@ -11,6 +11,8 @@ Error tracking for JavaScript/TypeScript applications.
 - 🛡️ Sensitive data filtering
 - 🌟 Source maps consuming
 - 💬 Console logs tracking
+- 🧊 Performance issues detection (Long Tasks + Long Animation Frames)
+- 📊 Web Vitals issues monitoring
 - <img src="https://cdn.svglogos.dev/logos/vue.svg" width="16" height="16"> &nbsp;Vue support
 - <img src="https://cdn.svglogos.dev/logos/react.svg" width="16" height="16">  &nbsp;React support
 
@@ -85,11 +87,11 @@ Initialization settings:
 | `user`                        | {id: string, name?: string, image?: string, url?: string} | optional     | Current authenticated user                                                          |
 | `context`                     | object                                                    | optional     | Any data you want to pass with every message. Has limitation of length.             |
 | `vue`                         | Vue constructor                                           | optional     | Pass Vue constructor to set up the [Vue integration](#integrate-to-vue-application) |
-| `disableGlobalErrorsHandling` | boolean                                                   | optional     | Do not initialize global errors handling                                            |
 | `disableVueErrorHandler`      | boolean                                                   | optional     | Do not initialize Vue errors handling                                               |
 | `consoleTracking`             | boolean                                                   | optional     | Initialize console logs tracking                                                    |
 | `breadcrumbs`                 | false or BreadcrumbsOptions object                        | optional     | Configure breadcrumbs tracking (see below)                                          |
 | `beforeSend`                  | function(event) => event \| false \| void                 | optional     | Filter data before sending. Return modified event, `false` to drop the event.       |
+| `issues`                      | IssuesOptions object                                      | optional     | Issues config. See [Issues configuration](#issues-configuration). |
 
 Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
 
@@ -230,6 +232,123 @@ const breadcrumbs = hawk.breadcrumbs.get();
 
 // Clear all breadcrumbs
 hawk.breadcrumbs.clear();
+```
+
+## Issues configuration
+
+The `issues` option configures automatic performance and error tracking.
+
+| detector | key | default threshold | what it reports |
+|---|---|---|---|
+| **Errors** | `issues.errors` | — | Global runtime errors (`window.onerror`, `unhandledrejection`) |
+| **Web Vitals** | `issues.webVitals` | custom `reportPoorAbove` per metric | Core Web Vitals that pass Hawk report thresholds (`LCP`, `FCP`, `TTFB`, `INP`, `CLS`) |
+| **Long Tasks** | `issues.longTasks` | `100 ms` | Tasks with identifiable container (`containerSrc`, `containerId`, or `containerName`) |
+| **Long Animation Frames** | `issues.longAnimationFrames` | `300 ms` | Frames where at least one script attribution has `sourceURL`, `sourceFunctionName`, or `invoker` |
+
+Default `issues` behavior (when omitted or set to `{}`): performance detectors are off, global error listeners are on.
+
+```js
+issues: {
+  errors: true,
+  webVitals: false,
+  longTasks: false,
+  longAnimationFrames: false
+}
+```
+
+Pass `true` or an options object for any detector you want. If the browser does not support a specific Performance API (`longtask`, `long-animation-frame`), the corresponding detector is silently skipped.
+
+Performance data is transmitted in the event **addons** (keys: `Long Task`, `Long Animation Frame`, `Web Vitals`).
+
+> [!WARNING]
+> To avoid overloading your event list, set a Grouping Pattern in Project Settings to merge all `Long Task: ...` / `Long Animation Frame: ...` issues.
+>
+> Example:
+> ```regex
+> Long Task.+
+> Long Animation Frame.+
+> ```
+
+### Web Vitals
+
+When `issues.webVitals` is enabled, Hawk subscribes to Core Web Vitals via the `web-vitals` library and sends one issue per metric name per page load when metric value exceeds the configured `reportPoorAbove` threshold.
+
+Default `reportPoorAbove` values:
+
+| metric | default `reportPoorAbove` |
+|---|---|
+| `CLS` | `0.35` |
+| `INP` | `700` |
+| `LCP` | `5000` |
+| `FCP` | `4000` |
+| `TTFB` | `2500` |
+
+You can override them:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  issues: {
+    webVitals: {
+      reportPoorAbove: {
+        CLS: 0.3,
+        INP: 600,
+        LCP: 4500,
+        FCP: 3500,
+        TTFB: 2200,
+      }
+    }
+  }
+});
+```
+
+`web-vitals` is included in the SDK dependencies — no extra installation required.
+
+### Disabling
+
+Disable **all** automatic issue tracking (errors, Web Vitals, Long Tasks, LoAF).
+Manual sending via `hawk.send()` still works:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  issues: false
+});
+```
+
+Disable only global errors handling:
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  issues: {
+    errors: false
+  }
+});
+```
+
+### Selective Configuration
+
+Enable or disable individual detectors, optionally overriding thresholds (minimum `50 ms`):
+
+```js
+const hawk = new HawkCatcher({
+  token: 'INTEGRATION_TOKEN',
+  issues: {
+    errors: true,
+    webVitals: {
+      reportPoorAbove: {
+        INP: 600
+      }
+    },
+    longTasks: {
+      thresholdMs: 70
+    },
+    longAnimationFrames: {
+      thresholdMs: 200
+    }
+  }
+});
 ```
 
 ## Source maps consuming
