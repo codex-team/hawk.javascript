@@ -129,7 +129,7 @@ export default class Catcher {
   /**
    * Issues monitor instance
    */
-  private readonly issuesMonitor = new PerformanceIssuesMonitor();
+  private issuesMonitor: PerformanceIssuesMonitor | null = null;
 
   /**
    * Manages currently authenticated user identity.
@@ -342,6 +342,7 @@ export default class Catcher {
     }
 
     if (shouldDetectPerformanceIssues) {
+      this.issuesMonitor ??= new PerformanceIssuesMonitor();
       this.issuesMonitor.init(issues, (entry) => {
         void this.formatAndSend(entry.title, entry.addons);
       });

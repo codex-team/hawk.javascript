@@ -1,4 +1,5 @@
-import type { Json } from '@hawk.so/types';
+import type { Json, JsonNode } from '@hawk.so/types';
+import { Sanitizer } from '@hawk.so/core';
 import { onCLS, onINP, onLCP, onFCP, onTTFB } from 'web-vitals';
 import {
   isPerformanceIssueDetectorEnabled,
@@ -13,7 +14,6 @@ import {
   type WebVitalOptions,
   type WebVitalRatingThresholds
 } from '../types/issues';
-import { compactJson } from '../utils/compactJson';
 
 /** Default threshold for Long Tasks detector (ms). */
 export const DEFAULT_LONG_TASK_THRESHOLD_MS = 100;
@@ -36,6 +36,22 @@ const DEFAULT_WEB_VITAL_THRESHOLDS: Record<WebVitalName, WebVitalRatingThreshold
   TTFB: { official: [800, 1800],
     reportPoorAbove: 2500 },
 };
+
+/**
+ * Builds a compact payload and sanitizes it before sending.
+ * Drops null/undefined/empty-string values.
+ */
+function sanitizeIssuePayload(entries: [string, JsonNode | null | undefined][]): Json {
+  const payload: Json = {};
+
+  for (const [key, value] of entries) {
+    if (value != null && value !== '') {
+      payload[key] = value;
+    }
+  }
+
+  return Sanitizer.sanitize(payload) as Json;
+}
 
 /**
  * Checks whether a Long Task entry is worth reporting.
@@ -122,7 +138,7 @@ function getWebVitalRatingThresholds(metricName: WebVitalName, webVitalsOptions?
  * @see https://developer.mozilla.org/en-US/docs/Web/API/PerformanceScriptTiming
  */
 function serializeScriptTiming(script: LoAFScript): Json {
-  return compactJson([
+  return sanitizeIssuePayload([
     ['invokerName', script.invoker],
     ['invokerType', script.invokerType],
     ['sourceUrl', script.sourceURL],
@@ -151,7 +167,7 @@ function serializeLongTaskEvent(task: LongTaskPerformanceEntry): PerformanceIssu
   return {
     title: 'Long Task — ' + containerIdentifier,
     addons: {
-      [PERFORMANCE_ISSUE_ADDON_KEYS.longTask]: compactJson([
+      [PERFORMANCE_ISSUE_ADDON_KEYS.longTask]: sanitizeIssuePayload([
         ['taskStartTimeMs', Math.round(task.startTime)],
         ['taskDurationMs', Math.round(task.duration)],
         ['attributionSourceType', primary.name],
@@ -184,7 +200,7 @@ function serializeLoAFEvent(loaf: LoAFEntry): PerformanceIssueEvent {
   return {
     title: 'Long Animation Frame' + (culprit ? ` — ${culprit}` : ''),
     addons: {
-      [PERFORMANCE_ISSUE_ADDON_KEYS.longFrame]: compactJson([
+      [PERFORMANCE_ISSUE_ADDON_KEYS.longFrame]: sanitizeIssuePayload([
         ['frameStartTimeMs', Math.round(loaf.startTime)],
         ['frameDurationMs', Math.round(loaf.duration)],
         ['frameBlockingDurationMs', loaf.blockingDuration != null ? Math.round(loaf.blockingDuration) : null],
@@ -220,7 +236,7 @@ function serializeWebVitalEvent(metric: WebVitalMetric): PerformanceIssueEvent {
   return {
     title: `Poor Web Vital: ${metric.name} (${metricLabel})`,
     addons: {
-      [PERFORMANCE_ISSUE_ADDON_KEYS.webVitals]: compactJson([
+      [PERFORMANCE_ISSUE_ADDON_KEYS.webVitals]: sanitizeIssuePayload([
         ['metricName', metric.name],
         ['metricValue', metric.value],
         ['metricRating', metric.rating],
