@@ -246,8 +246,7 @@ function serializeWebVitalEvent(metric: WebVitalMetric): PerformanceIssueEvent {
 export class PerformanceIssuesMonitor {
   private longTaskObserver: PerformanceObserver | null = null;
   private loafObserver: PerformanceObserver | null = null;
-  private isInitialized = false;
-  private destroyed = false;
+  private isActive = false;
 
   /**
    * Initializes enabled detectors based on the provided options.
@@ -257,12 +256,11 @@ export class PerformanceIssuesMonitor {
    * @param onIssue - callback invoked for each detected performance issue
    */
   public init(options: PerformanceIssuesOptions, onIssue: (event: PerformanceIssueEvent) => void): void {
-    if (this.isInitialized) {
+    if (this.isActive) {
       return;
     }
 
-    this.isInitialized = true;
-    this.destroyed = false;
+    this.isActive = true;
 
     const detectors = [
       {
@@ -315,8 +313,7 @@ export class PerformanceIssuesMonitor {
    * After calling destroy, the monitor can be re-initialized via {@link init}.
    */
   public destroy(): void {
-    this.destroyed = true;
-    this.isInitialized = false;
+    this.isActive = false;
     this.longTaskObserver?.disconnect();
     this.loafObserver?.disconnect();
     this.longTaskObserver = null;
@@ -338,7 +335,7 @@ export class PerformanceIssuesMonitor {
     try {
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (this.destroyed) {
+          if (!this.isActive) {
             return;
           }
 
@@ -363,14 +360,14 @@ export class PerformanceIssuesMonitor {
    * @param webVitalsOptions
    */
   private observeWebVitals(onIssue: (event: PerformanceIssueEvent) => void, webVitalsOptions?: WebVitalOptions): void {
-    if (this.destroyed) {
+    if (!this.isActive) {
       return;
     }
 
     const reported = new Set<string>();
 
     const report = (metric: WebVitalMetric): void => {
-      if (this.destroyed || !isReportableWebVital(metric, reported, webVitalsOptions)) {
+      if (!this.isActive || !isReportableWebVital(metric, reported, webVitalsOptions)) {
         return;
       }
 
