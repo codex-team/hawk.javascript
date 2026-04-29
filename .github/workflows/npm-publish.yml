@@ -10,7 +10,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -19,6 +19,9 @@ jobs:
       - run: yarn
       - run: yarn lint-test
       - run: yarn build:all
+      - run: yarn workspace @hawk.so/core npm publish --access=public
+        env:
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: yarn workspace @hawk.so/javascript npm publish --access=public
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -26,7 +29,7 @@ jobs:
     needs: publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Get package info
         id: package
         uses: codex-team/action-nodejs-package-info@v1

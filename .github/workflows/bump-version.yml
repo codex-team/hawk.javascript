@@ -1,0 +1,16 @@
+name: Bump version in PR
+
+on: [pull_request]
+
+jobs:
+  bump-version-core:
+    uses: ./.github/workflows/bump-package.yml
+    with:
+      workspace: '@hawk.so/core'
+      path: packages/core
+
+  bump-version-javascript:
+    uses: ./.github/workflows/bump-package.yml
+    with:
+      workspace: '@hawk.so/javascript'
+      path: packages/javascript
