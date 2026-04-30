@@ -1,7 +1,7 @@
 {
-  "name": "@hawk.so/javascript",
-  "version": "3.2.23",
-  "description": "JavaScript errors tracking for Hawk.so",
+  "name": "@hawk.so/browser",
+  "version": "1.0.0",
+  "description": "JavaScript Browser errors tracking for Hawk.so",
   "files": [
     "dist"
   ],
@@ -28,7 +28,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/codex-team/hawk.javascript.git",
-    "directory": "packages/javascript"
+    "directory": "packages/browser"
   },
   "author": {
     "name": "CodeX",

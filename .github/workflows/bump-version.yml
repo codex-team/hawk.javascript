@@ -12,5 +12,5 @@ jobs:
   bump-version-javascript:
     uses: ./.github/workflows/bump-package.yml
     with:
-      workspace: '@hawk.so/javascript'
-      path: packages/javascript
+      workspace: '@hawk.so/browser'
+      path: packages/browser
