@@ -21,7 +21,7 @@ jobs:
       - run: yarn workspace @hawk.so/core npm publish --access=public
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: yarn workspace @hawk.so/javascript npm publish --access=public
+      - run: yarn workspace @hawk.so/browser npm publish --access=public
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
   notify:
@@ -33,7 +33,7 @@ jobs:
         id: package
         uses: codex-team/action-nodejs-package-info@v1
         with:
-          path: packages/javascript
+          path: packages/browser
       - name: Send a message
         uses: codex-team/action-codexbot-notify@v1
         with:

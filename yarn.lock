@@ -583,21 +583,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hawk.so/core@workspace:^, @hawk.so/core@workspace:packages/core":
+"@hawk.so/browser@workspace:^, @hawk.so/browser@workspace:packages/browser":
   version: 0.0.0-use.local
-  resolution: "@hawk.so/core@workspace:packages/core"
-  dependencies:
-    "@hawk.so/types": "npm:0.5.8"
-    "@vitest/coverage-v8": "npm:^4.0.18"
-    vite: "npm:^7.3.1"
-    vite-plugin-dts: "npm:^4.2.4"
-    vitest: "npm:^4.0.18"
-  languageName: unknown
-  linkType: soft
-
-"@hawk.so/javascript@workspace:^, @hawk.so/javascript@workspace:packages/javascript":
-  version: 0.0.0-use.local
-  resolution: "@hawk.so/javascript@workspace:packages/javascript"
+  resolution: "@hawk.so/browser@workspace:packages/browser"
   dependencies:
     "@hawk.so/core": "workspace:^"
     "@hawk.so/types": "npm:0.5.8"
@@ -608,6 +596,18 @@ __metadata:
     vite-plugin-dts: "npm:^4.2.4"
     vitest: "npm:^4.0.18"
     vue: "npm:^2"
+  languageName: unknown
+  linkType: soft
+
+"@hawk.so/core@workspace:^, @hawk.so/core@workspace:packages/core":
+  version: 0.0.0-use.local
+  resolution: "@hawk.so/core@workspace:packages/core"
+  dependencies:
+    "@hawk.so/types": "npm:0.5.8"
+    "@vitest/coverage-v8": "npm:^4.0.18"
+    vite: "npm:^7.3.1"
+    vite-plugin-dts: "npm:^4.2.4"
+    vitest: "npm:^4.0.18"
   languageName: unknown
   linkType: soft
 
@@ -628,7 +628,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@hawk.so/sveltekit@workspace:packages/sveltekit"
   dependencies:
-    "@hawk.so/javascript": "workspace:^"
+    "@hawk.so/browser": "workspace:^"
     vite: "npm:^7.3.1"
     vite-plugin-dts: "npm:^4.2.4"
   languageName: unknown
