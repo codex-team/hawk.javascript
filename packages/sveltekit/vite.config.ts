@@ -11,7 +11,7 @@ export default defineConfig(() => {
         fileName: 'hawk-sveltekit',
       },
       rollupOptions: {
-        external: ['sveltekit', '@hawk.so/javascript'],
+        external: ['sveltekit', '@hawk.so/browser'],
       },
     },
     resolve: {

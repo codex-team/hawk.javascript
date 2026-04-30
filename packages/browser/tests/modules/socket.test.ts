@@ -1,5 +1,5 @@
-import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
-import Socket from '../src/modules/socket';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import Socket from '../../src/modules/socket';
 import type { CatcherMessage } from '@hawk.so/types';
 
 const MOCK_WEBSOCKET_URL = 'ws://localhost:1234';

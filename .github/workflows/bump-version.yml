@@ -9,8 +9,8 @@ jobs:
       workspace: '@hawk.so/core'
       path: packages/core
 
-  bump-version-javascript:
+  bump-version-browser:
     uses: ./.github/workflows/bump-package.yml
     with:
-      workspace: '@hawk.so/javascript'
-      path: packages/javascript
+      workspace: '@hawk.so/browser'
+      path: packages/browser

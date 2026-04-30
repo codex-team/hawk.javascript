@@ -1,13 +1,8 @@
-# Hawk JavaScript Catcher
+# Hawk JavaScript Browser Catcher
 
-> [!WARNING]
-> **This package is deprecated.** It has been renamed to [`@hawk.so/browser`](https://www.npmjs.com/package/@hawk.so/browser). Please migrate:
-> ```diff
-> - "@hawk.so/javascript": "..."
-> + "@hawk.so/browser": "..."
-> ```
+Error tracking for JavaScript/TypeScript browser applications.
 
-Error tracking for JavaScript/TypeScript applications.
+Former it was named [@hawk.so/javascript](https://www.npmjs.com/package/@hawk.so/javascript).
 
 ## Features
 
@@ -33,22 +28,22 @@ We recommend adding Hawk script to page above others to prevent missing any erro
 Install package
 
 ```shell
-npm install @hawk.so/javascript --save
+npm install @hawk.so/browser --save
 ```
 
 ```shell
-yarn add @hawk.so/javascript
+yarn add @hawk.so/browser
 ```
 
-Then import `@hawk.so/javascript` module to your code.
+Then import `@hawk.so/browser` module to your code.
 
 ```js
-import HawkCatcher from '@hawk.so/javascript';
+import HawkCatcher from '@hawk.so/browser';
 ```
 
 ### Load from CDN
 
-Get a specific version bundle path from [@hawk.so/javascript](https://www.jsdelivr.com/package/npm/@hawk.so/javascript)
+Get a specific version bundle path from [@hawk.so/browser](https://www.jsdelivr.com/package/npm/@hawk.so/browser)
 — open the page and copy the link. Do not use @latest, as your setup may break in case of a major API update.
 
 Then require this script on your site.
@@ -81,7 +76,7 @@ const hawk = new HawkCatcher('INTEGRATION_TOKEN');
 Alternately, add `onload="const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'})"` attribute to the `<script>` tag.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@hawk.so/javascript@latest/dist/hawk.js"
+<script src="https://cdn.jsdelivr.net/npm/@hawk.so/browser@latest/dist/hawk.js"
         onload="const hawk = new HawkCatcher({token: 'INTEGRATION_TOKEN'})"></script>
 ```
 
@@ -430,7 +425,7 @@ React is suppported out of the box. No additional setup required.
 Create the Hawk Catcher instance in a `index.js` file of your project.
 
 ```js
-import HawkCatcher from '@hawk.so/javascript';
+import HawkCatcher from '@hawk.so/browser';
 
 const hawk = new HawkCatcher({
   token: 'INTEGRATION_TOKEN'
