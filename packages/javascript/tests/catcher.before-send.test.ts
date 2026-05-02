@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createCatcher, createTransport, wait, getLastPayload } from './catcher.helpers';
 
+vi.mock('@hawk.so/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@hawk.so/core')>();
+  return { ...actual, StackParser: class { parse = vi.fn().mockResolvedValue([]); } };
+});
+
 describe('Catcher', () => {
   it('should send event as-is when beforeSend returns it unchanged', async () => {
     const { sendSpy, transport } = createTransport();
