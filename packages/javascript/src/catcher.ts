@@ -1,21 +1,20 @@
 import './modules/element-sanitizer';
 import Socket from './modules/socket';
-import type { BreadcrumbsAPI, CatcherMessage, HawkInitialSettings, HawkJavaScriptEvent, Transport } from './types';
+import type { CatcherMessage, HawkInitialSettings, HawkJavaScriptEvent, Transport } from './types';
 import { VueIntegration } from './integrations/vue';
 import type {
   AffectedUser,
+  CatcherMessagePayload,
   DecodedIntegrationToken,
   EncodedIntegrationToken,
   EventContext,
-  JavaScriptAddons,
-  Json,
   VueIntegrationAddons
 } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from '@/types';
 import { ConsoleCatcher } from './addons/consoleCatcher';
-import { BreadcrumbManager } from './addons/breadcrumbs';
+import { BrowserBreadcrumbStore } from './addons/breadcrumbs';
+import type { BreadcrumbStore, MessageProcessor, ProcessingPayload } from '@hawk.so/core';
 import {
-  EventRejectedError,
   HawkUserManager,
   isErrorProcessed,
   isLoggerSet,
@@ -31,6 +30,10 @@ import {
 import { HawkLocalStorage } from './storages/hawk-local-storage';
 import { createBrowserLogger } from './logger/logger';
 import { BrowserRandomGenerator } from './utils/random';
+import { BrowserAddonMessageProcessor } from './messages/browser-addon-message-processor';
+import { ConsoleOutputAddonMessageProcessor } from './messages/console-output-addon-message-processor';
+import { DebugAddonMessageProcessor } from './messages/debug-addon-message-processor';
+import { BrowserBreadcrumbsMessageProcessor } from './messages/browser-breadcrumbs-message-processor';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -121,9 +124,9 @@ export default class Catcher {
   private readonly consoleCatcher: ConsoleCatcher | null = null;
 
   /**
-   * Breadcrumb manager instance
+   * Breadcrumb store instance
    */
-  private readonly breadcrumbManager: BreadcrumbManager | null;
+  private readonly breadcrumbStore: BrowserBreadcrumbStore | null = null;
 
   /**
    * Manages currently authenticated user identity.
@@ -132,6 +135,11 @@ export default class Catcher {
     new HawkLocalStorage(),
     new BrowserRandomGenerator()
   );
+
+  /**
+   * Ordered list of message processors applied to every outgoing event message.
+   */
+  private readonly messageProcessors: MessageProcessor<typeof Catcher.type>[];
 
   /**
    * Catcher constructor
@@ -161,6 +169,9 @@ export default class Catcher {
       settings.consoleTracking !== null && settings.consoleTracking !== undefined
         ? settings.consoleTracking
         : true;
+    this.messageProcessors = [
+      new BrowserAddonMessageProcessor(),
+    ];
 
     if (!this.token) {
       log(
@@ -188,17 +199,23 @@ export default class Catcher {
 
     if (this.consoleTracking) {
       this.consoleCatcher = ConsoleCatcher.getInstance();
-      this.consoleCatcher.init();
+      this.messageProcessors.push(new ConsoleOutputAddonMessageProcessor(this.consoleCatcher));
     }
 
     /**
      * Initialize breadcrumbs
      */
     if (settings.breadcrumbs !== false) {
-      this.breadcrumbManager = BreadcrumbManager.getInstance();
-      this.breadcrumbManager.init(settings.breadcrumbs ?? {});
-    } else {
-      this.breadcrumbManager = null;
+      this.breadcrumbStore = BrowserBreadcrumbStore.getInstance();
+      this.messageProcessors.push(new BrowserBreadcrumbsMessageProcessor(settings.breadcrumbs ?? {}));
+    }
+
+    if (this.debug) {
+      this.messageProcessors.push(new DebugAddonMessageProcessor());
+    }
+
+    if (settings.messageProcessors) {
+      this.messageProcessors.push(...settings.messageProcessors);
     }
 
     /**
@@ -297,11 +314,11 @@ export default class Catcher {
    *   data: { userId: '123' }
    * });
    */
-  public get breadcrumbs(): BreadcrumbsAPI {
+  public get breadcrumbs(): BreadcrumbStore {
     return {
-      add: (breadcrumb, hint) => this.breadcrumbManager?.addBreadcrumb(breadcrumb, hint),
-      get: () => this.breadcrumbManager?.getBreadcrumbs() ?? [],
-      clear: () => this.breadcrumbManager?.clearBreadcrumbs(),
+      add: (breadcrumb, hint) => this.breadcrumbStore?.add(breadcrumb, hint),
+      get: () => this.breadcrumbStore?.get() ?? [],
+      clear: () => this.breadcrumbStore?.clear(),
     };
   }
 
@@ -360,7 +377,12 @@ export default class Catcher {
   }
 
   /**
-   * Format and send an error
+   * Process and sends error message.
+   *
+   * Returns early without sending either if
+   * - error was already processed,
+   * - message processor drops it
+   * - {@link beforeSend} hook rejects it
    *
    * @param error - error to send
    * @param integrationAddons - addons spoiled by Integration
@@ -384,105 +406,119 @@ export default class Catcher {
         markErrorAsProcessed(error);
       }
 
-      const errorFormatted = await this.prepareErrorFormatted(error, context);
+      let processingPayload = await this.buildBasePayload(error, context);
 
-      /**
-       * If this event caught by integration (Vue or other), it can pass extra addons
-       */
-      if (integrationAddons) {
-        this.appendIntegrationAddons(errorFormatted, Sanitizer.sanitize(integrationAddons));
+      for (const processor of this.messageProcessors) {
+        const result = processor.apply(processingPayload, error);
+
+        if (result === null) {
+          return;
+        }
+
+        processingPayload = result;
       }
 
-      this.sendErrorFormatted(errorFormatted);
-    } catch (e) {
-      if (e instanceof EventRejectedError) {
-        /**
-         * Event was rejected by user using the beforeSend method
-         */
+      const payload = processingPayload as CatcherMessagePayload<typeof Catcher.type>;
+
+      if (integrationAddons) {
+        payload.addons = {
+          ...(payload.addons ?? {}),
+          ...Sanitizer.sanitize(integrationAddons),
+        };
+      }
+
+      const payloadPostBeforeSend = this.applyBeforeSendHook(payload);
+
+      if (payloadPostBeforeSend === null) {
+        // Event was rejected by user using the beforeSend method
         return;
       }
 
+      this.sendMessage({
+        token: this.token,
+        catcherType: Catcher.type,
+        payload: payloadPostBeforeSend,
+      } as CatcherMessage<typeof Catcher.type>);
+    } catch (e) {
       log('Unable to send error. Seems like it is Hawk internal bug. Please, report it here: https://github.com/codex-team/hawk.javascript/issues/new', 'warn', e);
     }
   }
 
   /**
-   * Sends formatted HawkEvent to the Collector
+   * Builds base event payload with basic fields (title, type, backtrace, user, context, release).
    *
-   * @param errorFormatted - formatted error to send
+   * @param error - caught error or string reason
+   * @param context - per-call context to merge with instance-level context
+   * @returns base payload with core data
    */
-  private sendErrorFormatted(errorFormatted: CatcherMessage<typeof Catcher.type>): void {
-    this.transport.send(errorFormatted)
-      .catch((sendingError) => {
-        log('WebSocket sending error', 'error', sendingError);
-      });
-  }
-
-  /**
-   * Formats the event
-   *
-   * @param error - error to format
-   * @param context - any additional data passed by user
-   */
-  private async prepareErrorFormatted(error: Error | string, context?: EventContext): Promise<CatcherMessage<typeof Catcher.type>> {
-    let payload: HawkJavaScriptEvent = {
+  private async buildBasePayload(
+    error: Error | string,
+    context?: EventContext
+  ): Promise<ProcessingPayload<typeof Catcher.type>> {
+    return {
       title: this.getTitle(error),
       type: this.getType(error),
       release: this.getRelease(),
-      breadcrumbs: this.getBreadcrumbsForEvent(),
       context: this.getContext(context),
       user: this.getUser(),
-      addons: this.getAddons(error),
       backtrace: await this.getBacktrace(error),
       catcherVersion: this.version,
+      addons: {},
     };
+  }
 
-    /**
-     * Filter sensitive data
-     */
-    if (typeof this.beforeSend === 'function') {
-      let eventPayloadClone: HawkJavaScriptEvent;
-
-      try {
-        eventPayloadClone = structuredClone(payload);
-      } catch {
-        /**
-         * structuredClone may fail on non-cloneable values (functions, DOM nodes, etc.)
-         * Fall back to passing the original — hook may mutate it, but at least reporting won't crash
-         */
-        eventPayloadClone = payload;
-      }
-
-      const result = this.beforeSend(eventPayloadClone);
-
-      /**
-       * false → drop event
-       */
-      if (result === false) {
-        throw new EventRejectedError('Event rejected by beforeSend method.');
-      }
-
-      /**
-       * Valid event payload → use it instead of original
-       */
-      if (isValidEventPayload(result)) {
-        payload = result as HawkJavaScriptEvent;
-      } else {
-        /**
-         * Anything else is invalid — warn, payload stays untouched (hook only received a clone)
-         */
-        log(
-          'Invalid beforeSend value. It should return event or false. Event is sent without changes.',
-          'warn'
-        );
-      }
+  /**
+   * Clones {@link payload} and applies user-supplied {@link beforeSend} hook against it.
+   *
+   * @param payload - processed event message payload
+   * @returns possibly modified payload, or null if the event should be dropped
+   */
+  private applyBeforeSendHook(
+    payload: CatcherMessagePayload<typeof Catcher.type>
+  ): CatcherMessagePayload<typeof Catcher.type> | null {
+    if (typeof this.beforeSend !== 'function') {
+      return payload;
     }
 
-    return {
-      token: this.token,
-      catcherType: Catcher.type,
-      payload,
-    };
+    let clone: CatcherMessagePayload<typeof Catcher.type>;
+
+    try {
+      clone = structuredClone(payload);
+    } catch {
+      // structuredClone may fail on non-cloneable values (functions, DOM nodes, etc.)
+      // Fall back to passing the original — hook may mutate it, but at least reporting won't crash
+      clone = payload;
+    }
+
+    const result = this.beforeSend(clone);
+
+    // false → drop event
+    if (result === false) {
+      return null;
+    }
+
+    // Valid event payload → use it instead of original
+    if (isValidEventPayload(result)) {
+      return result as CatcherMessagePayload<typeof Catcher.type>;
+    }
+
+    // Anything else is invalid — warn, payload stays untouched (hook only received a clone)
+    log(
+      'Invalid beforeSend value. It should return event or false. Event is sent without changes.',
+      'warn'
+    );
+
+    return payload;
+  }
+
+  /**
+   * Dispatches assembled message over configured transport.
+   *
+   * @param message - fully assembled catcher message ready to send
+   */
+  private sendMessage(message: CatcherMessage<typeof Catcher.type>): void {
+    this.transport.send(message)
+      .catch((e) => log('Transport sending error', 'error', e));
   }
 
   /**
@@ -575,39 +611,6 @@ export default class Catcher {
   }
 
   /**
-   * Get breadcrumbs for event payload
-   */
-  private getBreadcrumbsForEvent(): HawkJavaScriptEvent['breadcrumbs'] {
-    const breadcrumbs = this.breadcrumbManager?.getBreadcrumbs();
-
-    return breadcrumbs && breadcrumbs.length > 0 ? breadcrumbs : undefined;
-  }
-
-  /**
-   * Get parameters
-   */
-  private getGetParams(): Json | null {
-    const searchString = window.location.search.substr(1);
-
-    if (!searchString) {
-      return null;
-    }
-
-    /**
-     * Create object from get-params string
-     */
-    const pairs = searchString.split('&');
-
-    return pairs.reduce((accumulator, pair) => {
-      const [key, value] = pair.split('=');
-
-      accumulator[key] = value;
-
-      return accumulator;
-    }, {});
-  }
-
-  /**
    * Return parsed backtrace information
    *
    * @param error - event from which to get backtrace
@@ -630,71 +633,5 @@ export default class Catcher {
 
       return undefined;
     }
-  }
-
-  /**
-   * Return some details
-   *
-   * @param {Error|string} error — caught error
-   */
-  private getAddons(error: Error | string): HawkJavaScriptEvent['addons'] {
-    const { innerWidth, innerHeight } = window;
-    const userAgent = window.navigator.userAgent;
-    const location = window.location.href;
-    const getParams = this.getGetParams();
-    const consoleLogs = this.consoleTracking && this.consoleCatcher?.getConsoleLogStack();
-
-    const addons: JavaScriptAddons = {
-      window: {
-        innerWidth,
-        innerHeight,
-      },
-      userAgent,
-      url: location,
-    };
-
-    if (getParams) {
-      addons.get = getParams;
-    }
-
-    if (this.debug) {
-      addons.RAW_EVENT_DATA = this.getRawData(error);
-    }
-
-    if (consoleLogs && consoleLogs.length > 0) {
-      addons.consoleOutput = consoleLogs;
-    }
-
-    return addons;
-  }
-
-  /**
-   * Compose raw data object
-   *
-   * @param {Error|string} error — caught error
-   */
-  private getRawData(error: Error | string): Json | undefined {
-    if (!(error instanceof Error)) {
-      return;
-    }
-
-    const stack = error.stack !== null && error.stack !== undefined ? error.stack : '';
-
-    return {
-      name: error.name,
-      message: error.message,
-      stack,
-    };
-  }
-
-  /**
-   * Extend addons object with addons spoiled by integration
-   * This method mutates original event
-   *
-   * @param errorFormatted - Hawk event prepared for sending
-   * @param integrationAddons - extra addons
-   */
-  private appendIntegrationAddons(errorFormatted: CatcherMessage<typeof Catcher.type>, integrationAddons: JavaScriptCatcherIntegrations): void {
-    Object.assign(errorFormatted.payload.addons, integrationAddons);
   }
 }
