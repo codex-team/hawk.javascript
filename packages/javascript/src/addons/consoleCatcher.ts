@@ -2,6 +2,7 @@
  * @file Module for intercepting console logs with stack trace capture
  */
 import type { ConsoleLogEvent } from '@hawk.so/types';
+import { getErrorFromErrorEvent, getTitleFromError, getTypeFromError } from '../utils/error';
 import { Sanitizer } from '@hawk.so/core';
 
 /**
@@ -195,13 +196,18 @@ export class ConsoleCatcher {
    * @param event - The error event or promise rejection event to convert
    */
   private createConsoleEventFromError(event: ErrorEvent | PromiseRejectionEvent): ConsoleLogEvent {
+    const errorSource = getErrorFromErrorEvent(event);
+    const sanitizedError = Sanitizer.sanitize(errorSource.rawError);
+    const message = getTitleFromError(sanitizedError) ?? errorSource.fallbackTitle ?? '<unknown error>';
+    const type = getTypeFromError(sanitizedError) ?? errorSource.fallbackType ?? 'Error';
+
     if (event instanceof ErrorEvent) {
       return {
         method: 'error',
         timestamp: new Date(),
-        type: event.error?.name || 'Error',
-        message: event.error?.message || event.message,
-        stack: event.error?.stack || '',
+        type,
+        message,
+        stack: (errorSource.rawError as Error)?.stack || '',
         fileLine: event.filename
           ? `${event.filename}:${event.lineno}:${event.colno}`
           : '',
@@ -212,8 +218,8 @@ export class ConsoleCatcher {
       method: 'error',
       timestamp: new Date(),
       type: 'UnhandledRejection',
-      message: event.reason?.message || String(event.reason),
-      stack: event.reason?.stack || '',
+      message,
+      stack: (errorSource.rawError as Error)?.stack || '',
       fileLine: '',
     };
   }
