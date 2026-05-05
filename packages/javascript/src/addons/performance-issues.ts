@@ -267,24 +267,13 @@ function serializeWebVitalEvent(metric: WebVitalMetric): PerformanceIssueEvent {
  * - **Web Vitals** — poor-rated Core Web Vitals (LCP, FCP, TTFB, INP, CLS)
  */
 export class PerformanceIssuesMonitor {
-  private longTaskObserver: PerformanceObserver | null = null;
-  private loafObserver: PerformanceObserver | null = null;
-  private isActive = false;
-
   /**
    * Initializes enabled detectors based on the provided options.
-   * Safe to call only once — subsequent calls are ignored until {@link destroy} resets the state.
    *
    * @param options - detector configuration (longTasks, longAnimationFrames, webVitals)
    * @param onIssue - callback invoked for each detected performance issue
    */
   public init(options: PerformanceIssuesOptions, onIssue: (event: PerformanceIssueEvent) => void): void {
-    if (this.isActive) {
-      return;
-    }
-
-    this.isActive = true;
-
     const detectors = [
       {
         option: options.longTasks,
@@ -308,16 +297,16 @@ export class PerformanceIssuesMonitor {
       },
     ];
 
-    [this.longTaskObserver, this.loafObserver] = detectors.map(({ option, type, defaultMs, process }) => {
+    detectors.forEach(({ option, type, defaultMs, process }) => {
       if (!isPerformanceIssueDetectorEnabled(option)) {
-        return null;
+        return;
       }
 
       const custom = typeof option === 'object' ? option?.thresholdMs : undefined;
       const thresholdMs = Math.max(MIN_REPORTABLE_ISSUE_THRESHOLD_MS,
         typeof custom === 'number' && !Number.isNaN(custom) ? Math.round(custom) : defaultMs);
 
-      return this.observe(type, (entry) => {
+      this.observe(type, (entry) => {
         const event = process(entry, thresholdMs);
 
         if (event) {
@@ -329,18 +318,6 @@ export class PerformanceIssuesMonitor {
     if (isPerformanceIssueDetectorEnabled(options.webVitals)) {
       this.observeWebVitals(onIssue, typeof options.webVitals === 'object' ? options.webVitals : undefined);
     }
-  }
-
-  /**
-   * Disconnects all active observers and resets the monitor state.
-   * After calling destroy, the monitor can be re-initialized via {@link init}.
-   */
-  public destroy(): void {
-    this.isActive = false;
-    this.longTaskObserver?.disconnect();
-    this.loafObserver?.disconnect();
-    this.longTaskObserver = null;
-    this.loafObserver = null;
   }
 
   /**
@@ -358,10 +335,6 @@ export class PerformanceIssuesMonitor {
     try {
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (!this.isActive) {
-            return;
-          }
-
           onEntry(entry);
         }
       });
@@ -383,14 +356,10 @@ export class PerformanceIssuesMonitor {
    * @param webVitalsOptions
    */
   private observeWebVitals(onIssue: (event: PerformanceIssueEvent) => void, webVitalsOptions?: WebVitalOptions): void {
-    if (!this.isActive) {
-      return;
-    }
-
     const reported = new Set<string>();
 
     const report = (metric: WebVitalMetric): void => {
-      if (!this.isActive || !isReportableWebVital(metric, reported, webVitalsOptions)) {
+      if (!isReportableWebVital(metric, reported, webVitalsOptions)) {
         return;
       }
 
