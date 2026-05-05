@@ -726,6 +726,10 @@ export default class Catcher {
    * @param integrationAddons - extra addons
    */
   private appendIntegrationAddons(errorFormatted: CatcherMessage<typeof Catcher.type>, integrationAddons: JavaScriptCatcherIntegrations): void {
+    /**
+     * Some integrations may pass a payload without `addons`.
+     * Create it first, then merge integration data.
+     */
     if (errorFormatted.payload.addons === undefined) {
       errorFormatted.payload.addons = {} as JavaScriptAddons;
     }

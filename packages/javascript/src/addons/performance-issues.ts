@@ -21,8 +21,11 @@ export const DEFAULT_LONG_TASK_THRESHOLD_MS = 100;
 /** Default threshold for Long Animation Frames detector (ms). */
 export const DEFAULT_LOAF_THRESHOLD_MS = 300;
 
-/** Global minimum threshold guard — prevents overly aggressive configuration and event spam. */
-export const MIN_ISSUE_THRESHOLD_MS = 50;
+/**
+ * Hard lower bound for custom detector thresholds (in ms).
+ * Prevents near-zero values that would generate noisy, low-value issue reports.
+ */
+export const MIN_REPORTABLE_ISSUE_THRESHOLD_MS = 50;
 
 const DEFAULT_WEB_VITAL_THRESHOLDS: Record<WebVitalName, WebVitalRatingThresholds> = {
   CLS: { official: [0.1, 0.25],
@@ -40,12 +43,14 @@ const DEFAULT_WEB_VITAL_THRESHOLDS: Record<WebVitalName, WebVitalRatingThreshold
 /**
  * Builds a compact payload and sanitizes it before sending.
  * Drops null/undefined/empty-string values.
+ *
+ * @param entries - key/value pairs that should be included in the addon payload
  */
 function sanitizeIssuePayload(entries: [string, JsonNode | null | undefined][]): Json {
   const payload: Json = {};
 
   for (const [key, value] of entries) {
-    if (value != null && value !== '') {
+    if (value !== null && value !== undefined && value !== '') {
       payload[key] = value;
     }
   }
@@ -113,9 +118,11 @@ function isReportableWebVital(
 }
 
 /**
+ * Returns poor-rating thresholds for a given Web Vital metric.
+ * Uses defaults, but allows overriding only the `reportPoorAbove` value.
  *
- * @param metricName
- * @param webVitalsOptions
+ * @param metricName - Core Web Vital metric key (CLS/INP/LCP/FCP/TTFB)
+ * @param webVitalsOptions - optional threshold overrides from user settings
  */
 function getWebVitalRatingThresholds(metricName: WebVitalName, webVitalsOptions?: WebVitalOptions): WebVitalRatingThresholds {
   const defaults = DEFAULT_WEB_VITAL_THRESHOLDS[metricName];
@@ -307,7 +314,7 @@ export class PerformanceIssuesMonitor {
       }
 
       const custom = typeof option === 'object' ? option?.thresholdMs : undefined;
-      const thresholdMs = Math.max(MIN_ISSUE_THRESHOLD_MS,
+      const thresholdMs = Math.max(MIN_REPORTABLE_ISSUE_THRESHOLD_MS,
         typeof custom === 'number' && !Number.isNaN(custom) ? Math.round(custom) : defaultMs);
 
       return this.observe(type, (entry) => {

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Metric, ReportCallback } from 'web-vitals';
 import {
   DEFAULT_LONG_TASK_THRESHOLD_MS,
-  MIN_ISSUE_THRESHOLD_MS,
+  MIN_REPORTABLE_ISSUE_THRESHOLD_MS,
 } from '../src/addons/performance-issues';
 
 const webVitalsCallbacks: Record<string, ReportCallback | undefined> = {};
@@ -135,10 +135,10 @@ describe('PerformanceIssuesMonitor', () => {
 
     expect(observer).toBeDefined();
 
-    observer!.emit([longTaskEntry(MIN_ISSUE_THRESHOLD_MS - 1)]);
+    observer!.emit([longTaskEntry(MIN_REPORTABLE_ISSUE_THRESHOLD_MS - 1)]);
     expect(onIssue).not.toHaveBeenCalled();
 
-    observer!.emit([longTaskEntry(MIN_ISSUE_THRESHOLD_MS)]);
+    observer!.emit([longTaskEntry(MIN_REPORTABLE_ISSUE_THRESHOLD_MS)]);
     expect(onIssue).toHaveBeenCalledTimes(1);
   });
 
