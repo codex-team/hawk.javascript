@@ -1,4 +1,4 @@
-import { log } from '../logger/logger';
+import { log } from './logger';
 
 /**
  * Symbol to mark error as processed by Hawk

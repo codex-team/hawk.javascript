@@ -1,4 +1,4 @@
-import { log } from '../logger/logger';
+import { log } from './logger';
 import type { AffectedUser, Breadcrumb, EventAddons, EventContext, EventData } from '@hawk.so/types';
 import { isPlainObject } from './type-guards';
 

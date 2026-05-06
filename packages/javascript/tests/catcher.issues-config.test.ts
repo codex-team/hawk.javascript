@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BreadcrumbManager } from '../src/addons/breadcrumbs';
+import { BrowserBreadcrumbStore } from '../src/addons/breadcrumbs';
 import type { HawkInitialSettings } from '../src/types';
 import type { Transport } from '../src';
 
@@ -63,7 +63,7 @@ describe('Catcher issues config', () => {
     vi.restoreAllMocks();
     localStorage.clear();
     mockParse.mockResolvedValue([]);
-    (BreadcrumbManager as any).instance = null;
+    (BrowserBreadcrumbStore as any).instance = null;
     MockPerformanceObserver.reset();
     vi.stubGlobal('PerformanceObserver', MockPerformanceObserver as unknown as typeof PerformanceObserver);
   });

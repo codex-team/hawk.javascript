@@ -1,5 +1,5 @@
 import type { AffectedUser } from '@hawk.so/types';
-import type { HawkStorage } from '../storages/hawk-storage';
+import type { HawkStorage } from '../utils/hawk-storage';
 import { id } from '../utils/id';
 import type { RandomGenerator } from '../utils/random';
 

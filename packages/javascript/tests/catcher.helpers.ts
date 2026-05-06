@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 import Catcher from '../src/catcher';
 import type { Transport } from '../src';
+import type { MessageProcessor } from '@hawk.so/core';
 
 export const TEST_TOKEN = 'eyJpbnRlZ3JhdGlvbklkIjoiOTU3MmQyOWQtNWJhZS00YmYyLTkwN2MtZDk5ZDg5MGIwOTVmIiwic2VjcmV0IjoiZTExODFiZWItMjdlMS00ZDViLWEwZmEtZmUwYTM1Mzg5OWMyIn0=';
 export const wait = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
@@ -17,6 +18,11 @@ export function getLastPayload(spy: ReturnType<typeof vi.fn>) {
   const calls = spy.mock.calls;
 
   return calls[calls.length - 1][0].payload;
+}
+
+export function injectProcessor(catcher: Catcher, processor: MessageProcessor<'errors/javascript'>): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (catcher as any).messageProcessors.push(processor);
 }
 
 export function createCatcher(transport: Transport, options: Record<string, unknown> = {}) {
