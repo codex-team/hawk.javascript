@@ -36,6 +36,8 @@ export interface HawkInitialSettings {
 
   /**
    * How many time we should try to reconnect when connection lost.
+   *
+   * @deprecated not used anymore
    */
   reconnectionAttempts?: number;
 
