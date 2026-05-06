@@ -1,4 +1,5 @@
 import type { VueIntegrationAddons } from '@hawk.so/types';
+import type { PerformanceIssueAddons } from './issues';
 
 /**
  * The Vue integration will append this data to the addons
@@ -39,4 +40,5 @@ export type NuxtIntegrationData = {
 export type JavaScriptCatcherIntegrations =
   | VueIntegrationData
   | NuxtIntegrationData
+  | PerformanceIssueAddons
 ;
