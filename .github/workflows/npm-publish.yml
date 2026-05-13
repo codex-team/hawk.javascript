@@ -1,4 +1,4 @@
-name: Publish package to NPM
+name: Publish packages to NPM
 
 on:
   push:
@@ -7,26 +7,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          registry-url: https://registry.npmjs.org/
-      - run: corepack enable
-      - run: yarn
-      - run: yarn lint-test
-      - run: yarn build:all
-      - run: yarn workspace @hawk.so/core npm publish --access=public
-        env:
-          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - run: yarn workspace @hawk.so/javascript npm publish --access=public
-        env:
-          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  publish-core:
+    uses: ./.github/workflows/publish-package.yml
+    with:
+      workspace: '@hawk.so/core'
+      path: packages/core
+    secrets: inherit
+
+  publish-javascript:
+    uses: ./.github/workflows/publish-package.yml
+    with:
+      workspace: '@hawk.so/javascript'
+      path: packages/javascript
+    secrets: inherit
+
   notify:
-    needs: publish
+    needs: [publish-core, publish-javascript]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

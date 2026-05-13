@@ -1,0 +1,40 @@
+name: Publish package to NPM
+
+on:
+  workflow_call:
+    inputs:
+      workspace:
+        required: true
+        type: string
+        description: 'Yarn workspace name'
+      path:
+        required: true
+        type: string
+        description: 'Package directory relative to repo root'
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          registry-url: https://registry.npmjs.org/
+      - run: corepack enable
+      - run: yarn
+      - run: yarn lint-test
+      - run: yarn build:all
+      - name: Publish ${{ inputs.workspace }}
+        run: |
+          VERSION=$(node -p "require('./${{ inputs.path }}/package.json').version")
+          if npm view "${{ inputs.workspace }}@$VERSION" version &>/dev/null; then
+            echo "${{ inputs.workspace }}@$VERSION already published, skipping"
+          else
+            yarn workspace ${{ inputs.workspace }} npm publish --access=public
+          fi
+        env:
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
