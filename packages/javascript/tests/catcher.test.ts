@@ -135,7 +135,7 @@ describe('Catcher', () => {
       await wait();
 
       expect(sendSpy).toHaveBeenCalledOnce();
-      expect(getLastPayload(sendSpy).title).toContain('Hawk JavaScript Catcher test message');
+      expect(getLastPayload(sendSpy).title).toContain('Hawk Catcher test message');
     });
   });
 
