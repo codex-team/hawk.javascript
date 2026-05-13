@@ -102,8 +102,7 @@ export default class Catcher extends BaseCatcher<typeof Catcher.type> {
       ? { send: (): Promise<void> => Promise.resolve() }
       : settings.transport ?? new Socket({
         collectorEndpoint: settings.collectorEndpoint || `wss://${decodeIntegrationId(token)}.k1.hawk.so:443/ws`,
-        reconnectionAttempts: settings.reconnectionAttempts,
-        reconnectionTimeout: settings.reconnectionTimeout,
+        connectionIdleMs: settings.reconnectionTimeout,
         onClose(): void {
           log(
             'Connection lost. Connection will be restored when new errors occurred',
