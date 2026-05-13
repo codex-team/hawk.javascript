@@ -1,5 +1,12 @@
 # Hawk JavaScript Catcher
 
+> [!WARNING]
+> **This package is deprecated.** It has been renamed to [`@hawk.so/browser`](https://www.npmjs.com/package/@hawk.so/browser). Please migrate:
+> ```diff
+> - "@hawk.so/javascript": "..."
+> + "@hawk.so/browser": "..."
+> ```
+
 Error tracking for JavaScript/TypeScript applications.
 
 ## Features
