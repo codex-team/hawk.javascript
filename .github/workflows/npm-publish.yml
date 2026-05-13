@@ -14,7 +14,7 @@ jobs:
       path: packages/core
     secrets: inherit
 
-  publish-javascript:
+  publish-browser:
     uses: ./.github/workflows/publish-package.yml
     with:
       workspace: '@hawk.so/browser'
@@ -22,7 +22,7 @@ jobs:
     secrets: inherit
 
   notify:
-    needs: [publish-core, publish-javascript]
+    needs: [publish-core, publish-browser]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
