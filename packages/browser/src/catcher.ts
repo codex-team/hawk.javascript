@@ -30,7 +30,7 @@ if (!isLoggerSet()) {
 }
 
 /**
- * Hawk JavaScript Catcher
+ * Hawk JavaScript browser catcher
  * Module for errors and exceptions tracking
  *
  * @copyright CodeX

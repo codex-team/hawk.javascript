@@ -3,7 +3,7 @@ import type { Metric, ReportCallback } from 'web-vitals';
 import {
   DEFAULT_LONG_TASK_THRESHOLD_MS,
   MIN_REPORTABLE_ISSUE_THRESHOLD_MS,
-} from '../src/addons/performance-issues';
+} from '../../src/addons/performance-issues';
 
 const webVitalsCallbacks: Record<string, ReportCallback | undefined> = {};
 
@@ -142,7 +142,7 @@ describe('PerformanceIssuesMonitor', () => {
     },
   ])('should $title', async ({ longTasks, expectedThresholdMs }) => {
     mockWebVitals();
-    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const { PerformanceIssuesMonitor } = await import('../../src/addons/performance-issues');
     const onIssue = vi.fn();
     const monitor = new PerformanceIssuesMonitor();
 
@@ -164,7 +164,7 @@ describe('PerformanceIssuesMonitor', () => {
   it('should skip observers when performance entry types are unsupported', async () => {
     MockPerformanceObserver.supportedEntryTypes = [];
     mockWebVitals();
-    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const { PerformanceIssuesMonitor } = await import('../../src/addons/performance-issues');
     const monitor = new PerformanceIssuesMonitor();
 
     monitor.init({ longTasks: {}, longAnimationFrames: {}, webVitals: false }, vi.fn());
@@ -173,7 +173,7 @@ describe('PerformanceIssuesMonitor', () => {
 
   it('should skip long tasks with name=self (no container info)', async () => {
     mockWebVitals();
-    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const { PerformanceIssuesMonitor } = await import('../../src/addons/performance-issues');
     const onIssue = vi.fn();
     const monitor = new PerformanceIssuesMonitor();
 
@@ -186,7 +186,7 @@ describe('PerformanceIssuesMonitor', () => {
 
   it('should skip long tasks without container identifier', async () => {
     mockWebVitals();
-    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const { PerformanceIssuesMonitor } = await import('../../src/addons/performance-issues');
     const onIssue = vi.fn();
     const monitor = new PerformanceIssuesMonitor();
 
@@ -199,7 +199,7 @@ describe('PerformanceIssuesMonitor', () => {
 
   it('should emit LoAF issue only when scripts have identifiable source', async () => {
     mockWebVitals();
-    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const { PerformanceIssuesMonitor } = await import('../../src/addons/performance-issues');
     const onIssue = vi.fn();
     const monitor = new PerformanceIssuesMonitor();
 
@@ -217,7 +217,7 @@ describe('PerformanceIssuesMonitor', () => {
 
   it('should report poor web vital metric in addons', async () => {
     const webVitals = mockWebVitals();
-    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const { PerformanceIssuesMonitor } = await import('../../src/addons/performance-issues');
     const onIssue = vi.fn();
     const monitor = new PerformanceIssuesMonitor();
 
@@ -259,7 +259,7 @@ describe('PerformanceIssuesMonitor', () => {
     },
   ])('should $title', async ({ webVitalsOption, metric, shouldReport }) => {
     const webVitals = mockWebVitals();
-    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const { PerformanceIssuesMonitor } = await import('../../src/addons/performance-issues');
     const onIssue = vi.fn();
     const monitor = new PerformanceIssuesMonitor();
 
@@ -276,7 +276,7 @@ describe('PerformanceIssuesMonitor', () => {
 
   it('should not emit event for non-poor web vital metric', async () => {
     const webVitals = mockWebVitals();
-    const { PerformanceIssuesMonitor } = await import('../src/addons/performance-issues');
+    const { PerformanceIssuesMonitor } = await import('../../src/addons/performance-issues');
     const onIssue = vi.fn();
     const monitor = new PerformanceIssuesMonitor();
 

@@ -17,8 +17,8 @@ jobs:
   publish-javascript:
     uses: ./.github/workflows/publish-package.yml
     with:
-      workspace: '@hawk.so/javascript'
-      path: packages/javascript
+      workspace: '@hawk.so/browser'
+      path: packages/browser
     secrets: inherit
 
   notify:
@@ -30,7 +30,7 @@ jobs:
         id: package
         uses: codex-team/action-nodejs-package-info@v1
         with:
-          path: packages/javascript
+          path: packages/browser
       - name: Send a message
         uses: codex-team/action-codexbot-notify@v1
         with:

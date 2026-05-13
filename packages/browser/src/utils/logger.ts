@@ -13,7 +13,7 @@ import type { Logger, LogType } from '@hawk.so/core';
  *
  * @example
  * ```TypeScript
- * import { createBrowserLogger } from '@hawk.so/javascript';
+ * import { createBrowserLogger } from '@hawk.so/browser';
  * import { setLogger } from '@hawk.so/core';
  *
  * const logger = createBrowserLogger('3.2.0');
