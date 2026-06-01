@@ -7,7 +7,7 @@ import type { VueIntegrationAddons } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from '@/types';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BrowserBreadcrumbStore } from './addons/breadcrumbs';
-import { BaseCatcher, HawkUserManager, isLoggerSet, log, setLogger, decodeIntegrationId, EventBatcher } from '@hawk.so/core';
+import { BaseCatcher, HawkUserManager, isLoggerSet, log, setLogger, decodeIntegrationId, EventDedupeTransport } from '@hawk.so/core';
 import { HawkLocalStorage } from './utils/hawk-local-storage';
 import { createBrowserLogger } from './utils/logger';
 import { BrowserRandomGenerator } from './utils/random';
@@ -112,7 +112,7 @@ export default class Catcher extends BaseCatcher<typeof Catcher.type> {
         },
       });
 
-    const batcher = new EventBatcher(transport);
+    const batcher = new EventDedupeTransport(transport);
 
     // Flush buffered events before the socket closes on page hide
     window.addEventListener('pagehide', () => batcher.flush(), { capture: true });

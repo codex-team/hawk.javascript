@@ -16,5 +16,5 @@ export type { MessageProcessor, ProcessingPayload } from './types/message-proces
 export { BaseCatcher } from './catcher';
 export type { BeforeSendHook } from './catcher';
 export { decodeIntegrationId } from './utils/integration-id-decoder';
-export { EventBatcher } from './utils/event-batcher';
-export type { EventBatcherOptions } from './utils/event-batcher';
+export { EventDedupeTransport } from './utils/event-dedupe-transport';
+export type { EventDedupeTransportOptions } from './utils/event-dedupe-transport';
