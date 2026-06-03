@@ -89,7 +89,7 @@ export class EventDedupeTransport<T extends CatcherMessageType> implements Trans
    */
   constructor(transport: Transport<T>, options: EventDedupeTransportOptions = {}) {
     this.transport = transport;
-    this.windowMs = options.windowMs ?? 5_000;
+    this.windowMs = options.windowMs ?? 2_500;
   }
 
   /**
@@ -102,8 +102,17 @@ export class EventDedupeTransport<T extends CatcherMessageType> implements Trans
     const key = computeSignature(message);
     const existing = this.buffer.get(key);
 
+    const sendEntry = (entry: BufferEntry<T>): void => {
+      if (entry !== undefined) {
+        this.buffer.delete(key);
+        void this.transport.send(withCount(entry.message, entry.count));
+      }
+    };
+
     if (existing !== undefined) {
+      clearTimeout(existing.timer);
       existing.count++;
+      existing.timer = setTimeout(() => sendEntry(existing), this.windowMs);
 
       return;
     }
@@ -112,8 +121,7 @@ export class EventDedupeTransport<T extends CatcherMessageType> implements Trans
       const entry = this.buffer.get(key);
 
       if (entry !== undefined) {
-        this.buffer.delete(key);
-        void this.transport.send(withCount(entry.message, entry.count));
+        sendEntry(entry);
       }
     }, this.windowMs);
 
