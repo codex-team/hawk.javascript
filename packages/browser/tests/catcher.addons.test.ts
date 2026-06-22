@@ -58,6 +58,26 @@ describe('Catcher', () => {
 
       expect(getLastPayload(sendSpy).addons.RAW_EVENT_DATA).toBeUndefined();
     });
+
+    it('should include Yandex Metrica counterId and ClientID', async () => {
+      const ym = vi.fn((_counterId, _method, callback) => callback('client-id'));
+
+      Object.assign(ym, { a: [[123, 'init', {}]] });
+      vi.stubGlobal('ym', ym);
+
+      const { sendSpy, transport } = createTransport();
+
+      createCatcher(transport).send(new Error('e'));
+      await wait();
+
+      expect(getLastPayload(sendSpy).addons.yandexMetrica).toEqual({
+        counterId: 123,
+        clientId: 'client-id',
+      });
+      expect(ym).toHaveBeenCalledWith(123, 'getClientID', expect.any(Function));
+
+      vi.unstubAllGlobals();
+    });
   });
 
   // ── Integration addons ────────────────────────────────────────────────────
