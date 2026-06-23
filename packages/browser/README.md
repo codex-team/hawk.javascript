@@ -95,7 +95,7 @@ Initialization settings:
 | `beforeSend`                  | function(event) => event \| false \| void                 | optional     | Filter data before sending. Return modified event, `false` to drop the event.       |
 | `issues`                      | IssuesOptions object                                      | optional     | Issues config. See [Issues configuration](#issues-configuration). |
 
-Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
+Other available [initial settings](src/types/hawk-initial-settings.ts) are described at the type definition.
 
 ## Manual sending
 
@@ -352,6 +352,22 @@ const hawk = new HawkCatcher({
   }
 });
 ```
+
+## Yandex Metrika
+
+If [Yandex Metrika](https://yandex.ru/support/metrica/) with Webvisor is installed on your site, Hawk automatically attaches visitor ClientIDs to every event. In Hawk Garage you can open the user's Webvisor session from the event details.
+
+No additional Hawk configuration is required — initialize Hawk as usual and ensure Metrika counters are loaded on the page.
+
+Hawk inspects up to 10 Metrika counters from the initialization queue and includes only those initialized with `webvisor: true`. For each matched counter, Hawk requests the visitor ClientID via the public [`getClientID`](https://yandex.ru/support/metrica/ru/objects/get-client-id) API and sends it in the event addon:
+
+Requirements:
+
+- Yandex Metrika script must be present on the page (`window.ym`)
+- Counter must be initialized with Webvisor enabled (`webvisor: true` in init options)
+
+> [!NOTE]
+> Hawk reads counter IDs from Metrika's internal initialization queue, which is not part of the public API. A future SDK version may accept counter IDs explicitly.
 
 ## Source maps consuming
 
