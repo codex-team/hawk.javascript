@@ -11,7 +11,9 @@ interface YandexMetricaFunction {
     method: 'getClientID',
     callback: (clientId: unknown) => void
   ): void;
-  a?: ArrayLike<ArrayLike<unknown>>;
+  a?: ArrayLike<ArrayLike<{
+    webvisor?: boolean;
+  }>>;
 }
 
 type WindowWithYandexMetrica = Window & {
@@ -44,8 +46,9 @@ export class YandexMetricaAddonMessageProcessor implements MessageProcessor<'err
   constructor() {
     const ym = (window as WindowWithYandexMetrica).ym;
     const counterId = Number(ym?.a?.[0]?.[0]);
+    const isWebvisorEnabled = ym?.a?.[0]?.[2]?.webvisor;
 
-    if (typeof ym !== 'function' || !Number.isSafeInteger(counterId) || counterId <= 0) {
+    if (typeof ym !== 'function' || !Number.isSafeInteger(counterId) || counterId <= 0 || !isWebvisorEnabled) {
       return;
     }
 

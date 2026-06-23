@@ -25,7 +25,7 @@ describe('YandexMetricaAddonMessageProcessor', () => {
   it('should attach counterId and ClientID from Yandex Metrica', () => {
     const ym = vi.fn((_counterId, _method, callback) => callback('client-id')) as YandexMetricaMock;
 
-    ym.a = [[456, 'init', {}]];
+    ym.a = [[456, 'init', { webvisor: true }]];
     setYandexMetrica(ym);
 
     const result = new YandexMetricaAddonMessageProcessor().apply(makePayload());
@@ -57,13 +57,39 @@ describe('YandexMetricaAddonMessageProcessor', () => {
     expect(result.addons).toEqual({});
   });
 
+  it('should leave payload unchanged when webvisor is disabled', () => {
+    const ym = vi.fn() as YandexMetricaMock;
+
+    ym.a = [[456, 'init', { webvisor: false }]];
+    setYandexMetrica(ym);
+
+    const payload = makePayload();
+    const result = new YandexMetricaAddonMessageProcessor().apply(payload);
+
+    expect(ym).not.toHaveBeenCalled();
+    expect(result.addons).toEqual({});
+  });
+
+  it('should leave payload unchanged when webvisor option is missing', () => {
+    const ym = vi.fn() as YandexMetricaMock;
+
+    ym.a = [[456, 'init', {}]];
+    setYandexMetrica(ym);
+
+    const payload = makePayload();
+    const result = new YandexMetricaAddonMessageProcessor().apply(payload);
+
+    expect(ym).not.toHaveBeenCalled();
+    expect(result.addons).toEqual({});
+  });
+
   it('should attach identifiers only after getClientID resolves', () => {
     let resolveClientId: ((clientId: unknown) => void) | undefined;
     const ym = vi.fn((_counterId, _method, callback) => {
       resolveClientId = callback;
     }) as YandexMetricaMock;
 
-    ym.a = [[456, 'init', {}]];
+    ym.a = [[456, 'init', { webvisor: true }]];
     setYandexMetrica(ym);
 
     const processor = new YandexMetricaAddonMessageProcessor();

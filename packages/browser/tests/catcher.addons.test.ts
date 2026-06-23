@@ -62,7 +62,7 @@ describe('Catcher', () => {
     it('should include Yandex Metrica counterId and ClientID', async () => {
       const ym = vi.fn((_counterId, _method, callback) => callback('client-id'));
 
-      Object.assign(ym, { a: [[123, 'init', {}]] });
+      Object.assign(ym, { a: [[123, 'init', { webvisor: true }]] });
       vi.stubGlobal('ym', ym);
 
       const { sendSpy, transport } = createTransport();
