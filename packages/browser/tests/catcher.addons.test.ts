@@ -1,18 +1,26 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type * as HawkCore from '@hawk.so/core';
 import { BrowserBreadcrumbStore } from '../src/addons/breadcrumbs';
 import { wait, createTransport, getLastPayload, createCatcher } from './catcher.helpers';
 
 const mockParse = vi.hoisted(() => vi.fn().mockResolvedValue([]));
 vi.mock('@hawk.so/core', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@hawk.so/core')>();
-  return { ...actual, StackParser: class { parse = mockParse; } };
+  const actual = await importOriginal<typeof HawkCore>();
+
+  return { ...actual, StackParser: class { public parse = mockParse; } };
 });
 
 describe('Catcher', () => {
   beforeEach(() => {
+    const breadcrumbStore = BrowserBreadcrumbStore as typeof BrowserBreadcrumbStore & {
+      instance?: {
+        destroy(): void;
+      };
+    };
+
     localStorage.clear();
     mockParse.mockResolvedValue([]);
-    (BrowserBreadcrumbStore as any).instance?.destroy();
+    breadcrumbStore.instance?.destroy();
   });
 
   // ── Environment addons ────────────────────────────────────────────────────
@@ -59,7 +67,7 @@ describe('Catcher', () => {
       expect(getLastPayload(sendSpy).addons.RAW_EVENT_DATA).toBeUndefined();
     });
 
-    it('should include Yandex Metrica counterIds and ClientIDs', async () => {
+    it('should include Yandex Metrika counterIds and ClientIDs', async () => {
       const ym = vi.fn((counterId, _method, callback) => callback(`client-${counterId}`));
 
       Object.assign(ym, {
@@ -75,7 +83,7 @@ describe('Catcher', () => {
       createCatcher(transport).send(new Error('e'));
       await wait();
 
-      expect(getLastPayload(sendSpy).addons.yandexMetrica).toEqual({
+      expect(getLastPayload(sendSpy).addons.yandexMetrika).toEqual({
         ['1']: {
           counterId: 123,
           clientId: 'client-123',
