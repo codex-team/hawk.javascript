@@ -22,18 +22,28 @@ describe('YandexMetricaAddonMessageProcessor', () => {
     vi.restoreAllMocks();
   });
 
-  it('should attach counterId and ClientID from Yandex Metrica', () => {
-    const ym = vi.fn((_counterId, _method, callback) => callback('client-id')) as YandexMetricaMock;
+  it('should attach counterId and ClientID for multiple Yandex Metrica counters', () => {
+    const ym = vi.fn((counterId, _method, callback) => callback(`client-${counterId}`)) as YandexMetricaMock;
 
-    ym.a = [[456, 'init', { webvisor: true }]];
+    ym.a = [
+      [456, 'init', { webvisor: true }],
+      [789, 'init', { webvisor: true }],
+    ];
     setYandexMetrica(ym);
 
     const result = new YandexMetricaAddonMessageProcessor().apply(makePayload());
 
     expect(ym).toHaveBeenCalledWith(456, 'getClientID', expect.any(Function));
+    expect(ym).toHaveBeenCalledWith(789, 'getClientID', expect.any(Function));
     expect(result.addons).toHaveProperty(YANDEX_METRICA_ADDON_KEY, {
-      counterId: 456,
-      clientId: 'client-id',
+      ['1']: {
+        counterId: 456,
+        clientId: 'client-456',
+      },
+      ['2']: {
+        counterId: 789,
+        clientId: 'client-789',
+      },
     });
   });
 
@@ -83,6 +93,46 @@ describe('YandexMetricaAddonMessageProcessor', () => {
     expect(result.addons).toEqual({});
   });
 
+  it('should preserve the queue position when an earlier counter is invalid', () => {
+    const ym = vi.fn((_counterId, _method, callback) => callback('client-id')) as YandexMetricaMock;
+
+    ym.a = [
+      [456, 'init', { webvisor: false }],
+      [789, 'init', { webvisor: true }],
+    ];
+    setYandexMetrica(ym);
+
+    const result = new YandexMetricaAddonMessageProcessor().apply(makePayload());
+
+    expect(result.addons).toHaveProperty(YANDEX_METRICA_ADDON_KEY, {
+      ['2']: {
+        counterId: 789,
+        clientId: 'client-id',
+      },
+    });
+  });
+
+  it('should process no more than ten Yandex Metrica counters', () => {
+    const ym = vi.fn((counterId, _method, callback) => callback(`client-${counterId}`)) as YandexMetricaMock;
+
+    ym.a = Array.from({ length: 11 }, (_, index) => [
+      100 + index,
+      'init',
+      { webvisor: true },
+    ]);
+    setYandexMetrica(ym);
+
+    const result = new YandexMetricaAddonMessageProcessor().apply(makePayload());
+    const identifiers = result.addons[YANDEX_METRICA_ADDON_KEY] as Record<string, unknown>;
+
+    expect(ym).toHaveBeenCalledTimes(10);
+    expect(identifiers).toHaveProperty('10', {
+      counterId: 109,
+      clientId: 'client-109',
+    });
+    expect(identifiers).not.toHaveProperty('11');
+  });
+
   it('should attach identifiers only after getClientID resolves', () => {
     let resolveClientId: ((clientId: unknown) => void) | undefined;
     const ym = vi.fn((_counterId, _method, callback) => {
@@ -99,8 +149,10 @@ describe('YandexMetricaAddonMessageProcessor', () => {
     resolveClientId?.('client-id');
 
     expect(processor.apply(makePayload()).addons).toHaveProperty(YANDEX_METRICA_ADDON_KEY, {
-      counterId: 456,
-      clientId: 'client-id',
+      ['1']: {
+        counterId: 456,
+        clientId: 'client-id',
+      },
     });
   });
 });

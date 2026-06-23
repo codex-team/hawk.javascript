@@ -59,10 +59,15 @@ describe('Catcher', () => {
       expect(getLastPayload(sendSpy).addons.RAW_EVENT_DATA).toBeUndefined();
     });
 
-    it('should include Yandex Metrica counterId and ClientID', async () => {
-      const ym = vi.fn((_counterId, _method, callback) => callback('client-id'));
+    it('should include Yandex Metrica counterIds and ClientIDs', async () => {
+      const ym = vi.fn((counterId, _method, callback) => callback(`client-${counterId}`));
 
-      Object.assign(ym, { a: [[123, 'init', { webvisor: true }]] });
+      Object.assign(ym, {
+        a: [
+          [123, 'init', { webvisor: true }],
+          [456, 'init', { webvisor: true }],
+        ],
+      });
       vi.stubGlobal('ym', ym);
 
       const { sendSpy, transport } = createTransport();
@@ -71,10 +76,17 @@ describe('Catcher', () => {
       await wait();
 
       expect(getLastPayload(sendSpy).addons.yandexMetrica).toEqual({
-        counterId: 123,
-        clientId: 'client-id',
+        ['1']: {
+          counterId: 123,
+          clientId: 'client-123',
+        },
+        ['2']: {
+          counterId: 456,
+          clientId: 'client-456',
+        },
       });
       expect(ym).toHaveBeenCalledWith(123, 'getClientID', expect.any(Function));
+      expect(ym).toHaveBeenCalledWith(456, 'getClientID', expect.any(Function));
 
       vi.unstubAllGlobals();
     });
