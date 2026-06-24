@@ -366,9 +366,6 @@ Requirements:
 - Yandex Metrika script must be present on the page (`window.ym`)
 - Counter must be initialized with Webvisor enabled (`webvisor: true` in init options)
 
-> [!NOTE]
-> Hawk reads counter IDs from Metrika's internal initialization queue, which is not part of the public API. A future SDK version may accept counter IDs explicitly.
-
 ## Source maps consuming
 
 If your bundle is minified, it is useful to pass source-map files to the Hawk. After that you will see beautiful
