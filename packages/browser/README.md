@@ -355,11 +355,9 @@ const hawk = new HawkCatcher({
 
 ## Yandex Metrika
 
-If [Yandex Metrika](https://yandex.ru/support/metrica/) with Webvisor is installed on your site, Hawk automatically attaches visitor ClientIDs to every event. In Hawk Garage you can open the user's Webvisor session from the event details.
+If [Yandex Metrika](https://yandex.ru/support/metrica/) with Webvisor is installed on your site, Hawk automatically attaches visitor ClientIDs to every event.
 
 No additional Hawk configuration is required — initialize Hawk as usual and ensure Metrika counters are loaded on the page.
-
-Hawk inspects up to 10 Metrika counters from the initialization queue and includes only those initialized with `webvisor: true`. For each matched counter, Hawk requests the visitor ClientID via the public [`getClientID`](https://yandex.ru/support/metrica/ru/objects/get-client-id) API and sends it in the event addon:
 
 ## Source maps consuming
 
