@@ -17,7 +17,7 @@ Former it was named [@hawk.so/javascript](https://www.npmjs.com/package/@hawk.so
 - 📊 Web Vitals issues monitoring
 - <img src="https://cdn.svglogos.dev/logos/vue.svg" width="16" height="16"> &nbsp;Vue support
 - <img src="https://cdn.svglogos.dev/logos/react.svg" width="16" height="16">  &nbsp;React support
-
+- <img src="https://yastatic.net/s3/doc-binary/src/support/metrica/files/favicon.svg" width="16" height="16"> &nbsp;Yandex Metrika Webvisor linking (visitor ClientID attachment)
 
 ## Installation
 
@@ -360,11 +360,6 @@ If [Yandex Metrika](https://yandex.ru/support/metrica/) with Webvisor is install
 No additional Hawk configuration is required — initialize Hawk as usual and ensure Metrika counters are loaded on the page.
 
 Hawk inspects up to 10 Metrika counters from the initialization queue and includes only those initialized with `webvisor: true`. For each matched counter, Hawk requests the visitor ClientID via the public [`getClientID`](https://yandex.ru/support/metrica/ru/objects/get-client-id) API and sends it in the event addon:
-
-Requirements:
-
-- Yandex Metrika script must be present on the page (`window.ym`)
-- Counter must be initialized with Webvisor enabled (`webvisor: true` in init options)
 
 ## Source maps consuming
 
