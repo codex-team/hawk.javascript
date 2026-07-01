@@ -16,6 +16,7 @@ import { ConsoleOutputAddonMessageProcessor } from './addons/console-output-addo
 import { DebugAddonMessageProcessor } from './addons/debug-addon-message-processor';
 import { BrowserBreadcrumbsMessageProcessor } from './addons/browser-breadcrumbs-message-processor';
 import { PerformanceIssuesMonitor } from './addons/performance-issues';
+import { YandexMetrikaAddonMessageProcessor } from './addons/yandex-metrika-addon-message-processor';
 
 /**
  * Allow to use global VERSION, that will be overwritten by Webpack
@@ -151,6 +152,7 @@ export default class Catcher extends BaseCatcher<typeof Catcher.type> {
     }
 
     this.addMessageProcessor(new BrowserAddonMessageProcessor());
+    this.addMessageProcessor(new YandexMetrikaAddonMessageProcessor());
 
     if (this.consoleTracking) {
       this.consoleCatcher = ConsoleCatcher.getInstance();

@@ -1,6 +1,6 @@
 {
   "name": "@hawk.so/browser",
-  "version": "3.3.6",
+  "version": "3.4.0",
   "description": "JavaScript Browser errors tracking for Hawk.so",
   "files": [
     "dist"

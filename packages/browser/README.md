@@ -17,7 +17,7 @@ Former it was named [@hawk.so/javascript](https://www.npmjs.com/package/@hawk.so
 - 📊 Web Vitals issues monitoring
 - <img src="https://cdn.svglogos.dev/logos/vue.svg" width="16" height="16"> &nbsp;Vue support
 - <img src="https://cdn.svglogos.dev/logos/react.svg" width="16" height="16">  &nbsp;React support
-
+- <img src="https://yastatic.net/s3/doc-binary/src/support/metrica/files/favicon.svg" width="16" height="16"> &nbsp;Yandex Metrika Webvisor linking (visitor ClientID attachment)
 
 ## Installation
 
@@ -95,7 +95,7 @@ Initialization settings:
 | `beforeSend`                  | function(event) => event \| false \| void                 | optional     | Filter data before sending. Return modified event, `false` to drop the event.       |
 | `issues`                      | IssuesOptions object                                      | optional     | Issues config. See [Issues configuration](#issues-configuration). |
 
-Other available [initial settings](types/hawk-initial-settings.d.ts) are described at the type definition.
+Other available [initial settings](src/types/hawk-initial-settings.ts) are described at the type definition.
 
 ## Manual sending
 
@@ -352,6 +352,12 @@ const hawk = new HawkCatcher({
   }
 });
 ```
+
+## Yandex Metrika
+
+If [Yandex Metrika](https://yandex.ru/support/metrica/) with Webvisor is installed on your site, Hawk automatically attaches visitor ClientIDs to every event.
+
+No additional Hawk configuration is required — initialize Hawk as usual and ensure Metrika counters are loaded on the page.
 
 ## Source maps consuming
 
