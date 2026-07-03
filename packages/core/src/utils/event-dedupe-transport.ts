@@ -1,17 +1,10 @@
 import type { CatcherMessage, CatcherMessageType } from '@hawk.so/types';
 import type { Transport } from './transport';
 
-declare module '@hawk.so/types' {
-  // eslint-disable-next-line @typescript-eslint/no-shadow, @typescript-eslint/naming-convention
-  interface CatcherMessage<_Type extends CatcherMessageType> {
-    /**
-     * Number of identical occurrences this message represents.
-     * Absent or 1 — treated as single event by server.
-     * Greater than 1 — server increments totalCount by this value instead of 1.
-     */
-    count?: number;
-  }
-}
+/**
+ * Default dedupe window.
+ */
+export const DEFAULT_EVENT_DEDUPE_WINDOW_MS = 2_500;
 
 /**
  * Options for EventDedupeTransport.
@@ -89,7 +82,7 @@ export class EventDedupeTransport<T extends CatcherMessageType> implements Trans
    */
   constructor(transport: Transport<T>, options: EventDedupeTransportOptions = {}) {
     this.transport = transport;
-    this.windowMs = options.windowMs ?? 2_500;
+    this.windowMs = options.windowMs ?? DEFAULT_EVENT_DEDUPE_WINDOW_MS;
   }
 
   /**
