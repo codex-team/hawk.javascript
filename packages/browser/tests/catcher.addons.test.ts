@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type * as HawkCore from '@hawk.so/core';
 import { BrowserBreadcrumbStore } from '../src/addons/breadcrumbs';
 import { wait, createTransport, getLastPayload, createCatcher } from './catcher.helpers';
@@ -21,6 +21,11 @@ describe('Catcher', () => {
     localStorage.clear();
     mockParse.mockResolvedValue([]);
     breadcrumbStore.instance?.destroy();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   // ── Environment addons ────────────────────────────────────────────────────
