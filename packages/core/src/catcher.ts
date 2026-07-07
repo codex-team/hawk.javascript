@@ -13,6 +13,7 @@ import type { BreadcrumbStore } from './types/breadcrumb-store';
 import type { MessageProcessor, ProcessingPayload } from './types/message-processor';
 import { StackParser } from './features/stack-parser';
 import type { HawkUserManager } from './features/hawk-user-manager';
+import { HawkTraceManager } from './features/hawk-trace-manager';
 import { validateContext, validateUser, isValidEventPayload } from './utils/validation';
 import { isErrorProcessed, markErrorAsProcessed } from './utils/event';
 import { Sanitizer } from './utils/sanitizer';
@@ -38,6 +39,8 @@ export type BeforeSendHook<T extends CatcherMessageType> = (event: CatcherMessag
  *
  * **User manager** — {@link HawkUserManager} resolves current affected user.
  * Provided via constructor so each environment can supply its own storage backend.
+ *
+ * **Trace manager** — {@link HawkTraceManager} stores current trace id for event linking.
  *
  * **Breadcrumb store** — optional {@link BreadcrumbStore} passed via constructor.
  *
@@ -71,6 +74,11 @@ export abstract class BaseCatcher<T extends ErrorsCatcherType> {
    * Manages currently authenticated user identity
    */
   private readonly userManager: HawkUserManager;
+
+  /**
+   * Manages current distributed trace id
+   */
+  private readonly traceManager: HawkTraceManager;
 
   /**
    * Any additional data passed by user for sending with all messages
@@ -113,6 +121,7 @@ export abstract class BaseCatcher<T extends ErrorsCatcherType> {
    * @param context - optional global context merged into every event
    * @param beforeSend - optional hook to filter or modify events before sending
    * @param breadcrumbStore - optional breadcrumb store
+   * @param traceManager - optional trace manager; default instance is created when omitted
    */
   protected constructor(
     token: EncodedIntegrationToken,
@@ -121,11 +130,13 @@ export abstract class BaseCatcher<T extends ErrorsCatcherType> {
     release?: string,
     context?: EventContext,
     beforeSend?: BeforeSendHook<T>,
-    breadcrumbStore?: BreadcrumbStore
+    breadcrumbStore?: BreadcrumbStore,
+    traceManager?: HawkTraceManager
   ) {
     this.token = token;
     this.transport = transport;
     this.userManager = userManager;
+    this.traceManager = traceManager ?? new HawkTraceManager();
     this.release = release;
     this.beforeSend = beforeSend;
     this.breadcrumbStore = breadcrumbStore;
@@ -168,6 +179,13 @@ export abstract class BaseCatcher<T extends ErrorsCatcherType> {
    */
   public clearUser(): void {
     this.userManager.clear();
+  }
+
+  /**
+   * Returns trace manager for internal SDK use (HTTP propagation in environment packages).
+   */
+  protected getTraceManager(): HawkTraceManager {
+    return this.traceManager;
   }
 
   /**
@@ -264,6 +282,11 @@ export abstract class BaseCatcher<T extends ErrorsCatcherType> {
       if (filtered === null) {
         return;
       }
+
+      /**
+       * Always attach trace from SDK-managed state so user hooks cannot spoof linking ids.
+       */
+      filtered.trace = this.traceManager.getEventTrace();
 
       this.sendMessage({
         token: this.token,

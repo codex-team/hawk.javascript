@@ -1,6 +1,8 @@
 export type { HawkStorage } from './utils/hawk-storage';
 export type { RandomGenerator } from './utils/random';
 export { HawkUserManager } from './features/hawk-user-manager';
+export { HawkTraceManager } from './features/hawk-trace-manager';
+export { HAWK_TRACE_HEADER } from './constants/trace';
 export type { Logger, LogType } from './utils/logger';
 export { isLoggerSet, setLogger, resetLogger, log } from './utils/logger';
 export { validateUser, validateContext, isValidEventPayload, isValidBreadcrumb } from './utils/validation';

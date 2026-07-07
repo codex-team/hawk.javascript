@@ -588,7 +588,7 @@ __metadata:
   resolution: "@hawk.so/browser@workspace:packages/browser"
   dependencies:
     "@hawk.so/core": "workspace:^"
-    "@hawk.so/types": "npm:0.5.8"
+    "@hawk.so/types": "npm:0.6.5"
     "@vitest/coverage-v8": "npm:^4.0.18"
     error-stack-parser: "npm:^2.1.4"
     jsdom: "npm:^28.0.0"
@@ -604,7 +604,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@hawk.so/core@workspace:packages/core"
   dependencies:
-    "@hawk.so/types": "npm:0.5.8"
+    "@hawk.so/types": "npm:0.6.5"
     "@vitest/coverage-v8": "npm:^4.0.18"
     vite: "npm:^7.3.1"
     vite-plugin-dts: "npm:^4.2.4"
@@ -635,12 +635,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@hawk.so/types@npm:0.5.8":
-  version: 0.5.8
-  resolution: "@hawk.so/types@npm:0.5.8"
+"@hawk.so/types@npm:0.6.5":
+  version: 0.6.5
+  resolution: "@hawk.so/types@npm:0.6.5"
   dependencies:
     bson: "npm:^7.0.0"
-  checksum: 10c0/95d45be58594b30aad097d25beb800e2d236cf869b3f57916a67bea841263cab96eecf4d678dd86f94ec46318759b9d566c42228a450c1d05689b3f326654d53
+  checksum: 10c0/2c9ce652edfae0fb2ba5012ab271e8604aab46076e91305184230162b57c531e4e67df736c9808d361ddf9fcec2913a6d793ad7ef2973688eee154e49b5a26b3
   languageName: node
   linkType: hard
 

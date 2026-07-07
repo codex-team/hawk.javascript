@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { CatcherMessage, EventContext } from '@hawk.so/types';
-import { BaseCatcher, HawkUserManager } from '../src';
+import { BaseCatcher, HawkUserManager, HawkTraceManager } from '../src';
 import type {
   BeforeSendHook,
   Transport,
@@ -28,9 +28,10 @@ class TestCatcher extends BaseCatcher<TestType> {
     release?: string,
     context?: EventContext,
     beforeSend?: BeforeSendHook<TestType>,
-    breadcrumbStore?: BreadcrumbStore
+    breadcrumbStore?: BreadcrumbStore,
+    traceManager?: HawkTraceManager
   ) {
-    super(token, transport, userManager, release, context, beforeSend, breadcrumbStore);
+    super(token, transport, userManager, release, context, beforeSend, breadcrumbStore, traceManager);
   }
 
   protected getCatcherType(): TestType {
@@ -183,6 +184,47 @@ describe('BaseCatcher', () => {
       await catcher.run(new Error('test'), undefined, { requestId: 'abc' });
 
       expect(send.mock.calls[0][0].payload.context).toEqual({ requestId: 'abc' });
+    });
+  });
+
+  describe('trace', () => {
+    it('should attach SDK-managed trace.id to outgoing payload', async () => {
+      const traceManager = new HawkTraceManager();
+
+      traceManager.adoptTraceId('mabc123-550e8400-e29b-41d4-a716-446655440000');
+
+      const { send, transport } = makeTransport();
+      const catcher = new TestCatcher('token', transport, makeUserManager(), undefined, undefined, undefined, undefined, traceManager);
+
+      await catcher.run(new Error('test'));
+
+      expect(send).toHaveBeenCalledOnce();
+      expect(send.mock.calls[0][0].payload.trace).toEqual({
+        id: 'mabc123-550e8400-e29b-41d4-a716-446655440000',
+      });
+    });
+
+    it('should generate trace id when none was adopted', async () => {
+      const { send, transport } = makeTransport();
+      const catcher = new TestCatcher('token', transport, makeUserManager());
+
+      await catcher.run(new Error('test'));
+
+      expect(send.mock.calls[0][0].payload.trace?.id).toMatch(/^[0-9a-z]+-/);
+    });
+
+    it('should ignore trace id changes from beforeSend hook', async () => {
+      const { send, transport } = makeTransport();
+      const beforeSend: BeforeSendHook<TestType> = (event) => ({
+        ...event,
+        trace: { id: 'fake-user-trace-id' },
+      });
+      const catcher = new TestCatcher('token', transport, makeUserManager(), undefined, undefined, beforeSend);
+
+      await catcher.run(new Error('test'));
+
+      expect(send.mock.calls[0][0].payload.trace?.id).not.toBe('fake-user-trace-id');
+      expect(send.mock.calls[0][0].payload.trace?.id).toMatch(/^[0-9a-z]+-/);
     });
   });
 
