@@ -11,6 +11,7 @@ import { BaseCatcher, HawkUserManager, isLoggerSet, log, setLogger, decodeIntegr
 import { HawkLocalStorage } from './utils/hawk-local-storage';
 import { createBrowserLogger } from './utils/logger';
 import { BrowserRandomGenerator } from './utils/random';
+import { TracePropagation } from './features/trace-propagation';
 import { BrowserAddonMessageProcessor } from './addons/browser-addon-message-processor';
 import { ConsoleOutputAddonMessageProcessor } from './addons/console-output-addon-message-processor';
 import { DebugAddonMessageProcessor } from './addons/debug-addon-message-processor';
@@ -76,6 +77,11 @@ export default class Catcher extends BaseCatcher<typeof Catcher.type> {
    * Issues monitor instance
    */
   private issuesMonitor: PerformanceIssuesMonitor | null = null;
+
+  /**
+   * HTTP trace header propagation
+   */
+  private tracePropagation: TracePropagation | null = null;
 
   /**
    * Catcher constructor
@@ -172,6 +178,11 @@ export default class Catcher extends BaseCatcher<typeof Catcher.type> {
 
     if (settings.vue) {
       this.connectVue(settings.vue);
+    }
+
+    if (settings.trace) {
+      this.tracePropagation = new TracePropagation(this.getTraceManager(), settings.trace);
+      this.tracePropagation.init();
     }
   }
 

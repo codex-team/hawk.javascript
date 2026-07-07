@@ -3,6 +3,7 @@ import type { HawkJavaScriptEvent } from './event';
 import type { Transport } from '@hawk.so/core';
 import type { BreadcrumbsOptions } from '../addons/breadcrumbs';
 import type { IssuesOptions } from './issues';
+import type { TracePropagationOptions } from './trace';
 
 /**
  * JS Catcher initial settings
@@ -112,5 +113,18 @@ export interface HawkInitialSettings {
    * Manual sending via `.send()` still works.
    */
   issues?: false | IssuesOptions;
+
+  /**
+   * HTTP trace header propagation.
+   *
+   * Enabled only when `propagationTargets` contains at least one valid target.
+   * Events always include SDK-managed `trace.id` regardless of this setting.
+   *
+   * @example
+   * trace: {
+   *   propagationTargets: ['https://api.example.com', /^\/api\//],
+   * }
+   */
+  trace?: TracePropagationOptions;
 
 }
