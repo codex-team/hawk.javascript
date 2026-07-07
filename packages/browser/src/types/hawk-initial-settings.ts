@@ -118,7 +118,7 @@ export interface HawkInitialSettings {
    * HTTP trace header propagation.
    *
    * Enabled only when `propagationTargets` contains at least one valid target.
-   * Events always include SDK-managed `trace.id` regardless of this setting.
+   * When disabled, events do not include `trace.id` and HTTP headers are not patched.
    *
    * @example
    * trace: {

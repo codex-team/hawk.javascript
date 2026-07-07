@@ -110,6 +110,25 @@ describe('TracePropagation', () => {
     expect(window.fetch).toBe(fetchMock);
   });
 
+  it('should adopt trace id from fetch response header on configured targets', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('ok', {
+      headers: {
+        [HAWK_TRACE_HEADER]: 'mabc123-550e8400-e29b-41d4-a716-446655440000',
+      },
+    }));
+
+    window.fetch = fetchMock as typeof fetch;
+
+    propagation = new TracePropagation(traceManager, {
+      propagationTargets: [/^\/api\//],
+    });
+    propagation.init();
+
+    await window.fetch(MATCHING_URL);
+
+    expect(traceManager.getTraceId()).toBe('mabc123-550e8400-e29b-41d4-a716-446655440000');
+  });
+
   it('should add hawk-trace-id header for configured XMLHttpRequest targets', () => {
     propagation = new TracePropagation(traceManager, {
       propagationTargets: [/^\/api\//],

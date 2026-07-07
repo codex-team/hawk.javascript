@@ -204,13 +204,31 @@ describe('BaseCatcher', () => {
       });
     });
 
-    it('should generate trace id when none was adopted', async () => {
+    it('should generate trace id when trace manager is configured', async () => {
+      const { send, transport } = makeTransport();
+      const catcher = new TestCatcher(
+        'token',
+        transport,
+        makeUserManager(),
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        new HawkTraceManager()
+      );
+
+      await catcher.run(new Error('test'));
+
+      expect(send.mock.calls[0][0].payload.trace?.id).toMatch(/^[0-9a-z]+-/);
+    });
+
+    it('should not attach trace when trace manager is not configured', async () => {
       const { send, transport } = makeTransport();
       const catcher = new TestCatcher('token', transport, makeUserManager());
 
       await catcher.run(new Error('test'));
 
-      expect(send.mock.calls[0][0].payload.trace?.id).toMatch(/^[0-9a-z]+-/);
+      expect(send.mock.calls[0][0].payload.trace).toBeUndefined();
     });
 
     it('should ignore trace id changes from beforeSend hook', async () => {
@@ -219,7 +237,16 @@ describe('BaseCatcher', () => {
         ...event,
         trace: { id: 'fake-user-trace-id' },
       });
-      const catcher = new TestCatcher('token', transport, makeUserManager(), undefined, undefined, beforeSend);
+      const catcher = new TestCatcher(
+        'token',
+        transport,
+        makeUserManager(),
+        undefined,
+        undefined,
+        beforeSend,
+        undefined,
+        new HawkTraceManager()
+      );
 
       await catcher.run(new Error('test'));
 

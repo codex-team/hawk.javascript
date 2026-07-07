@@ -121,6 +121,18 @@ function appendTraceHeader(headers: HeadersInit | undefined, traceId: string): H
 }
 
 /**
+ * Adopts trace id from incoming HTTP header when present.
+ *
+ * @param traceManager - SDK-managed trace state
+ * @param traceId - header value
+ */
+function adoptIncomingTraceId(traceManager: HawkTraceManager, traceId: string | null): void {
+  if (traceId) {
+    traceManager.adoptTraceId(traceId);
+  }
+}
+
+/**
  * Patches fetch/XHR to propagate current trace id via HTTP header.
  */
 export class TracePropagation {
@@ -183,13 +195,21 @@ export class TracePropagation {
 
         const request = new Request(input, { headers });
 
-        return originalFetch(request, init);
+        const response = await originalFetch(request, init);
+
+        adoptIncomingTraceId(traceManager, response.headers.get(HAWK_TRACE_HEADER));
+
+        return response;
       }
 
-      return originalFetch(input, {
+      const response = await originalFetch(input, {
         ...init,
         headers: appendTraceHeader(init?.headers, traceId),
       });
+
+      adoptIncomingTraceId(traceManager, response.headers.get(HAWK_TRACE_HEADER));
+
+      return response;
     };
   }
 
@@ -229,6 +249,18 @@ export class TracePropagation {
 
       if (url && shouldPropagate(url)) {
         this.setRequestHeader(HAWK_TRACE_HEADER, traceManager.getTraceId());
+
+        const xhr = this;
+        const adoptFromResponse = (): void => {
+          if (xhr.readyState !== XMLHttpRequest.DONE) {
+            return;
+          }
+
+          adoptIncomingTraceId(traceManager, xhr.getResponseHeader(HAWK_TRACE_HEADER));
+          xhr.removeEventListener('readystatechange', adoptFromResponse);
+        };
+
+        this.addEventListener('readystatechange', adoptFromResponse);
       }
 
       return originalSend.call(this, body);

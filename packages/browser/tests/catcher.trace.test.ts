@@ -19,6 +19,7 @@ vi.mock('@hawk.so/core', async (importOriginal) => {
 
 const MATCHING_URL = '/api/projects';
 const NON_MATCHING_URL = '/public/status';
+const ADOPTED_TRACE_ID = 'mabc123-550e8400-e29b-41d4-a716-446655440000';
 
 function getTraceHeader(init?: RequestInit): string | null {
   if (!init?.headers) {
@@ -58,14 +59,6 @@ describe('Catcher trace', () => {
     vi.restoreAllMocks();
   });
 
-  it('should attach trace.id to sent events without trace settings', async () => {
-    const { sendSpy, transport } = createTransport();
-    createCatcher(transport).send(new Error('test'));
-    await wait();
-
-    expect(getLastPayload(sendSpy).trace?.id).toMatch(/^[0-9a-z]+-/);
-  });
-
   it('should add hawk-trace-id only to configured propagation targets', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response('ok'));
 
@@ -81,6 +74,8 @@ describe('Catcher trace', () => {
 
     const traceId = getLastPayload(sendSpy).trace?.id;
 
+    expect(traceId).toMatch(/^[0-9a-z]+-/);
+
     await window.fetch(MATCHING_URL);
     await window.fetch(NON_MATCHING_URL);
 
@@ -94,13 +89,36 @@ describe('Catcher trace', () => {
     expect(getTraceHeader(nonMatchingCall![1])).toBeNull();
   });
 
+  it('should adopt trace id from response header on configured targets', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('ok', {
+      headers: {
+        [HAWK_TRACE_HEADER]: ADOPTED_TRACE_ID,
+      },
+    }));
+
+    window.fetch = fetchMock as typeof fetch;
+
+    const { sendSpy, transport } = createTransport();
+    const catcher = createCatcher(transport, {
+      trace: {
+        propagationTargets: [/^\/api\//],
+      },
+    });
+
+    await window.fetch(MATCHING_URL);
+    catcher.send(new Error('after adopt'));
+    await wait();
+
+    expect(getLastPayload(sendSpy).trace?.id).toBe(ADOPTED_TRACE_ID);
+  });
+
   it.each<[string, Record<string, unknown>]>([
     ['trace settings are omitted', {}],
     ['trace object is empty', { trace: {} }],
     ['trace has no propagationTargets', { trace: { propagationTargets: undefined } }],
     ['propagationTargets is an empty array', { trace: { propagationTargets: [] } }],
     ['propagationTargets contains only invalid urls', { trace: { propagationTargets: ['', '   '] } }],
-  ])('should not add hawk-trace-id anywhere when %s', async (_label, options) => {
+  ])('should not enable trace anywhere when %s', async (_label, options) => {
     const fetchMock = vi.fn().mockResolvedValue(new Response('ok'));
 
     window.fetch = fetchMock as typeof fetch;
@@ -109,7 +127,7 @@ describe('Catcher trace', () => {
     createCatcher(transport, options as Partial<HawkInitialSettings>).send(new Error('init trace'));
     await wait();
 
-    expect(getLastPayload(sendSpy).trace?.id).toMatch(/^[0-9a-z]+-/);
+    expect(getLastPayload(sendSpy).trace).toBeUndefined();
 
     await window.fetch(MATCHING_URL);
     await window.fetch(NON_MATCHING_URL);

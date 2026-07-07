@@ -76,9 +76,9 @@ export abstract class BaseCatcher<T extends ErrorsCatcherType> {
   private readonly userManager: HawkUserManager;
 
   /**
-   * Manages current distributed trace id
+   * Manages current distributed trace id when trace linking is enabled.
    */
-  private readonly traceManager: HawkTraceManager;
+  private readonly traceManager?: HawkTraceManager;
 
   /**
    * Any additional data passed by user for sending with all messages
@@ -121,7 +121,7 @@ export abstract class BaseCatcher<T extends ErrorsCatcherType> {
    * @param context - optional global context merged into every event
    * @param beforeSend - optional hook to filter or modify events before sending
    * @param breadcrumbStore - optional breadcrumb store
-   * @param traceManager - optional trace manager; default instance is created when omitted
+   * @param traceManager - optional trace manager; when omitted, trace linking is disabled
    */
   protected constructor(
     token: EncodedIntegrationToken,
@@ -136,7 +136,7 @@ export abstract class BaseCatcher<T extends ErrorsCatcherType> {
     this.token = token;
     this.transport = transport;
     this.userManager = userManager;
-    this.traceManager = traceManager ?? new HawkTraceManager();
+    this.traceManager = traceManager;
     this.release = release;
     this.beforeSend = beforeSend;
     this.breadcrumbStore = breadcrumbStore;
@@ -185,6 +185,10 @@ export abstract class BaseCatcher<T extends ErrorsCatcherType> {
    * Returns trace manager for internal SDK use (HTTP propagation in environment packages).
    */
   protected getTraceManager(): HawkTraceManager {
+    if (!this.traceManager) {
+      throw new Error('Trace manager is not configured');
+    }
+
     return this.traceManager;
   }
 
@@ -284,9 +288,11 @@ export abstract class BaseCatcher<T extends ErrorsCatcherType> {
       }
 
       /**
-       * Always attach trace from SDK-managed state so user hooks cannot spoof linking ids.
+       * Attach trace only when SDK trace linking is enabled for this catcher instance.
        */
-      filtered.trace = this.traceManager.getEventTrace();
+      if (this.traceManager) {
+        filtered.trace = this.traceManager.getEventTrace();
+      }
 
       this.sendMessage({
         token: this.token,

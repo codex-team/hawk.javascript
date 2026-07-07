@@ -7,11 +7,11 @@ import type { VueIntegrationAddons } from '@hawk.so/types';
 import type { JavaScriptCatcherIntegrations } from '@/types';
 import { ConsoleCatcher } from './addons/consoleCatcher';
 import { BrowserBreadcrumbStore } from './addons/breadcrumbs';
-import { BaseCatcher, HawkUserManager, isLoggerSet, log, setLogger, decodeIntegrationId } from '@hawk.so/core';
+import { BaseCatcher, HawkUserManager, HawkTraceManager, isLoggerSet, log, setLogger, decodeIntegrationId } from '@hawk.so/core';
 import { HawkLocalStorage } from './utils/hawk-local-storage';
 import { createBrowserLogger } from './utils/logger';
 import { BrowserRandomGenerator } from './utils/random';
-import { TracePropagation } from './features/trace-propagation';
+import { TracePropagation, resolvePropagationTargets } from './features/trace-propagation';
 import { BrowserAddonMessageProcessor } from './addons/browser-addon-message-processor';
 import { ConsoleOutputAddonMessageProcessor } from './addons/console-output-addon-message-processor';
 import { DebugAddonMessageProcessor } from './addons/debug-addon-message-processor';
@@ -96,10 +96,14 @@ export default class Catcher extends BaseCatcher<typeof Catcher.type> {
     }
 
     const token = settings.token;
+    const randomGenerator = new BrowserRandomGenerator();
     const userManager = new HawkUserManager(
       new HawkLocalStorage(),
-      new BrowserRandomGenerator()
+      randomGenerator
     );
+    const traceManager = resolvePropagationTargets(settings.trace)
+      ? new HawkTraceManager(randomGenerator)
+      : undefined;
     /**
      * Init transport
      * WebSocket decorator by default, or custom via {@link settings.transport}
@@ -131,7 +135,8 @@ export default class Catcher extends BaseCatcher<typeof Catcher.type> {
       settings.release !== undefined ? String(settings.release) : undefined,
       settings.context || undefined,
       settings.beforeSend,
-      breadcrumbStore ?? undefined
+      breadcrumbStore ?? undefined,
+      traceManager
     );
 
     this.debug = settings.debug || false;
@@ -180,8 +185,8 @@ export default class Catcher extends BaseCatcher<typeof Catcher.type> {
       this.connectVue(settings.vue);
     }
 
-    if (settings.trace) {
-      this.tracePropagation = new TracePropagation(this.getTraceManager(), settings.trace);
+    if (traceManager && settings.trace) {
+      this.tracePropagation = new TracePropagation(traceManager, settings.trace);
       this.tracePropagation.init();
     }
   }
