@@ -179,6 +179,22 @@ IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING WILL ANY C
 17. Interpretation of Sections 15 and 16.
 If the disclaimer of warranty and limitation of liability provided above cannot be given local legal effect according to their terms, reviewing courts shall apply local law that most closely approximates an absolute waiver of all civil liability in connection with the Program, unless a warranty or assumption of liability accompanies a copy of the Program in return for a fee.
 
+---
+
+Additional Permission — Hawk SDK
+
+Notwithstanding the terms of the GNU Affero General Public License version 3, the copyright holders grant permission to use, link, import, combine, and distribute this software as a library, SDK, or dependency as part of another software product, including proprietary and commercially distributed software, without requiring such other software to be licensed under the GNU Affero General Public License.
+
+The use of this software as a library, SDK, or dependency does not, by itself, require the source code of the other software with which it is used to be made available under the GNU Affero General Public License.
+
+This additional permission applies only to the use of this software as a library, SDK, or dependency. It does not grant permission to distribute a modified version of this software itself without complying with the GNU Affero General Public License version 3.
+
+Any modifications to this software itself remain subject to the GNU Affero General Public License version 3, unless a separate permission is granted by the copyright holders.
+
+This additional permission is granted under Section 7 of the GNU Affero General Public License version 3.
+
+---
+
 END OF TERMS AND CONDITIONS
 
 hawk.javascript – Error tracking for JavaScript/TypeScript applications.
