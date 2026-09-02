@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCatcher, createTransport, getLastPayload, wait } from "./catcher.helpers";
 
 vi.mock('@hawk.so/core', async (importOriginal) => {
@@ -7,6 +7,14 @@ vi.mock('@hawk.so/core', async (importOriginal) => {
 });
 
 describe('Catcher', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('should include release version when configured', async () => {
     const { sendSpy, transport } = createTransport();
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { BrowserBreadcrumbStore } from '../src/addons/breadcrumbs';
 import type { Transport } from '../src';
 import { wait, createCatcher, createTransport } from './catcher.helpers';
@@ -14,6 +14,11 @@ describe('Catcher', () => {
     localStorage.clear();
     mockParse.mockResolvedValue([]);
     (BrowserBreadcrumbStore as any).instance?.destroy();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe('transport failure', () => {

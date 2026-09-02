@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { createCatcher, createTransport, getLastPayload, injectProcessor, wait } from './catcher.helpers';
 import { MessageProcessor, ProcessingPayload } from '@hawk.so/core';
 
@@ -10,6 +10,14 @@ vi.mock('../src/modules/stackParser', () => ({
 }));
 
 describe('Catcher', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   describe('message processor', () => {
     it('should send original message when processor does not modify it', async () => {
       const { sendSpy, transport } = createTransport();

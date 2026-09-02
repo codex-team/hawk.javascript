@@ -17,6 +17,11 @@ describe('Catcher', () => {
     localStorage.clear();
     mockParse.mockResolvedValue([]);
     (BrowserBreadcrumbStore as any).instance?.destroy();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   // ── Constructor variants ──────────────────────────────────────────────────
@@ -114,7 +119,7 @@ describe('Catcher', () => {
       expect(sendSpy).toHaveBeenCalledTimes(2);
     });
 
-    it('should send payload for same strings without deduplication', async () => {
+    it('should merge repeated identical string occurrences into a single send with count', async () => {
       const { sendSpy, transport } = createTransport();
       const hawk = createCatcher(transport);
 
@@ -122,7 +127,8 @@ describe('Catcher', () => {
       hawk.send('reason');
       await wait();
 
-      expect(sendSpy).toHaveBeenCalledTimes(2);
+      expect(sendSpy).toHaveBeenCalledTimes(1);
+      expect(sendSpy.mock.calls[0][0].count).toBe(2);
     });
   });
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createCatcher, createTransport, wait, getLastPayload } from './catcher.helpers';
 
 vi.mock('@hawk.so/core', async (importOriginal) => {
@@ -7,6 +7,14 @@ vi.mock('@hawk.so/core', async (importOriginal) => {
 });
 
 describe('Catcher', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('should send event as-is when beforeSend returns it unchanged', async () => {
     const { sendSpy, transport } = createTransport();
     const hawk = createCatcher(transport, { beforeSend: (event) => event });

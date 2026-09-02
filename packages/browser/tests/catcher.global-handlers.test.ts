@@ -14,6 +14,11 @@ describe('Catcher', () => {
     localStorage.clear();
     mockParse.mockResolvedValue([]);
     (BrowserBreadcrumbStore as any).instance?.destroy();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   // ── Global error handlers ─────────────────────────────────────────────────
