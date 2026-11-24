@@ -1,6 +1,6 @@
 {
   "name": "@hawk.so/sveltekit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SvelteKit integration for Hawk Error Tracker",
   "main": "./dist/hawk-sveltekit.umd.js",
   "module": "./dist/hawk-sveltekit.mjs",
@@ -24,7 +24,7 @@
     "name": "CodeX",
     "email": "team@codex.so"
   },
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/codex-team/hawk.javascript/issues"
   },

@@ -1,6 +1,6 @@
 {
   "name": "@hawk.so/browser",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "JavaScript Browser errors tracking for Hawk.so",
   "files": [
     "dist"
@@ -34,7 +34,7 @@
     "name": "CodeX",
     "email": "team@codex.so"
   },
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/codex-team/hawk.javascript/issues"
   },
